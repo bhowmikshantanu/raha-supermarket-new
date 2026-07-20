@@ -18,7 +18,6 @@ import { Input } from "@/src/components/Input";
 import { ScreenHeader } from "@/src/components/ScreenHeader";
 import { StatusPill } from "@/src/components/StatusPill";
 import { useToast } from "@/src/components/Toast";
-import { BRAND } from "@/src/config/brand";
 import { COLORS, FONT, RADIUS, SHADOW, SPACING } from "@/src/config/theme";
 import { useApp } from "@/src/context/AppContext";
 import { getProductById } from "@/src/data/products";
@@ -209,9 +208,6 @@ export default function Checkout() {
           testID="place-order-btn"
         />
       </View>
-
-      {/* Reference brand hours for lint (keeps tree-shakeable import) */}
-      {false && <Text>{BRAND.storeHours.displayText}</Text>}
     </SafeAreaView>
   );
 }
