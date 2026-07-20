@@ -1,0 +1,36 @@
+{
+  "summary": "Frontend-only E2E test of Raha Supermarket Expo app via preview URL. All critical user journeys verified end-to-end: Splash → Onboarding → Login (mobile + Guest) → OTP (wrong OTP stays on screen, 1234 succeeds) → Home (brand header, Open Now status, search bar, banners, category chips, product sections) → Search screen navigation → Add-to-cart with stepper → Cart with FREE delivery unlock at ₹500+ (verified ₹923 subtotal → ₹50 strike-through + FREE) → Checkout form validation (empty submit blocked, stays on page) → Online payment shows 'Coming Soon' and DOES NOT place order → COD placement succeeds, order ID prefixed 'RH' (e.g., #RH44943083) → Order Confirmation screen with Total/ETA/Address/Payment → Track Order → Order Details with 5-step timeline (Order Placed → Confirmed → Preparing → Out for Delivery → Delivered), items, bill, address → Orders tab (Active/Past tabs both present) → Profile tab correctly shows Guest state (Login button visible, no logout-button for guest). Cart total updates correctly (Nutella 2×365 + Amul 58 + Dabur 135 = ₹923; FREE delivery applied). All required testIDs exist and work. Only minor React Native web deprecation warnings observed (non-blocking).",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [],
+    "react_native_issues": [
+      {"component": "Global StyleSheet (theme SHADOW)", "issue": "Console warning: 'shadow*' style props are deprecated. Use 'boxShadow'. Emitted by any element using shadowColor/shadowOffset/shadowOpacity/shadowRadius (e.g., src/config/theme.ts SHADOW.card/header consumed by checkout.tsx footer, cart itemCard, splash logoWrap). Not blocking but should be migrated to boxShadow for RN Web/newer RN."},
+      {"component": "Legacy pointerEvents prop", "issue": "Console warning: 'props.pointerEvents is deprecated. Use style.pointerEvents'. Likely originating from a react-native-safe-area-context / react-navigation internal View or a component still passing pointerEvents as a prop. Search the codebase for pointerEvents=\"..\" and move to style.pointerEvents."},
+      {"component": "Animated useNativeDriver on web", "issue": "Console warning: 'Animated: useNativeDriver is not supported... Falling back to JS-based animation.' Origin appears to be Toast/animated components. On web this is expected but can be gated with Platform.OS !== 'web' to silence."}
+    ]
+  },
+  "test_report_links": ["/app/test_reports/iteration_1.json", "/app/test_reports/screens/"],
+  "action_items": [
+    "(Optional / low priority) Migrate SHADOW tokens in src/config/theme.ts from shadow* to boxShadow to remove RN Web deprecation warnings.",
+    "(Optional / low priority) Remove/refactor any legacy pointerEvents prop usage; use style.pointerEvents instead.",
+    "(Optional / low priority) Guard useNativeDriver: pass useNativeDriver: Platform.OS !== 'web' in Animated timings (Toast component) to remove console noise."
+  ],
+  "critical_code_review_comments": [
+    "checkout.tsx line 214: `{false && <Text>{BRAND.storeHours.displayText}</Text>}` is dead code kept 'for tree-shakeable import'. Prefer removing the reference and importing BRAND only where used, or use a proper `// eslint-disable` comment.",
+    "AppContext handles all state including cart, orders, addresses; ensure it stays under ~700 lines. If growing, split into cartSlice/ordersSlice hooks.",
+    "otp.tsx MOCK_OTP hardcoded and visible on-screen ('Demo tip: use OTP 1234') — expected for Phase 1 demo; document to remove before production.",
+    "Product cards on Home returned 16 add-to-cart nodes even though there are 15 unique products — cross-lane duplicates (Featured/Best Offers/Popular) can lead to multiple stepper elements per product ID on the same screen. Consider keying test IDs by section (e.g., add-to-cart-featured-<pid>) or ensure stepper state is shared correctly (appears to work via context, but tapping duplicates may cause double-increments if events bubble)."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "N/A (not requested)", "frontend": "100% (all listed feature/bug scenarios verified)"},
+  "seed_data_creation": "None - fully client-side with AsyncStorage seeded from src/data/products.ts and src/data/categories.ts.",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Preview URL: https://local-grocery-app-9.preview.emergentagent.com. Use mobile viewport 390x844. Splash auto-redirects after 900ms. Onboarding testIDs: onboarding-skip, onboarding-continue. Login: mobile-input, send-otp-button, guest-login-button. OTP: otp-digit-0..3, verify-otp-button, resend-otp-button (30s countdown). Tabs: tab-home/categories/cart/orders/profile. When clicking tabs after being on a stack screen (e.g., checkout, order-confirmation, product listing), Playwright's normal .click may fail with 'not visible' because Expo Router keeps stack screens mounted overlaying tabs. Use JavaScript click via page.evaluate to bypass — this was proven reliable. Cart: cart-inc-<pid>, cart-dec-<pid>, cart-remove-<pid>, cart-total, proceed-to-checkout. Checkout inputs: in-fullname/mobile/house/landmark/area/pincode/instructions, pay-cod, pay-online, place-order-btn. Order Confirmation: oc-order-id, oc-continue-shopping, oc-track-order. Orders: orders-tab-active, orders-tab-past. All 15 products across 6 categories exist. Mock OTP is 1234. Order IDs prefixed 'RH'. Free delivery threshold is ₹500 (₹50 fee below).",
+  "rca_of_issue": "No functional bugs found. Only cosmetic RN-Web deprecation console warnings observed (shadow*, pointerEvents, useNativeDriver on web). These do NOT affect UX or test outcomes."
+}
