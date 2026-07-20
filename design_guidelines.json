@@ -1,0 +1,100 @@
+{
+  "theme_strategy": "Light mode by default. For a food and grocery app, a light theme conveys cleanliness, freshness, and hygiene. Dark themes can feel unappetizing in this context. Surfaces should use pure white with subtle gray offsets for structural hierarchy.",
+  "brand": {
+    "name": "Raha Supermarket",
+    "address": "Ward No. 8, Gularbhoj Road",
+    "whatsapp": "8130011378",
+    "hours": "10 AM to 8 PM",
+    "delivery": "Radius 2 km, Fee ₹50 below ₹500, Free ₹500+",
+    "currency": "INR"
+  },
+  "colors": {
+    "primary": "#16A34A",
+    "primary_hover": "#15803D",
+    "primary_light": "#DCFCE7",
+    "background": "#FFFFFF",
+    "surface": "#F9FAFB",
+    "border": "#F3F4F6",
+    "text_primary": "#111827",
+    "text_secondary": "#6B7280",
+    "accent_warning": "#F59E0B",
+    "accent_danger": "#EF4444"
+  },
+  "typography": {
+    "headings": "Outfit",
+    "body": "Manrope",
+    "sizes": {
+      "h1": "text-2xl font-bold tracking-tight text-gray-900",
+      "h2": "text-xl font-semibold text-gray-900",
+      "h3": "text-lg font-medium text-gray-900",
+      "body": "text-sm leading-relaxed text-gray-700",
+      "caption": "text-xs font-medium text-gray-500 uppercase tracking-wider"
+    }
+  },
+  "spacing_and_layout": {
+    "container": "w-full max-w-md mx-auto min-h-screen bg-white relative shadow-2xl overflow-hidden",
+    "padding": "p-4 sm:p-6",
+    "gap": "gap-4",
+    "radius": {
+      "card": "rounded-2xl",
+      "button": "rounded-xl",
+      "image": "rounded-xl"
+    }
+  },
+  "component_guidelines": {
+    "Header": "Sticky top positioning (z-40). bg-white border-b border-gray-100 p-4. Contains user location ('Ward No. 8, Gularbhoj Road'), profile icon, and prominent search bar.",
+    "BottomNav": "Fixed to bottom (z-50). bg-white border-t border-gray-100 flex justify-between px-6 py-3 pb-safe-area. Icons for Home, Categories, Cart, Profile.",
+    "ProductCard": "Vertical layout. rounded-2xl border border-gray-100 p-3 bg-white. Image at top (aspect-square object-contain), Title and Price below. Add to cart button is small, rounded-xl, green. Highlight discounts with small tags.",
+    "CategoryTile": "Square aspect ratio. rounded-xl bg-gray-50 flex flex-col items-center justify-center p-3 gap-2. Use soft background colors matching category theme.",
+    "Banner": "rounded-2xl overflow-hidden relative w-full h-40. Image cover with dark gradient overlay at bottom for text contrast.",
+    "CartThresholdBar": "Prominent sticky banner in the cart showing progress towards ₹500 for free delivery. Use a green progress bar."
+  },
+  "motion": {
+    "button_press": "active:scale-95 transition-transform duration-150 ease-out",
+    "page_transition": "animate-in slide-in-from-right-4 duration-300",
+    "hover_lift": "hover:-translate-y-1 transition-transform duration-200"
+  },
+  "images": {
+    "products": {
+      "nutella": "https://images.unsplash.com/photo-1584053386451-f078fff801ae?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjAzMzN8MHwxfHNlYXJjaHwxfHxudXRlbGxhJTIwamFyfGVufDB8fHx8MTc4NDU0MzU2MHww&ixlib=rb-4.1.0&q=85",
+      "butter": "https://images.pexels.com/photos/7965940/pexels-photo-7965940.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
+      "cooking_oil": "https://images.pexels.com/photos/12284682/pexels-photo-12284682.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
+      "chocolate_bar": "https://images.unsplash.com/photo-1623660053975-cf75a8be0908?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2NzB8MHwxfHNlYXJjaHwxfHxjaG9jb2xhdGUlMjBiYXJ8ZW58MHx8fHwxNzg0NTQzNTYwfDA&ixlib=rb-4.1.0&q=85",
+      "cola": "https://images.unsplash.com/photo-1648569883125-d01072540b4c?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjAzOTB8MHwxfHNlYXJjaHwxfHxjb2xhJTIwYm90dGxlfGVufDB8fHx8MTc4NDU0MzU2MHww&ixlib=rb-4.1.0&q=85",
+      "honey": "https://images.unsplash.com/photo-1587049352851-8d4e89133924?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA3MDB8MHwxfHNlYXJjaHwxfHxob25leSUyMGphcnxlbnwwfHx8fDE3ODQ1NDM1NjB8MA&ixlib=rb-4.1.0&q=85"
+    },
+    "categories": {
+      "grocery_staples": "https://images.pexels.com/photos/1393382/pexels-photo-1393382.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
+      "dairy": "https://images.unsplash.com/photo-1634141510639-d691d86f47be?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NTYxNzV8MHwxfHNlYXJjaHwxfHxtaWxrJTIwZGFpcnl8ZW58MHx8fHwxNzg0NTQzNTYwfDA&ixlib=rb-4.1.0&q=85",
+      "snacks": "https://images.unsplash.com/photo-1599490659213-e2b9527bd087?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA3MDR8MHwxfHNlYXJjaHwxfHxzbmFja3MlMjBjaGlwc3xlbnwwfHx8fDE3ODQ1NDM1NjB8MA&ixlib=rb-4.1.0&q=85",
+      "household": "https://images.pexels.com/photos/5217889/pexels-photo-5217889.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
+      "personal_care": "https://images.pexels.com/photos/10574055/pexels-photo-10574055.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940"
+    },
+    "banners": {
+      "banner1": "https://images.unsplash.com/photo-1542838132-92c53300491e?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA0MTJ8MHwxfHNlYXJjaHwxfHxncm9jZXJ5JTIwc3VwZXJtYXJrZXQlMjBiYW5uZXJ8ZW58MHx8fHwxNzg0NTQzNTYwfDA&ixlib=rb-4.1.0&q=85",
+      "banner2": "https://images.unsplash.com/photo-1628102491629-778571d893a3?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA0MTJ8MHwxfHNlYXJjaHwxfHxncm9jZXJ5JTIwc3VwZXJtYXJrZXQlMjBiYW5uZXJ8ZW58MHx8fHwxNzg0NTQzNTYwfDA&ixlib=rb-4.1.0&q=85"
+    }
+  },
+  "accessibility": {
+    "contrast": "Ensure 4.5:1 minimum for text against backgrounds. Use text-white on primary green buttons.",
+    "testing": "All interactive and key informational elements MUST include a `data-testid` attribute (e.g., data-testid='add-to-cart-button')."
+  },
+  "instructions_to_main_agent": [
+    "Build standard React (.js) using Tailwind CSS. Since it targets mobile context, wrap the main app layout in a 'max-w-md mx-auto w-full h-screen overflow-y-auto' container to mimic mobile dimensions on desktop browsers.",
+    "Use standard DOM elements styled as app components.",
+    "Implement clear bottom navigation for major screens (Home, Categories, Cart, Profile).",
+    "Ensure seamless mock OTP login flow.",
+    "In the Cart view, create a visual progress bar indicating distance to ₹500 for Free Delivery.",
+    "Show a clean timeline layout for Order Statuses (Ordered, Packed, Out for Delivery, Delivered)."
+  ],
+  "UNIVERSAL_GUIDELINES_FOR_MAIN_AGENT": [
+    "Avoid generic 'AI slop' UI. Produce a high-quality, trustworthy e-commerce mobile experience.",
+    "Use Lucide-react for all iconography.",
+    "DO NOT use Inter, Roboto, Open Sans, Lato for Headings. Stick to the suggested Outfit (or similar modern geometric sans).",
+    "Incorporate micro-animations. Every tap should have a reaction (e.g., active:scale-95).",
+    "Never use transparent backgrounds in headers or overlays; ensure solid or glassmorphism (backdrop-blur-xl bg-white/90) is applied.",
+    "DO NOT center align large blocks of text; left-align naturally.",
+    "Never use generic placeholders. Only use the provided Unsplash/Pexels image URLs.",
+    "Apply 'data-testid' to ALL buttons, inputs, links, and major wrappers to enable automated testing."
+  ]
+}
