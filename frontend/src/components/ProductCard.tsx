@@ -1,11 +1,26 @@
 import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
-import React from "react";
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import React, { useCallback, useMemo, useState } from "react";
+import {
+  GestureResponderEvent,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 
-import { COLORS, FONT, RADIUS, SHADOW, SPACING } from "@/src/config/theme";
+import {
+  COLORS,
+  FONT,
+  RADIUS,
+  SHADOW,
+  SPACING,
+} from "@/src/config/theme";
 import type { Product } from "@/src/types";
-import { calcDiscountPercent, formatCurrency } from "@/src/utils/format";
+import {
+  calcDiscountPercent,
+  formatCurrency,
+} from "@/src/utils/format";
 
 interface Props {
   product: Product;
@@ -17,53 +32,232 @@ interface Props {
   layout?: "grid" | "list";
 }
 
+interface QtyStepperProps {
+  qty: number;
+  onInc: () => void;
+  onDec: () => void;
+  pid: string;
+}
+
 export const ProductCard: React.FC<Props> = React.memo(
-  ({ product, quantity, onPress, onAdd, onIncrement, onDecrement, layout = "grid" }) => {
-    const discount = calcDiscountPercent(product.mrp, product.price);
-    const isOOS = product.stock <= 0;
+  ({
+    product,
+    quantity,
+    onPress,
+    onAdd,
+    onIncrement,
+    onDecrement,
+    layout = "grid",
+  }) => {
+    const [imageFailed, setImageFailed] = useState(false);
+  const [wishlisted, setWishlisted] = useState(false);
+
+    const discount = useMemo(
+      () => calcDiscountPercent(product.mrp, product.price),
+      [product.mrp, product.price],
+    );
+
+    const isOutOfStock = product.stock <= 0;
+    const isLowStock = product.stock > 0 && product.stock <= 5;
+
+    const toggleWishlist = useCallback(
+      (event: GestureResponderEvent) => {
+        event.stopPropagation();
+        setWishlisted((prev) => !prev);
+      },
+      [],
+    );
+
+    const handleActionPress = useCallback(
+      (
+        event: GestureResponderEvent,
+        action: () => void,
+      ) => {
+        event.stopPropagation();
+        action();
+      },
+      [],
+    );
+
+    const productImage = (
+      <View
+        style={[
+          layout === "list"
+            ? styles.listImageWrap
+            : styles.gridImageWrap,
+          isOutOfStock && styles.outOfStockImageWrap,
+        ]}
+      >
+        {imageFailed || !product.image ? (
+          <View style={styles.imageFallback}>
+            <Ionicons
+              name="image-outline"
+              size={layout === "list" ? 30 : 38}
+              color={COLORS.textMuted}
+            />
+            <Text style={styles.imageFallbackText}>
+              Image unavailable
+            </Text>
+          </View>
+        ) : (
+          <Image
+            source={{ uri: product.image }}
+            style={[
+              layout === "list"
+                ? styles.listImage
+                : styles.gridImage,
+              isOutOfStock && styles.outOfStockImage,
+            ]}
+            contentFit="contain"
+            transition={180}
+            cachePolicy="memory-disk"
+            recyclingKey={String(product.id)}
+            onError={() => setImageFailed(true)}
+            accessibilityLabel={`${product.name} product image`}
+          />
+        )}
+
+        <TouchableOpacity
+          activeOpacity={0.85}
+          onPress={toggleWishlist}
+          style={styles.wishlistButton}
+          accessibilityRole="button"
+          accessibilityLabel={
+            wishlisted
+              ? `Remove ${product.name} from wishlist`
+              : `Add ${product.name} to wishlist`
+          }
+        >
+          <Ionicons
+            name={wishlisted ? "heart" : "heart-outline"}
+            size={18}
+            color={wishlisted ? COLORS.danger : COLORS.textOnSurface}
+          />
+        </TouchableOpacity>
+
+        {discount > 0 && (
+          <View style={styles.discountBadge}>
+            <Text style={styles.discountText}>
+              {discount}% OFF
+            </Text>
+          </View>
+        )}
+
+        {(isLowStock || isOutOfStock) && (
+          <View style={styles.stockBadge}>
+            <Ionicons
+              name={isOutOfStock ? "ban" : "flash"}
+              size={10}
+              color={isOutOfStock ? COLORS.danger : COLORS.primary}
+            />
+            <Text style={styles.stockText}>
+              {isOutOfStock
+                ? "Out of stock"
+                : `Only ${product.stock} left`}
+            </Text>
+          </View>
+        )}
+      </View>
+    );
+
+    const productDetails = (
+      <>
+        <Text
+          style={styles.name}
+          numberOfLines={2}
+          ellipsizeMode="tail"
+        >
+          {product.name}
+        </Text>
+
+        <Text
+          style={styles.size}
+          numberOfLines={1}
+          ellipsizeMode="tail"
+        >
+          {product.size}
+        </Text>
+
+        <View style={styles.priceRow}>
+          <Text style={styles.price}>
+            {formatCurrency(product.price)}
+          </Text>
+
+          {product.mrp > product.price && (
+            <Text style={styles.mrp}>
+              {formatCurrency(product.mrp)}
+            </Text>
+          )}
+        </View>
+
+        {isOutOfStock ? (
+          <View
+            style={styles.oosPill}
+            accessibilityRole="text"
+            accessibilityLabel={`${product.name} is out of stock`}
+          >
+            <Ionicons
+              name="alert-circle-outline"
+              size={15}
+              color={COLORS.danger}
+            />
+            <Text style={styles.oosText}>
+              Out of stock
+            </Text>
+          </View>
+        ) : quantity > 0 ? (
+          <QtyStepper
+            qty={quantity}
+            onInc={onIncrement}
+            onDec={onDecrement}
+            pid={String(product.id)}
+          />
+        ) : (
+          <TouchableOpacity
+            activeOpacity={0.75}
+            onPress={(event) =>
+              handleActionPress(event, onAdd)
+            }
+            style={[
+              layout === "list"
+                ? styles.addBtnList
+                : styles.addBtn,
+            ]}
+            accessibilityRole="button"
+            accessibilityLabel={`Add ${product.name} to cart`}
+            accessibilityHint="Adds one unit of this product to your cart"
+            testID={`add-to-cart-${product.id}`}
+          >
+            <Ionicons
+              name="add-circle-outline"
+              size={17}
+              color={COLORS.primary}
+            />
+            <Text style={styles.addBtnText}>
+              ADD
+            </Text>
+          </TouchableOpacity>
+        )}
+      </>
+    );
 
     if (layout === "list") {
       return (
         <TouchableOpacity
-          activeOpacity={0.85}
+          activeOpacity={0.9}
           onPress={onPress}
           style={styles.listCard}
+          accessibilityRole="button"
+          accessibilityLabel={`${product.name}, ${product.size}, ${formatCurrency(
+            product.price,
+          )}`}
+          accessibilityHint="Opens product details"
           testID={`product-card-${product.id}`}
         >
-          <View style={styles.listImageWrap}>
-            <Image source={{ uri: product.image }} style={styles.listImage} contentFit="contain" />
-            {discount > 0 && (
-              <View style={styles.discountBadge}>
-                <Text style={styles.discountText}>{discount}% OFF</Text>
-              </View>
-            )}
-          </View>
+          {productImage}
+
           <View style={styles.listInfo}>
-            <Text style={styles.name} numberOfLines={2}>
-              {product.name}
-            </Text>
-            <Text style={styles.size}>{product.size}</Text>
-            <View style={styles.priceRow}>
-              <Text style={styles.price}>{formatCurrency(product.price)}</Text>
-              {product.mrp > product.price && (
-                <Text style={styles.mrp}>{formatCurrency(product.mrp)}</Text>
-              )}
-            </View>
-            {isOOS ? (
-              <View style={styles.oosPill}>
-                <Text style={styles.oosText}>Out of stock</Text>
-              </View>
-            ) : quantity > 0 ? (
-              <QtyStepper qty={quantity} onInc={onIncrement} onDec={onDecrement} pid={product.id} />
-            ) : (
-              <TouchableOpacity
-                onPress={onAdd}
-                style={styles.addBtnList}
-                testID={`add-to-cart-${product.id}`}
-              >
-                <Text style={styles.addBtnText}>ADD</Text>
-              </TouchableOpacity>
-            )}
+            {productDetails}
           </View>
         </TouchableOpacity>
       );
@@ -71,65 +265,103 @@ export const ProductCard: React.FC<Props> = React.memo(
 
     return (
       <TouchableOpacity
-        activeOpacity={0.85}
+        activeOpacity={0.9}
         onPress={onPress}
         style={styles.gridCard}
+        accessibilityRole="button"
+        accessibilityLabel={`${product.name}, ${product.size}, ${formatCurrency(
+          product.price,
+        )}`}
+        accessibilityHint="Opens product details"
         testID={`product-card-${product.id}`}
       >
-        <View style={styles.gridImageWrap}>
-          <Image source={{ uri: product.image }} style={styles.gridImage} contentFit="contain" />
-          {discount > 0 && (
-            <View style={styles.discountBadge}>
-              <Text style={styles.discountText}>{discount}% OFF</Text>
-            </View>
-          )}
-        </View>
-        <Text style={styles.name} numberOfLines={2}>
-          {product.name}
-        </Text>
-        <Text style={styles.size}>{product.size}</Text>
-        <View style={styles.priceRow}>
-          <Text style={styles.price}>{formatCurrency(product.price)}</Text>
-          {product.mrp > product.price && (
-            <Text style={styles.mrp}>{formatCurrency(product.mrp)}</Text>
-          )}
-        </View>
-        {isOOS ? (
-          <View style={styles.oosPill}>
-            <Text style={styles.oosText}>Out of stock</Text>
-          </View>
-        ) : quantity > 0 ? (
-          <QtyStepper qty={quantity} onInc={onIncrement} onDec={onDecrement} pid={product.id} />
-        ) : (
-          <TouchableOpacity onPress={onAdd} style={styles.addBtn} testID={`add-to-cart-${product.id}`}>
-            <Ionicons name="add" size={16} color={COLORS.primary} />
-            <Text style={styles.addBtnText}>ADD</Text>
-          </TouchableOpacity>
-        )}
+        {productImage}
+        {productDetails}
       </TouchableOpacity>
     );
   },
 );
+
 ProductCard.displayName = "ProductCard";
 
-const QtyStepper: React.FC<{ qty: number; onInc: () => void; onDec: () => void; pid: string }> = ({
-  qty,
-  onInc,
-  onDec,
-  pid,
-}) => (
-  <View style={styles.stepper} testID={`qty-stepper-${pid}`}>
-    <TouchableOpacity onPress={onDec} style={styles.stepBtn} testID={`qty-dec-${pid}`}>
-      <Ionicons name="remove" size={16} color={COLORS.textOnPrimary} />
-    </TouchableOpacity>
-    <Text style={styles.stepQty} testID={`qty-value-${pid}`}>
-      {qty}
-    </Text>
-    <TouchableOpacity onPress={onInc} style={styles.stepBtn} testID={`qty-inc-${pid}`}>
-      <Ionicons name="add" size={16} color={COLORS.textOnPrimary} />
-    </TouchableOpacity>
-  </View>
+const QtyStepper: React.FC<QtyStepperProps> = React.memo(
+  ({ qty, onInc, onDec, pid }) => {
+    const handlePress = useCallback(
+      (
+        event: GestureResponderEvent,
+        action: () => void,
+      ) => {
+        event.stopPropagation();
+        action();
+      },
+      [],
+    );
+
+    return (
+      <View
+        style={styles.stepper}
+        accessibilityLabel={`Quantity ${qty}`}
+        testID={`qty-stepper-${pid}`}
+      >
+        <TouchableOpacity
+          activeOpacity={0.7}
+          onPress={(event) =>
+            handlePress(event, onDec)
+          }
+          style={styles.stepBtn}
+          accessibilityRole="button"
+          accessibilityLabel="Decrease quantity"
+          hitSlop={{
+            top: 8,
+            bottom: 8,
+            left: 8,
+            right: 8,
+          }}
+          testID={`qty-dec-${pid}`}
+        >
+          <Ionicons
+            name={qty === 1 ? "trash-outline" : "remove"}
+            size={qty === 1 ? 15 : 17}
+            color={COLORS.textOnPrimary}
+          />
+        </TouchableOpacity>
+
+        <Text
+          style={styles.stepQty}
+          accessibilityLiveRegion="polite"
+          testID={`qty-value-${pid}`}
+        >
+          {qty}
+        </Text>
+
+        <TouchableOpacity
+          activeOpacity={0.7}
+          onPress={(event) =>
+            handlePress(event, onInc)
+          }
+          style={styles.stepBtn}
+          accessibilityRole="button"
+          accessibilityLabel="Increase quantity"
+          hitSlop={{
+            top: 8,
+            bottom: 8,
+            left: 8,
+            right: 8,
+          }}
+          testID={`qty-inc-${pid}`}
+        >
+          <Ionicons
+            name="add"
+            size={17}
+            color={COLORS.textOnPrimary}
+          />
+        </TouchableOpacity>
+      </View>
+    );
+  },
 );
+
+QtyStepper.displayName = "QtyStepper";
 
 const styles = StyleSheet.create({
   gridCard: {
@@ -140,6 +372,7 @@ const styles = StyleSheet.create({
     borderColor: COLORS.borderLight,
     ...SHADOW.card,
   },
+
   gridImageWrap: {
     aspectRatio: 1,
     backgroundColor: COLORS.surface,
@@ -150,7 +383,12 @@ const styles = StyleSheet.create({
     overflow: "hidden",
     position: "relative",
   },
-  gridImage: { width: "85%", height: "85%" },
+
+  gridImage: {
+    width: "84%",
+    height: "84%",
+  },
+
   listCard: {
     flexDirection: "row",
     backgroundColor: COLORS.background,
@@ -161,9 +399,10 @@ const styles = StyleSheet.create({
     gap: SPACING.md,
     ...SHADOW.card,
   },
+
   listImageWrap: {
-    width: 96,
-    height: 96,
+    width: 104,
+    height: 104,
     backgroundColor: COLORS.surface,
     borderRadius: RADIUS.md,
     justifyContent: "center",
@@ -171,94 +410,245 @@ const styles = StyleSheet.create({
     overflow: "hidden",
     position: "relative",
   },
-  listImage: { width: "85%", height: "85%" },
-  listInfo: { flex: 1, justifyContent: "space-between" },
+
+  listImage: {
+    width: "84%",
+    height: "84%",
+  },
+
+  listInfo: {
+    flex: 1,
+    justifyContent: "space-between",
+    minWidth: 0,
+  },
+
+  outOfStockImageWrap: {
+    backgroundColor: COLORS.surface,
+  },
+
+  outOfStockImage: {
+    opacity: 0.45,
+  },
+
+  imageFallback: {
+    width: "100%",
+    height: "100%",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: SPACING.sm,
+  },
+
+  imageFallbackText: {
+    marginTop: 4,
+    fontSize: 9,
+    color: COLORS.textMuted,
+    textAlign: "center",
+  },
+
   discountBadge: {
     position: "absolute",
-    top: 6,
-    left: 6,
+    top: 7,
+    left: 7,
+    zIndex: 3,
     backgroundColor: COLORS.primary,
-    paddingHorizontal: 6,
-    paddingVertical: 2,
+    paddingHorizontal: 7,
+    paddingVertical: 3,
     borderRadius: RADIUS.sm,
   },
+
   discountText: {
     color: COLORS.textOnPrimary,
     fontSize: 10,
     fontWeight: FONT.weight.bold,
+    letterSpacing: 0.2,
   },
+
+  lowStockBadge: {
+    position: "absolute",
+    right: 7,
+    bottom: 7,
+    zIndex: 3,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 2,
+    backgroundColor: "#FFF2B2",
+    paddingHorizontal: 6,
+    paddingVertical: 3,
+    borderRadius: RADIUS.sm,
+  },
+
+  lowStockText: {
+    fontSize: 9,
+    color: COLORS.textPrimary,
+    fontWeight: FONT.weight.semibold,
+  },
+
+  outOfStockOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    zIndex: 2,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "rgba(255,255,255,0.28)",
+  },
+
+  outOfStockOverlayText: {
+    backgroundColor: COLORS.danger,
+    color: COLORS.textOnPrimary,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: RADIUS.sm,
+    fontSize: 10,
+    fontWeight: FONT.weight.bold,
+    letterSpacing: 0.8,
+    overflow: "hidden",
+  },
+
+  wishlistButton: {
+    position: "absolute",
+    top: 10,
+    right: 10,
+    width: 32,
+    height: 32,
+    borderRadius: 12,
+    backgroundColor: "rgba(255,255,255,0.95)",
+    justifyContent: "center",
+    alignItems: "center",
+    ...SHADOW.card,
+    zIndex: 4,
+  },
+
+  stockBadge: {
+    position: "absolute",
+    bottom: 10,
+    left: 10,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: RADIUS.sm,
+    backgroundColor: COLORS.background,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    borderWidth: 1,
+    borderColor: COLORS.borderLight,
+  },
+
+  stockText: {
+    fontSize: FONT.size.xs,
+    color: COLORS.textSecondary,
+    fontWeight: FONT.weight.semibold,
+  },
+
   name: {
     fontSize: FONT.size.md,
     fontWeight: FONT.weight.semibold,
     color: COLORS.textPrimary,
-    marginBottom: 2,
-    minHeight: 36,
+    marginBottom: 3,
+    minHeight: 38,
+    lineHeight: 19,
   },
-  size: { fontSize: FONT.size.xs, color: COLORS.textSecondary, marginBottom: 6 },
-  priceRow: { flexDirection: "row", alignItems: "center", gap: 6, marginBottom: SPACING.sm },
+
+  size: {
+    fontSize: FONT.size.xs,
+    color: COLORS.textSecondary,
+    marginBottom: 7,
+  },
+
+  priceRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    flexWrap: "wrap",
+    gap: 6,
+    marginBottom: SPACING.sm,
+  },
+
   price: {
     fontSize: FONT.size.lg,
     fontWeight: FONT.weight.bold,
     color: COLORS.textPrimary,
   },
+
   mrp: {
     fontSize: FONT.size.sm,
     color: COLORS.textMuted,
     textDecorationLine: "line-through",
   },
+
   addBtn: {
+    minHeight: 40,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    gap: 4,
+    gap: 5,
     borderWidth: 1.5,
     borderColor: COLORS.primary,
     borderRadius: RADIUS.md,
     paddingVertical: 8,
+    paddingHorizontal: 10,
     backgroundColor: COLORS.primaryLight,
   },
+
   addBtnList: {
+    minHeight: 38,
     alignSelf: "flex-start",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 5,
     borderWidth: 1.5,
     borderColor: COLORS.primary,
     borderRadius: RADIUS.md,
     paddingHorizontal: 20,
-    paddingVertical: 6,
+    paddingVertical: 7,
     backgroundColor: COLORS.primaryLight,
   },
+
   addBtnText: {
     color: COLORS.primary,
     fontWeight: FONT.weight.bold,
     fontSize: FONT.size.sm,
     letterSpacing: 0.5,
   },
+
   stepper: {
+    minHeight: 40,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
     backgroundColor: COLORS.primary,
     borderRadius: RADIUS.md,
-    paddingHorizontal: 6,
+    paddingHorizontal: 5,
     paddingVertical: 4,
   },
+
   stepBtn: {
-    width: 26,
-    height: 26,
-    borderRadius: 6,
+    width: 32,
+    height: 32,
+    borderRadius: 8,
     justifyContent: "center",
     alignItems: "center",
+    backgroundColor: "rgba(255,255,255,0.12)",
   },
+
   stepQty: {
+    minWidth: 30,
+    textAlign: "center",
     color: COLORS.textOnPrimary,
     fontWeight: FONT.weight.bold,
     fontSize: FONT.size.md,
   },
+
   oosPill: {
+    minHeight: 40,
+    flexDirection: "row",
+    gap: 5,
     borderRadius: RADIUS.md,
     paddingVertical: 8,
+    paddingHorizontal: 10,
     backgroundColor: COLORS.dangerLight,
     alignItems: "center",
+    justifyContent: "center",
   },
+
   oosText: {
     color: COLORS.danger,
     fontSize: FONT.size.sm,
