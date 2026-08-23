@@ -1,0 +1,1005 @@
+import { Ionicons } from "@expo/vector-icons";
+import {
+  useFocusEffect,
+  useRouter,
+} from "expo-router";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  FlatList,
+  NativeScrollEvent,
+  NativeSyntheticEvent,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  useWindowDimensions,
+  View,
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+
+import { BannerCard } from "@/src/components/BannerCard";
+import { FreeDeliveryProgress } from "@/src/components/FreeDeliveryProgress";
+import { HomeHeader } from "@/src/components/HomeHeader";
+import { ProductCard } from "@/src/components/ProductCard";
+import { useToast } from "@/src/components/Toast";
+import {
+  COLORS,
+  FONT,
+  RADIUS,
+  SHADOW,
+  SPACING,
+} from "@/src/config/theme";
+import { useApp } from "@/src/context/AppContext";
+import { useProducts } from "@/src/context/ProductContext";
+import { CATEGORIES } from "@/src/data/categories";
+import { BANNERS } from "@/src/data/products";
+import { getRecommendedProducts } from "@/src/data/recommendations";
+import { getRecentlyViewedProductIds } from "@/src/data/recentlyViewed";
+import type { Product } from "@/src/types";
+
+interface ProductSectionProps {
+  title: string;
+  subtitle?: string;
+  products: Product[];
+  testID: string;
+  getQuantity: (productId: string) => number;
+  onProductPress: (product: Product) => void;
+  onAdd: (product: Product) => void;
+  onIncrement: (product: Product) => void;
+  onDecrement: (product: Product) => void;
+  onSeeAll: () => void;
+}
+
+interface QuickAction {
+  id: string;
+  title: string;
+  icon: React.ComponentProps<typeof Ionicons>["name"];
+  onPress: () => void;
+}
+
+const ProductSection: React.FC<ProductSectionProps> = React.memo(
+  ({
+    title,
+    subtitle,
+    products,
+    testID,
+    getQuantity,
+    onProductPress,
+    onAdd,
+    onIncrement,
+    onDecrement,
+    onSeeAll,
+  }) => {
+    if (products.length === 0) return null;
+
+    return (
+      <View style={styles.section} testID={testID}>
+        <View style={styles.sectionHeader}>
+          <View style={styles.sectionHeading}>
+            <Text style={styles.sectionTitle}>{title}</Text>
+
+            {subtitle ? (
+              <Text style={styles.sectionSubtitle}>{subtitle}</Text>
+            ) : null}
+          </View>
+
+          <TouchableOpacity
+            activeOpacity={0.7}
+            onPress={onSeeAll}
+            style={styles.seeAllButton}
+            accessibilityRole="button"
+            accessibilityLabel={`See all ${title}`}
+          >
+            <Text style={styles.seeAll}>See all</Text>
+            <Ionicons
+              name="chevron-forward"
+              size={14}
+              color={COLORS.primary}
+            />
+          </TouchableOpacity>
+        </View>
+
+        <FlatList
+          data={products}
+          keyExtractor={(item) => String(item.id)}
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.horizontalProductList}
+          initialNumToRender={4}
+          maxToRenderPerBatch={5}
+          windowSize={5}
+          removeClippedSubviews
+          renderItem={({ item }) => (
+            <View style={styles.horizontalProductCard}>
+              <ProductCard
+                product={item}
+                quantity={getQuantity(item.id)}
+                onPress={() => onProductPress(item)}
+                onAdd={() => onAdd(item)}
+                onIncrement={() => onIncrement(item)}
+                onDecrement={() => onDecrement(item)}
+              />
+            </View>
+          )}
+        />
+      </View>
+    );
+  },
+);
+
+ProductSection.displayName = "ProductSection";
+
+export default function HomeScreen() {
+  const router = useRouter();
+  const { width } = useWindowDimensions();
+
+  const {
+    addToCart,
+    updateQuantity,
+    getQuantity,
+    cartSubtotal,
+    cart,
+    wishlist,
+  } = useApp();
+
+  const {
+    products,
+    loading: productsLoading,
+  } = useProducts();
+
+  const { showToast } = useToast();
+
+  const [bannerIndex, setBannerIndex] = useState(0);
+  const [recentlyViewedIds, setRecentlyViewedIds] =
+    useState<string[]>([]);
+
+  const bannerListRef = useRef<FlatList<typeof BANNERS[number]> | null>(null);
+
+  const bannerWidth = Math.max(
+    280,
+    width - SPACING.md * 2,
+  );
+
+  const featured = useMemo(
+    () =>
+      products.filter(
+        (product) => product.isFeatured,
+      ),
+    [products],
+  );
+
+  const flashDeals = useMemo(
+    () =>
+      products.filter(
+        (product) => product.isBestOffer,
+      ),
+    [products],
+  );
+
+  const continueShopping = useMemo(
+    () =>
+      products
+        .filter(
+          (product) => product.isFeatured,
+        )
+        .slice(0, 4),
+    [products],
+  );
+
+  const recentlyViewed = useMemo(
+    () =>
+      recentlyViewedIds
+        .map((productId) =>
+          products.find(
+            (product) => product.id === productId,
+          ),
+        )
+        .filter(
+          (product): product is Product =>
+            Boolean(product),
+        ),
+    [products, recentlyViewedIds],
+  );
+
+  const recommendedProducts = useMemo(
+    () =>
+      getRecommendedProducts({
+        products,
+        cart,
+        wishlist,
+        recentlyViewedIds,
+        limit: 10,
+      }),
+    [
+      products,
+      cart,
+      wishlist,
+      recentlyViewedIds,
+    ],
+  );
+
+  const popularBrands = useMemo(
+    () => CATEGORIES.slice(0, 4),
+    [],
+  );
+
+  useFocusEffect(
+    useCallback(() => {
+      let active = true;
+
+      const loadRecentlyViewed = async () => {
+        const productIds =
+          await getRecentlyViewedProductIds();
+
+        if (active) {
+          setRecentlyViewedIds(productIds);
+        }
+      };
+
+      void loadRecentlyViewed();
+
+      return () => {
+        active = false;
+      };
+    }, []),
+  );
+
+  useEffect(() => {
+    if (BANNERS.length <= 1) return undefined;
+    const interval = setInterval(() => {
+      setBannerIndex((current) => {
+        const next = (current + 1) % BANNERS.length;
+        bannerListRef.current?.scrollToOffset({
+          offset: next * (bannerWidth + SPACING.sm),
+          animated: true,
+        });
+        return next;
+      });
+    }, 4500);
+
+    return () => clearInterval(interval);
+  }, [bannerWidth]);
+
+  const handleProductPress = useCallback(
+    (product: Product) => {
+      router.push({
+        pathname: "/product/[id]",
+        params: { id: product.id },
+      });
+    },
+    [router],
+  );
+
+  const handleAdd = useCallback(
+    (product: Product) => {
+      const result = addToCart(product.id, 1);
+
+      if (!result.ok) {
+        showToast(
+          result.message ?? "Unable to add this product",
+          "error",
+        );
+        return;
+      }
+
+      showToast(
+        `${product.name} added to cart`,
+        "success",
+      );
+    },
+    [addToCart, showToast],
+  );
+
+  const handleIncrement = useCallback(
+    (product: Product) => {
+      const currentQuantity = getQuantity(product.id);
+      const result = updateQuantity(
+        product.id,
+        currentQuantity + 1,
+      );
+
+      if (result && !result.ok) {
+        showToast(
+          result.message ?? "Unable to update quantity",
+          "error",
+        );
+      }
+    },
+    [getQuantity, showToast, updateQuantity],
+  );
+
+  const handleDecrement = useCallback(
+    (product: Product) => {
+      const currentQuantity = getQuantity(product.id);
+
+      updateQuantity(
+        product.id,
+        Math.max(0, currentQuantity - 1),
+      );
+    },
+    [getQuantity, updateQuantity],
+  );
+
+  const handleBannerScrollEnd = useCallback(
+    (
+      event: NativeSyntheticEvent<NativeScrollEvent>,
+    ) => {
+      const offset = event.nativeEvent.contentOffset.x;
+      const itemWidth = bannerWidth + SPACING.sm;
+
+      setBannerIndex(
+        Math.round(offset / itemWidth),
+      );
+    },
+    [bannerWidth],
+  );
+
+  const quickActions = useMemo<QuickAction[]>(
+    () => [
+      {
+        id: "categories",
+        title: "Categories",
+        icon: "grid-outline",
+        onPress: () =>
+          router.push("/(tabs)/categories"),
+      },
+      {
+        id: "offers",
+        title: "Best Offers",
+        icon: "pricetag-outline",
+        onPress: () =>
+          router.push({
+            pathname: "/products",
+            params: { filter: "offers" },
+          }),
+      },
+      {
+        id: "popular",
+        title: "Popular",
+        icon: "flame-outline",
+        onPress: () =>
+          router.push({
+            pathname: "/products",
+            params: { filter: "popular" },
+          }),
+      },
+      {
+        id: "search",
+        title: "Search",
+        icon: "search-outline",
+        onPress: () => router.push("/search"),
+      },
+    ],
+    [router],
+  );
+
+  const listHeader = (
+    <>
+      {productsLoading ? (
+        <View style={styles.firebaseStatusCard}>
+          <Ionicons
+            name="cloud-download-outline"
+            size={20}
+            color={COLORS.primary}
+          />
+
+          <View style={styles.firebaseStatusContent}>
+            <Text style={styles.firebaseStatusTitle}>
+              Loading live products
+            </Text>
+
+            <Text style={styles.firebaseStatusText}>
+              Syncing the latest prices and stock from Firebase.
+            </Text>
+          </View>
+        </View>
+      ) : products.length === 0 ? (
+        <View style={styles.firebaseStatusCard}>
+          <Ionicons
+            name="alert-circle-outline"
+            size={20}
+            color={COLORS.danger}
+          />
+
+          <View style={styles.firebaseStatusContent}>
+            <Text style={styles.firebaseStatusTitle}>
+              No products available
+            </Text>
+
+            <Text style={styles.firebaseStatusText}>
+              No active products were returned from Firestore.
+            </Text>
+          </View>
+        </View>
+      ) : null}
+
+      <TouchableOpacity
+        activeOpacity={0.85}
+        onPress={() =>
+          router.push("/admin/login")
+        }
+        style={styles.adminPanelButton}
+        accessibilityRole="button"
+        accessibilityLabel="Open admin panel"
+      >
+        <Ionicons
+          name="shield-checkmark-outline"
+          size={20}
+          color={COLORS.textOnPrimary}
+        />
+
+        <Text style={styles.adminPanelButtonText}>
+          Open Admin Panel
+        </Text>
+      </TouchableOpacity>
+
+      <View style={styles.heroSection}>
+        <FlatList
+          ref={bannerListRef}
+          data={BANNERS}
+          keyExtractor={(banner) => String(banner.id)}
+          horizontal
+          decelerationRate="fast"
+          snapToInterval={bannerWidth + SPACING.sm}
+          snapToAlignment="start"
+          showsHorizontalScrollIndicator={false}
+          onMomentumScrollEnd={handleBannerScrollEnd}
+          contentContainerStyle={styles.bannerList}
+          renderItem={({ item }) => (
+            <View
+              style={[
+                styles.bannerItem,
+                { width: bannerWidth },
+              ]}
+            >
+              <BannerCard
+                image={item.image}
+                title={item.title}
+                subtitle={item.subtitle}
+                cta={item.cta}
+                onPress={() => router.push("/products")}
+              />
+            </View>
+          )}
+        />
+
+        {BANNERS.length > 1 ? (
+          <View style={styles.bannerDots}>
+            {BANNERS.map((banner, index) => (
+              <View
+                key={String(banner.id)}
+                style={[
+                  styles.dot,
+                  index === bannerIndex &&
+                    styles.dotActive,
+                ]}
+              />
+            ))}
+          </View>
+        ) : null}
+      </View>
+
+      <View style={styles.quickActionsSection}>
+        {quickActions.map((action) => (
+          <TouchableOpacity
+            key={action.id}
+            activeOpacity={0.75}
+            style={styles.quickAction}
+            onPress={action.onPress}
+            accessibilityRole="button"
+            accessibilityLabel={action.title}
+            testID={`quick-action-${action.id}`}
+          >
+            <View style={styles.quickActionIcon}>
+              <Ionicons
+                name={action.icon}
+                size={21}
+                color={COLORS.primary}
+              />
+            </View>
+
+            <Text
+              style={styles.quickActionText}
+              numberOfLines={1}
+            >
+              {action.title}
+            </Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+
+      {cart.length > 0 ? (
+        <View style={styles.deliverySection}>
+          <FreeDeliveryProgress
+            subtotal={cartSubtotal}
+          />
+        </View>
+      ) : null}
+
+      <View style={styles.sectionTopMeta}>
+        <View style={styles.sectionTag}>Premium Picks</View>
+        <Text style={styles.sectionLead}>
+          Discover fresh essentials, premium brands, and fast deals.
+        </Text>
+      </View>
+
+      <View style={styles.section}>
+        <View style={styles.sectionHeaderCompact}>
+          <Text style={styles.sectionTitle}>Flash Deals</Text>
+          <TouchableOpacity
+            activeOpacity={0.7}
+            onPress={() =>
+              router.push({
+                pathname: "/products",
+                params: { filter: "offers" },
+              })
+            }
+            style={styles.seeAllButton}
+            accessibilityRole="button"
+            accessibilityLabel="See all flash deals"
+          >
+            <Text style={styles.seeAll}>View all</Text>
+            <Ionicons
+              name="chevron-forward"
+              size={14}
+              color={COLORS.primary}
+            />
+          </TouchableOpacity>
+        </View>
+        <FlatList
+          data={flashDeals}
+          keyExtractor={(p) => p.id}
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.horizontalProductList}
+          renderItem={({ item }) => (
+            <View style={styles.horizontalProductCard}>
+              <ProductCard
+                product={item}
+                quantity={getQuantity(item.id)}
+                onPress={() => handleProductPress(item)}
+                onAdd={() => handleAdd(item)}
+                onIncrement={() => handleIncrement(item)}
+                onDecrement={() => handleDecrement(item)}
+              />
+            </View>
+          )}
+        />
+      </View>
+
+      <View style={styles.section}>
+        <View style={styles.sectionHeaderCompact}>
+          <Text style={styles.sectionTitle}>Featured Products</Text>
+          <TouchableOpacity
+            activeOpacity={0.7}
+            onPress={() =>
+              router.push({
+                pathname: "/products",
+                params: { filter: "featured" },
+              })
+            }
+            style={styles.seeAllButton}
+            accessibilityRole="button"
+            accessibilityLabel="See all featured products"
+          >
+            <Text style={styles.seeAll}>Explore</Text>
+            <Ionicons
+              name="chevron-forward"
+              size={14}
+              color={COLORS.primary}
+            />
+          </TouchableOpacity>
+        </View>
+
+        <FlatList
+          data={featured}
+          keyExtractor={(p) => p.id}
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.horizontalProductList}
+          renderItem={({ item }) => (
+            <View style={styles.horizontalProductCard}>
+              <ProductCard
+                product={item}
+                quantity={getQuantity(item.id)}
+                onPress={() => handleProductPress(item)}
+                onAdd={() => handleAdd(item)}
+                onIncrement={() => handleIncrement(item)}
+                onDecrement={() => handleDecrement(item)}
+              />
+            </View>
+          )}
+        />
+      </View>
+
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Popular Brands</Text>
+        <FlatList
+          data={popularBrands}
+          keyExtractor={(brand) => brand.id}
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.brandList}
+          renderItem={({ item }) => (
+            <TouchableOpacity
+              activeOpacity={0.85}
+              style={styles.brandCard}
+              onPress={() =>
+                router.push({
+                  pathname: "/products",
+                  params: { category: item.id },
+                })
+              }
+              accessibilityRole="button"
+              accessibilityLabel={`Browse ${item.name}`}
+            >
+              <Text style={styles.brandName}>{item.name}</Text>
+              <Text style={styles.brandCount}>Curated grocery essentials</Text>
+            </TouchableOpacity>
+          )}
+        />
+      </View>
+
+      <View style={styles.section}>
+        <View style={styles.sectionHeaderCompact}>
+          <Text style={styles.sectionTitle}>Continue Shopping</Text>
+          <Text style={styles.sectionAction}>Resume your recent finds</Text>
+        </View>
+        <FlatList
+          data={continueShopping}
+          keyExtractor={(p) => p.id}
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.horizontalProductList}
+          renderItem={({ item }) => (
+            <View style={styles.horizontalProductCard}>
+              <ProductCard
+                product={item}
+                quantity={getQuantity(item.id)}
+                onPress={() => handleProductPress(item)}
+                onAdd={() => handleAdd(item)}
+                onIncrement={() => handleIncrement(item)}
+                onDecrement={() => handleDecrement(item)}
+              />
+            </View>
+          )}
+        />
+      </View>
+
+      {recentlyViewed.length > 0 ? (
+        <View style={styles.section}>
+          <View style={styles.sectionHeaderCompact}>
+            <Text style={styles.sectionTitle}>
+              Recently Viewed
+            </Text>
+
+            <Text style={styles.sectionAction}>
+              Based on your browsing
+            </Text>
+          </View>
+
+          <FlatList
+            data={recentlyViewed}
+            keyExtractor={(product) => product.id}
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={
+              styles.horizontalProductList
+            }
+            renderItem={({ item }) => (
+              <View style={styles.horizontalProductCard}>
+                <ProductCard
+                  product={item}
+                  quantity={getQuantity(item.id)}
+                  onPress={() =>
+                    handleProductPress(item)
+                  }
+                  onAdd={() => handleAdd(item)}
+                  onIncrement={() =>
+                    handleIncrement(item)
+                  }
+                  onDecrement={() =>
+                    handleDecrement(item)
+                  }
+                />
+              </View>
+            )}
+          />
+        </View>
+      ) : null}
+
+      <ProductSection
+        title="Recommended for You"
+        subtitle="Personalized from your cart, wishlist and browsing"
+        products={recommendedProducts}
+        testID="section-recommended"
+        getQuantity={getQuantity}
+        onProductPress={handleProductPress}
+        onAdd={handleAdd}
+        onIncrement={handleIncrement}
+        onDecrement={handleDecrement}
+        onSeeAll={() =>
+          router.push({ pathname: "/products" })
+        }
+      />
+
+      <View style={styles.bottomSpace} />
+    </>
+  );
+
+  return (
+    <SafeAreaView
+      style={styles.container}
+      edges={["top"]}
+    >
+      <HomeHeader
+        onSearchPress={() => router.push("/search")}
+        onVoicePress={() => router.push("/search")}
+        onNotificationsPress={() =>
+          router.push("/(tabs)/notifications")
+        }
+        onProfilePress={() =>
+          router.push("/(tabs)/profile")
+        }
+      />
+
+      <FlatList<never>
+        data={[]}
+        renderItem={() => null}
+        ListHeaderComponent={listHeader}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.scrollContent}
+        keyboardShouldPersistTaps="handled"
+      />
+    </SafeAreaView>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: COLORS.background,
+  },
+
+  scrollContent: {
+    paddingBottom: SPACING.xxl,
+  },
+
+  bannerList: {
+    paddingLeft: SPACING.md,
+    paddingRight: SPACING.md,
+  },
+
+  bannerItem: {
+    marginRight: SPACING.sm,
+  },
+
+  bannerDots: {
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    gap: 6,
+    marginTop: SPACING.sm,
+  },
+
+  dot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: COLORS.border,
+  },
+
+  dotActive: {
+    width: 20,
+    backgroundColor: COLORS.primary,
+  },
+
+  quickActionsSection: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    paddingHorizontal: SPACING.md,
+    marginTop: SPACING.lg,
+    gap: SPACING.sm,
+  },
+
+  sectionTopMeta: {
+    paddingHorizontal: SPACING.md,
+    marginTop: SPACING.xl,
+  },
+
+  sectionTag: {
+    alignSelf: "flex-start",
+    paddingHorizontal: SPACING.sm,
+    paddingVertical: SPACING.xs,
+    borderRadius: RADIUS.pill,
+    backgroundColor: COLORS.primaryLight,
+    marginBottom: SPACING.sm,
+  },
+
+  sectionLead: {
+    fontSize: FONT.size.sm,
+    color: COLORS.textSecondary,
+    lineHeight: 20,
+    maxWidth: "82%",
+  },
+
+  sectionHeaderCompact: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: SPACING.sm,
+    marginBottom: SPACING.sm,
+  },
+
+  sectionAction: {
+    fontSize: FONT.size.xs,
+    color: COLORS.textSecondary,
+  },
+
+  brandList: {
+    paddingLeft: SPACING.md,
+    paddingRight: SPACING.md,
+  },
+
+  brandCard: {
+    padding: SPACING.md,
+    borderRadius: RADIUS.lg,
+    backgroundColor: COLORS.surface,
+    borderWidth: 1,
+    borderColor: COLORS.borderLight,
+    marginRight: SPACING.sm,
+    width: 180,
+  },
+
+  brandName: {
+    fontSize: FONT.size.md,
+    fontWeight: FONT.weight.semibold,
+    color: COLORS.textPrimary,
+    marginBottom: SPACING.xs,
+  },
+
+  brandCount: {
+    fontSize: FONT.size.xs,
+    color: COLORS.textSecondary,
+    lineHeight: 18,
+  },
+
+  quickAction: {
+    flex: 1,
+    minWidth: 0,
+    alignItems: "center",
+  },
+
+  quickActionIcon: {
+    width: 50,
+    height: 50,
+    borderRadius: RADIUS.lg,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: COLORS.primaryLight,
+    borderWidth: 1,
+    borderColor: COLORS.borderLight,
+    ...SHADOW.card,
+  },
+
+  quickActionText: {
+    marginTop: 6,
+    width: "100%",
+    textAlign: "center",
+    color: COLORS.textPrimary,
+    fontSize: FONT.size.xs,
+    fontWeight: FONT.weight.semibold,
+  },
+
+  deliverySection: {
+    marginTop: SPACING.lg,
+    paddingHorizontal: SPACING.md,
+  },
+
+  section: {
+    marginTop: SPACING.xl,
+    paddingHorizontal: SPACING.md,
+  },
+
+  sectionHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: SPACING.md,
+    marginBottom: SPACING.md,
+  },
+
+  sectionHeading: {
+    flex: 1,
+  },
+
+  sectionTitle: {
+    fontSize: FONT.size.lg,
+    fontWeight: FONT.weight.bold,
+    color: COLORS.textPrimary,
+  },
+
+  sectionSubtitle: {
+    marginTop: 3,
+    fontSize: FONT.size.xs,
+    color: COLORS.textSecondary,
+  },
+
+  seeAllButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 1,
+    paddingVertical: 6,
+    paddingLeft: 8,
+  },
+
+  seeAll: {
+    color: COLORS.primary,
+    fontSize: FONT.size.sm,
+    fontWeight: FONT.weight.semibold,
+  },
+
+  horizontalProductList: {
+    paddingRight: SPACING.md,
+  },
+
+  horizontalProductCard: {
+    width: 170,
+    marginRight: SPACING.md,
+  },
+
+  bottomSpace: {
+    height: SPACING.xxxl,
+  },
+
+  adminPanelButton: {
+    marginHorizontal: SPACING.md,
+    marginTop: SPACING.md,
+    minHeight: 52,
+    borderRadius: RADIUS.lg,
+    backgroundColor: COLORS.primary,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: SPACING.sm,
+  },
+
+  adminPanelButtonText: {
+    fontSize: FONT.size.base,
+    fontWeight: FONT.weight.bold,
+    color: COLORS.textOnPrimary,
+  },
+
+  firebaseStatusCard: {
+    marginHorizontal: SPACING.md,
+    marginTop: SPACING.md,
+    padding: SPACING.md,
+    borderRadius: RADIUS.lg,
+    backgroundColor: COLORS.surface,
+    borderWidth: 1,
+    borderColor: COLORS.borderLight,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: SPACING.sm,
+  },
+
+  firebaseStatusContent: {
+    flex: 1,
+  },
+
+  firebaseStatusTitle: {
+    fontSize: FONT.size.sm,
+    fontWeight: FONT.weight.bold,
+    color: COLORS.textPrimary,
+  },
+
+  firebaseStatusText: {
+    marginTop: 2,
+    fontSize: FONT.size.xs,
+    color: COLORS.textSecondary,
+    lineHeight: 17,
+  },
+
+  heroSection: {
+    marginTop: SPACING.md,
+  },
+});

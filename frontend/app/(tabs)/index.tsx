@@ -1,5 +1,8 @@
 import { Ionicons } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
+import {
+  useFocusEffect,
+  useRouter,
+} from "expo-router";
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   FlatList,
@@ -14,7 +17,6 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { BannerCard } from "@/src/components/BannerCard";
-import { CategoryTile } from "@/src/components/CategoryTile";
 import { FreeDeliveryProgress } from "@/src/components/FreeDeliveryProgress";
 import { HomeHeader } from "@/src/components/HomeHeader";
 import { ProductCard } from "@/src/components/ProductCard";
@@ -27,8 +29,11 @@ import {
   SPACING,
 } from "@/src/config/theme";
 import { useApp } from "@/src/context/AppContext";
+import { useProducts } from "@/src/context/ProductContext";
 import { CATEGORIES } from "@/src/data/categories";
-import { BANNERS, PRODUCTS } from "@/src/data/products";
+import { BANNERS } from "@/src/data/products";
+import { getRecommendedProducts } from "@/src/data/recommendations";
+import { getRecentlyViewedProductIds } from "@/src/data/recentlyViewed";
 import type { Product } from "@/src/types";
 
 interface ProductSectionProps {
@@ -133,11 +138,20 @@ export default function HomeScreen() {
     getQuantity,
     cartSubtotal,
     cart,
+    wishlist,
   } = useApp();
+
+  const {
+    products,
+    loading: productsLoading,
+  } = useProducts();
 
   const { showToast } = useToast();
 
   const [bannerIndex, setBannerIndex] = useState(0);
+  const [recentlyViewedIds, setRecentlyViewedIds] =
+    useState<string[]>([]);
+
   const bannerListRef = useRef<FlatList<typeof BANNERS[number]> | null>(null);
 
   const bannerWidth = Math.max(
@@ -146,43 +160,87 @@ export default function HomeScreen() {
   );
 
   const featured = useMemo(
-    () => PRODUCTS.filter((product) => product.isFeatured),
-    [],
-  );
-
-  const bestOffers = useMemo(
-    () => PRODUCTS.filter((product) => product.isBestOffer),
-    [],
-  );
-
-  const popular = useMemo(
-    () => PRODUCTS.filter((product) => product.isPopular),
-    [],
+    () =>
+      products.filter(
+        (product) => product.isFeatured,
+      ),
+    [products],
   );
 
   const flashDeals = useMemo(
-    () => PRODUCTS.filter((product) => product.isBestOffer),
-    [],
+    () =>
+      products.filter(
+        (product) => product.isBestOffer,
+      ),
+    [products],
   );
 
   const continueShopping = useMemo(
-    () => PRODUCTS.filter((product) => product.isFeatured).slice(0, 4),
-    [],
+    () =>
+      products
+        .filter(
+          (product) => product.isFeatured,
+        )
+        .slice(0, 4),
+    [products],
   );
 
   const recentlyViewed = useMemo(
-    () => PRODUCTS.filter((product) => product.isPopular).slice(0, 4),
-    [],
+    () =>
+      recentlyViewedIds
+        .map((productId) =>
+          products.find(
+            (product) => product.id === productId,
+          ),
+        )
+        .filter(
+          (product): product is Product =>
+            Boolean(product),
+        ),
+    [products, recentlyViewedIds],
   );
 
   const recommendedProducts = useMemo(
-    () => PRODUCTS.filter((product) => product.isFeatured || product.isBestOffer),
-    [],
+    () =>
+      getRecommendedProducts({
+        products,
+        cart,
+        wishlist,
+        recentlyViewedIds,
+        limit: 10,
+      }),
+    [
+      products,
+      cart,
+      wishlist,
+      recentlyViewedIds,
+    ],
   );
 
   const popularBrands = useMemo(
     () => CATEGORIES.slice(0, 4),
     [],
+  );
+
+  useFocusEffect(
+    useCallback(() => {
+      let active = true;
+
+      const loadRecentlyViewed = async () => {
+        const productIds =
+          await getRecentlyViewedProductIds();
+
+        if (active) {
+          setRecentlyViewedIds(productIds);
+        }
+      };
+
+      void loadRecentlyViewed();
+
+      return () => {
+        active = false;
+      };
+    }, []),
   );
 
   useEffect(() => {
@@ -316,6 +374,44 @@ export default function HomeScreen() {
 
   const listHeader = (
     <>
+      {productsLoading ? (
+        <View style={styles.firebaseStatusCard}>
+          <Ionicons
+            name="cloud-download-outline"
+            size={20}
+            color={COLORS.primary}
+          />
+
+          <View style={styles.firebaseStatusContent}>
+            <Text style={styles.firebaseStatusTitle}>
+              Loading live products
+            </Text>
+
+            <Text style={styles.firebaseStatusText}>
+              Syncing the latest prices and stock from Firebase.
+            </Text>
+          </View>
+        </View>
+      ) : products.length === 0 ? (
+        <View style={styles.firebaseStatusCard}>
+          <Ionicons
+            name="alert-circle-outline"
+            size={20}
+            color={COLORS.danger}
+          />
+
+          <View style={styles.firebaseStatusContent}>
+            <Text style={styles.firebaseStatusTitle}>
+              No products available
+            </Text>
+
+            <Text style={styles.firebaseStatusText}>
+              No active products were returned from Firestore.
+            </Text>
+          </View>
+        </View>
+      ) : null}
+
       <View style={styles.heroSection}>
         <FlatList
           ref={bannerListRef}
@@ -436,7 +532,7 @@ export default function HomeScreen() {
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.horizontalProductList}
           renderItem={({ item }) => (
-            <View style={styles.horizontalProductCard}> 
+            <View style={styles.horizontalProductCard}>
               <ProductCard
                 product={item}
                 quantity={getQuantity(item.id)}
@@ -549,35 +645,51 @@ export default function HomeScreen() {
         />
       </View>
 
-      <View style={styles.section}>
-        <View style={styles.sectionHeaderCompact}>
-          <Text style={styles.sectionTitle}>Recently Viewed</Text>
-          <Text style={styles.sectionAction}>Based on your browsing</Text>
+      {recentlyViewed.length > 0 ? (
+        <View style={styles.section}>
+          <View style={styles.sectionHeaderCompact}>
+            <Text style={styles.sectionTitle}>
+              Recently Viewed
+            </Text>
+
+            <Text style={styles.sectionAction}>
+              Based on your browsing
+            </Text>
+          </View>
+
+          <FlatList
+            data={recentlyViewed}
+            keyExtractor={(product) => product.id}
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={
+              styles.horizontalProductList
+            }
+            renderItem={({ item }) => (
+              <View style={styles.horizontalProductCard}>
+                <ProductCard
+                  product={item}
+                  quantity={getQuantity(item.id)}
+                  onPress={() =>
+                    handleProductPress(item)
+                  }
+                  onAdd={() => handleAdd(item)}
+                  onIncrement={() =>
+                    handleIncrement(item)
+                  }
+                  onDecrement={() =>
+                    handleDecrement(item)
+                  }
+                />
+              </View>
+            )}
+          />
         </View>
-        <FlatList
-          data={recentlyViewed}
-          keyExtractor={(p) => p.id}
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.horizontalProductList}
-          renderItem={({ item }) => (
-            <View style={styles.horizontalProductCard}>
-              <ProductCard
-                product={item}
-                quantity={getQuantity(item.id)}
-                onPress={() => handleProductPress(item)}
-                onAdd={() => handleAdd(item)}
-                onIncrement={() => handleIncrement(item)}
-                onDecrement={() => handleDecrement(item)}
-              />
-            </View>
-          )}
-        />
-      </View>
+      ) : null}
 
       <ProductSection
         title="Recommended for You"
-        subtitle="Smart picks tailored to your cart"
+        subtitle="Personalized from your cart, wishlist and browsing"
         products={recommendedProducts}
         testID="section-recommended"
         getQuantity={getQuantity}
@@ -602,15 +714,17 @@ export default function HomeScreen() {
       <HomeHeader
         onSearchPress={() => router.push("/search")}
         onVoicePress={() => router.push("/search")}
-        onNotificationsPress={() => router.push("/(tabs)/profile")}
+        onNotificationsPress={() =>
+          router.push("/(tabs)/notifications")
+        }
         onProfilePress={() =>
           router.push("/(tabs)/profile")
         }
       />
 
-      <FlatList
+      <FlatList<never>
         data={[]}
-        renderItem={null}
+        renderItem={() => null}
         ListHeaderComponent={listHeader}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
@@ -628,10 +742,6 @@ const styles = StyleSheet.create({
 
   scrollContent: {
     paddingBottom: SPACING.xxl,
-  },
-
-  bannerSection: {
-    paddingTop: SPACING.md,
   },
 
   bannerList: {
@@ -808,14 +918,6 @@ const styles = StyleSheet.create({
     fontWeight: FONT.weight.semibold,
   },
 
-  categoryList: {
-    paddingRight: SPACING.md,
-  },
-
-  categoryItem: {
-    marginRight: SPACING.sm,
-  },
-
   horizontalProductList: {
     paddingRight: SPACING.md,
   },
@@ -829,16 +931,37 @@ const styles = StyleSheet.create({
     height: SPACING.xxxl,
   },
 
+  firebaseStatusCard: {
+    marginHorizontal: SPACING.md,
+    marginTop: SPACING.md,
+    padding: SPACING.md,
+    borderRadius: RADIUS.lg,
+    backgroundColor: COLORS.surface,
+    borderWidth: 1,
+    borderColor: COLORS.borderLight,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: SPACING.sm,
+  },
+
+  firebaseStatusContent: {
+    flex: 1,
+  },
+
+  firebaseStatusTitle: {
+    fontSize: FONT.size.sm,
+    fontWeight: FONT.weight.bold,
+    color: COLORS.textPrimary,
+  },
+
+  firebaseStatusText: {
+    marginTop: 2,
+    fontSize: FONT.size.xs,
+    color: COLORS.textSecondary,
+    lineHeight: 17,
+  },
+
   heroSection: {
     marginTop: SPACING.md,
-  },
-
-  bannerList: {
-    paddingLeft: SPACING.md,
-    paddingRight: SPACING.md,
-  },
-
-  bannerItem: {
-    marginRight: SPACING.sm,
   },
 });

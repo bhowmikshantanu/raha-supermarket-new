@@ -251,26 +251,49 @@ export const searchProducts = (query: string): Product[] => {
 export const BANNERS = [
   {
     id: "b1",
+
     image:
-      "https://images.unsplash.com/photo-1542838132-92c53300491e?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA0MTJ8MHwxfHNlYXJjaHwxfHxncm9jZXJ5JTIwc3VwZXJtYXJrZXQlMjBiYW5uZXJ8ZW58MHx8fHwxNzg0NTQzNTYwfDA&ixlib=rb-4.1.0&q=85",
-    title: "Fresh Groceries",
-    subtitle: "Delivered in 30 mins",
-    cta: "Shop Now",
+      "https://images.unsplash.com/photo-1607082349566-187342175e2f?auto=format&fit=crop&w=1200&q=85",
+
+    title:
+      "Everyday Essentials",
+
+    subtitle:
+      "Great products. Better prices.",
+
+    cta:
+      "Shop Now",
   },
+
   {
     id: "b2",
+
     image:
-      "https://images.unsplash.com/photo-1628102491629-778571d893a3?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA0MTJ8MHwxfHNlYXJjaHwxfHxncm9jZXJ5JTIwc3VwZXJtYXJrZXQlMjBiYW5uZXJ8ZW58MHx8fHwxNzg0NTQzNTYwfDA&ixlib=rb-4.1.0&q=85",
-    title: "Free Delivery",
-    subtitle: "On orders above ₹500",
-    cta: "Order Now",
+      "https://images.unsplash.com/photo-1580915411954-282cb1b0d780?auto=format&fit=crop&w=1200&q=85",
+
+    title:
+      "Free Delivery",
+
+    subtitle:
+      "On orders above ₹500",
+
+    cta:
+      "Order Now",
   },
+
   {
     id: "b3",
+
     image:
-      "https://images.unsplash.com/photo-1607082349566-187342175e2f?auto=format&fit=crop&w=1200&q=80",
-    title: "Best Offers",
-    subtitle: "Up to 15% off on staples",
-    cta: "Grab Deals",
+      "https://images.unsplash.com/photo-1607083206968-13611e3d76db?auto=format&fit=crop&w=1200&q=85",
+
+    title:
+      "Best Offers",
+
+    subtitle:
+      "Save more on daily essentials",
+
+    cta:
+      "Grab Deals",
   },
 ];

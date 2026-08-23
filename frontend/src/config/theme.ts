@@ -1,33 +1,50 @@
-// Central design tokens — colors, spacing, radii, typography.
-// Change palette here to re-skin the entire app.
+// Central design tokens — Raha Supermarket premium palette.
+// Deep Maroon + Saffron Orange + Indigo + Warm Cream.
 
 export const COLORS = {
-  primary: "#16A34A",
-  primaryDark: "#15803D",
-  primaryLight: "#DCFCE7",
-  primarySoft: "#F0FDF4",
+  // Main Raha branding
+  primary: "#8B0A3C",
+  primaryDark: "#65062C",
+  primaryLight: "#FCE8EF",
+  primarySoft: "#FFF5F7",
 
-  background: "#FFFFFF",
-  surface: "#F9FAFB",
-  surfaceAlt: "#F3F4F6",
-  border: "#E5E7EB",
-  borderLight: "#F3F4F6",
+  // Secondary / premium accent
+  secondary: "#3434A8",
+  secondaryDark: "#242475",
+  secondaryLight: "#EEEEFF",
 
-  textPrimary: "#111827",
-  textSecondary: "#6B7280",
-  textMuted: "#9CA3AF",
+  // Offers / highlights
+  accent: "#FF7A00",
+  accentDark: "#D95F00",
+  accentLight: "#FFF0DF",
+
+  // Backgrounds
+  background: "#FFFCF8",
+  surface: "#FFFFFF",
+  surfaceAlt: "#FFF7F1",
+
+  border: "#E9E2DC",
+  borderLight: "#F4ECE6",
+
+  // Text
+  textPrimary: "#17172C",
+  textSecondary: "#626276",
+  textMuted: "#9898A7",
   textOnPrimary: "#FFFFFF",
 
-  warning: "#F59E0B",
-  warningLight: "#FEF3C7",
-  danger: "#EF4444",
-  dangerLight: "#FEE2E2",
-  success: "#16A34A",
-  info: "#3B82F6",
-  infoLight: "#DBEAFE",
+  // Functional colors
+  warning: "#FF7A00",
+  warningLight: "#FFF0D8",
 
-  shadow: "rgba(17, 24, 39, 0.08)",
-  overlay: "rgba(0, 0, 0, 0.5)",
+  danger: "#D9363E",
+  dangerLight: "#FDE8E9",
+
+  success: "#159947",
+  info: "#3434A8",
+  infoLight: "#EEEEFF",
+
+  shadow: "rgba(49, 24, 40, 0.10)",
+  overlay: "rgba(18, 10, 20, 0.52)",
 } as const;
 
 export const SPACING = {
@@ -59,6 +76,7 @@ export const FONT = {
     xxl: 24,
     xxxl: 28,
   },
+
   weight: {
     regular: "400" as const,
     medium: "500" as const,
@@ -70,23 +88,34 @@ export const FONT = {
 
 export const SHADOW = {
   card: {
-    shadowColor: "#111827",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 8,
+    shadowColor: "#4A2032",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.08,
+    shadowRadius: 9,
     elevation: 2,
   },
+
   header: {
-    shadowColor: "#111827",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 3,
+    shadowColor: "#4A2032",
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.06,
+    shadowRadius: 4,
     elevation: 1,
   },
+
   fab: {
-    shadowColor: "#16A34A",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.25,
+    shadowColor: "#8B0A3C",
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.22,
     shadowRadius: 10,
     elevation: 6,
   },
