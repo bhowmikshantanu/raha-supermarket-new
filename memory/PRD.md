@@ -48,3 +48,15 @@ and `src/data/products.ts` / `categories.ts`.
 - `src/config/brand.ts` — name, phone, address, hours, delivery rules
 - `src/config/theme.ts` — palette + spacing
 - `src/data/products.ts` + `categories.ts` — catalog
+
+## Final Stabilization Pass (Sept 2026 session)
+- Admin Orders: full rider visibility (Assigned to / Delivered by + mobile, vehicle, assigned/delivered timestamps); "Change delivery boy" on assigned orders; no assign button after delivery.
+- Fixed auth-clobbering race: anonymous sign-in now waits for persisted admin/rider session restore (firebaseOrders.ts, pushNotifications.ts).
+- Root route (app/index.tsx) restored to customer splash/bootstrap (was redirecting to /admin/login). Staff Login row added to customer Profile; "Open Admin Panel" button removed from customer home.
+- Customer live-order sync gated to anonymous (customer) sessions only — no more Firestore permission errors under staff logins.
+- Firebase native auth persistence restored TS-safely (AsyncStorage on native, indexedDB on web).
+- expo-notifications fully guarded on web; cancellation confirm works on web via window.confirm.
+- Backend GET /api/status is now a Mongo-independent health check (needs Railway redeploy to go live).
+- Expo Doctor 18/18 (removed stale package-lock.json, pinned expo-constants 18.0.14, moved android/ -> android-native-backup for CNG builds). TypeScript 0 errors.
+- E2E verified: RH86393684 placed(COD)->confirmed->assigned(Pradeep)->out-for-delivery->delivered; RH86870665 placed->cancelled by customer. Delivered sales ₹1,510 / 2 orders.
+- Firestore rules reviewed (deployed ruleset): role-scoped, least-privilege, field-whitelisted rider transitions — no changes needed.

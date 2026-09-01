@@ -6,11 +6,13 @@ import React, {
   useMemo,
   useState,
 } from "react";
+import { onAuthStateChanged } from "firebase/auth";
 import {
   cancelFirebaseOrder,
   createFirebaseOrder,
   subscribeToCustomerOrders,
 } from "@/src/services/firebaseOrders";
+import { auth } from "@/src/config/firebase";
 import { BRAND } from "@/src/config/brand";
 import { useProducts } from "@/src/context/ProductContext";
 import type {
@@ -351,19 +353,42 @@ export const AppProvider: React.FC<{
       return;
     }
 
-    const unsubscribe = subscribeToCustomerOrders(
-      (firebaseOrders) => {
-        setOrders(firebaseOrders);
-      },
-      (error) => {
-        console.error(
-          "Live orders sync failed:",
-          error,
-        );
-      },
-    );
+    /*
+     * Customer live-order sync must run ONLY for customer sessions
+     * (anonymous or no persisted user). Admin/delivery riders sign in
+     * with email+password; running the customerUid query under a staff
+     * session violates Firestore rules and floods the console with
+     * "Missing or insufficient permissions".
+     */
+    let unsubscribeOrders: (() => void) | null = null;
 
-    return unsubscribe;
+    const unsubscribeAuth = onAuthStateChanged(auth, (firebaseUser) => {
+      if (unsubscribeOrders) {
+        return; // already subscribed once
+      }
+
+      if (firebaseUser && !firebaseUser.isAnonymous) {
+        // Staff session (admin / delivery). Skip customer order sync.
+        return;
+      }
+
+      unsubscribeOrders = subscribeToCustomerOrders(
+        (firebaseOrders) => {
+          setOrders(firebaseOrders);
+        },
+        (error) => {
+          console.error(
+            "Live orders sync failed:",
+            error,
+          );
+        },
+      );
+    });
+
+    return () => {
+      unsubscribeAuth();
+      unsubscribeOrders?.();
+    };
   }, [hydrated]);
 
   useEffect(() => {

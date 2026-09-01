@@ -1,3 +1,5 @@
+import AsyncStorage from "@react-native-async-storage/async-storage";
+
 import {
   getApp,
   getApps,
@@ -8,6 +10,7 @@ import {
   getAuth,
   initializeAuth,
   type Auth,
+  type Persistence,
 } from "firebase/auth";
 
 import { getFirestore } from "firebase/firestore";
@@ -30,9 +33,35 @@ export const app =
     ? getApp()
     : initializeApp(firebaseConfig);
 
+/*
+ * firebase v12 ships `getReactNativePersistence` only in its
+ * react-native bundle (which Metro resolves for iOS/Android). The
+ * browser type declarations do not expose it, so we look it up
+ * dynamically to stay TypeScript-clean on every platform.
+ *
+ * - Native: AsyncStorage persistence -> logins survive app restarts.
+ * - Web: falls back to getAuth() -> default indexedDB persistence,
+ *   so admin sessions survive browser refreshes.
+ */
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const firebaseAuthModule = require("firebase/auth") as {
+  getReactNativePersistence?: (
+    storage: typeof AsyncStorage,
+  ) => Persistence;
+};
+
 function createAuth(): Auth {
   try {
-    return initializeAuth(app);
+    const getRNPersistence =
+      firebaseAuthModule.getReactNativePersistence;
+
+    if (getRNPersistence) {
+      return initializeAuth(app, {
+        persistence: getRNPersistence(AsyncStorage),
+      });
+    }
+
+    return getAuth(app);
   } catch {
     return getAuth(app);
   }

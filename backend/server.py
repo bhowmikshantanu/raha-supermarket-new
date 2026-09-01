@@ -317,6 +317,20 @@ async def create_status_check(
 
 @api_router.get(
     "/status",
+)
+async def get_status():
+    """Lightweight production health check (no MongoDB required)."""
+
+    return {
+        "ok": True,
+        "service": "raha-supermarket-backend",
+        "firebase": firestore_db is not None,
+        "mongo": db is not None,
+    }
+
+
+@api_router.get(
+    "/status/checks",
     response_model=List[StatusCheck],
 )
 async def get_status_checks():

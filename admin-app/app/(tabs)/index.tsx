@@ -412,26 +412,6 @@ export default function HomeScreen() {
         </View>
       ) : null}
 
-      <TouchableOpacity
-        activeOpacity={0.85}
-        onPress={() =>
-          router.push("/admin/login")
-        }
-        style={styles.adminPanelButton}
-        accessibilityRole="button"
-        accessibilityLabel="Open admin panel"
-      >
-        <Ionicons
-          name="shield-checkmark-outline"
-          size={20}
-          color={COLORS.textOnPrimary}
-        />
-
-        <Text style={styles.adminPanelButtonText}>
-          Open Admin Panel
-        </Text>
-      </TouchableOpacity>
-
       <View style={styles.heroSection}>
         <FlatList
           ref={bannerListRef}
@@ -956,24 +936,6 @@ const styles = StyleSheet.create({
 
   bottomSpace: {
     height: SPACING.xxxl,
-  },
-
-  adminPanelButton: {
-    marginHorizontal: SPACING.md,
-    marginTop: SPACING.md,
-    minHeight: 52,
-    borderRadius: RADIUS.lg,
-    backgroundColor: COLORS.primary,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: SPACING.sm,
-  },
-
-  adminPanelButtonText: {
-    fontSize: FONT.size.base,
-    fontWeight: FONT.weight.bold,
-    color: COLORS.textOnPrimary,
   },
 
   firebaseStatusCard: {

@@ -98,6 +98,7 @@ export default function ProfileScreen() {
         <SectionTitle title="Legal" />
         <MenuRow icon="shield-checkmark-outline" label="Privacy Policy" onPress={() => router.push("/legal/privacy")} testID="menu-privacy" />
         <MenuRow icon="document-text-outline" label="Terms & Conditions" onPress={() => router.push("/legal/terms")} testID="menu-terms" />
+        <MenuRow icon="key-outline" label="Staff Login" subtitle="Admin & delivery partners" onPress={() => router.push("/admin/login")} testID="menu-staff-login" />
 
         {!user?.isGuest && (
           <TouchableOpacity style={styles.logout} onPress={handleLogout} testID="logout-button">

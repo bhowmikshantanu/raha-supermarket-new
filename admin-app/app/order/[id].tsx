@@ -6,6 +6,7 @@ import {
   Alert,
   Animated,
   Linking,
+  Platform,
   ScrollView,
   StyleSheet,
   Text,
@@ -284,6 +285,43 @@ export default function OrderDetails() {
   };
 
   const handleCancelOrder = () => {
+    const confirmCancel = () => {
+      const result = cancelOrder(order.id);
+
+      if (!result.ok) {
+        if (Platform.OS === "web") {
+          window.alert(
+            result.message ?? "This order could not be cancelled.",
+          );
+        } else {
+          Alert.alert(
+            "Unable to Cancel",
+            result.message ?? "This order could not be cancelled.",
+          );
+        }
+        return;
+      }
+
+      if (Platform.OS === "web") {
+        window.alert(
+          result.message ?? "Your order has been cancelled successfully.",
+        );
+      } else {
+        Alert.alert(
+          "Order Cancelled",
+          result.message ?? "Your order has been cancelled successfully.",
+        );
+      }
+    };
+
+    // RN-web's Alert.alert is a no-op, so use the browser confirm there.
+    if (Platform.OS === "web") {
+      if (window.confirm("Are you sure you want to cancel this order?")) {
+        confirmCancel();
+      }
+      return;
+    }
+
     Alert.alert(
       "Cancel Order",
       "Are you sure you want to cancel this order?",
@@ -295,22 +333,7 @@ export default function OrderDetails() {
         {
           text: "Yes, Cancel",
           style: "destructive",
-          onPress: () => {
-            const result = cancelOrder(order.id);
-
-            if (!result.ok) {
-              Alert.alert(
-                "Unable to Cancel",
-                result.message ?? "This order could not be cancelled.",
-              );
-              return;
-            }
-
-            Alert.alert(
-              "Order Cancelled",
-              result.message ?? "Your order has been cancelled successfully.",
-            );
-          },
+          onPress: confirmCancel,
         },
       ],
     );
