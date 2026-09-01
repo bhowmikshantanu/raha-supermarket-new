@@ -363,13 +363,17 @@ export const AppProvider: React.FC<{
     let unsubscribeOrders: (() => void) | null = null;
 
     const unsubscribeAuth = onAuthStateChanged(auth, (firebaseUser) => {
-      if (unsubscribeOrders) {
-        return; // already subscribed once
+      if (firebaseUser && !firebaseUser.isAnonymous) {
+        // Staff session (admin / delivery). Tear down any customer
+        // listener opened under the earlier anonymous session — otherwise
+        // Firestore re-evaluates it under the staff token and rejects it.
+        unsubscribeOrders?.();
+        unsubscribeOrders = null;
+        return;
       }
 
-      if (firebaseUser && !firebaseUser.isAnonymous) {
-        // Staff session (admin / delivery). Skip customer order sync.
-        return;
+      if (unsubscribeOrders) {
+        return; // already subscribed for this customer session
       }
 
       unsubscribeOrders = subscribeToCustomerOrders(

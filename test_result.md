@@ -120,3 +120,14 @@
 - Web UI (after full page refresh): admin login → /admin/orders → RH78387575 expanded shows "Delivered by Pradeep", vehicle, timestamps, NO Assign rider button.
 
 ### Credentials: see /app/memory/test_credentials.md (admin + Pradeep rider). LIVE PRODUCTION Firebase — do not change passwords, do not delete Pradeep, do not modify order RH78387575 (read-only).
+
+## Iteration 4 — COD Release Validation (main agent, fork)
+
+### Verified by main agent (no code changes except ESLint quote-escape fix in src/components/HomeHeader.tsx):
+- TypeScript: 0 errors. ESLint: 0 errors (7 warnings). Expo Doctor 18/18.
+- Root URL `/` → customer splash → onboarding (fresh) — NOT admin login. Console clean (only shadow*/expo-notifications web info warnings).
+- Firestore rules (deployed ruleset read via Rules API) probed with anon customer / rider / admin ID tokens — 23/25 least-privilege checks PASS; 2 "fails" were probe artefacts (pushTokens doc for rider did not exist). Live data fully restored.
+- Railway backend: `/`→200, `/api/`→200, auth guards 401/403 correct, rider token → nonexistent order → 404 (Firebase Admin + Firestore live). `/api/status` returns 503 "MongoDB is not configured" on Railway (older deploy) — the app never calls it, non-blocking.
+
+### Needs UI E2E by testing agent (Iteration 4):
+Full COD lifecycle in the web preview: customer places COD order → admin confirms → admin assigns Pradeep → admin changes rider (reassign to same Pradeep OK if only one rider) → rider sees ONLY assigned orders → rider Out for delivery → rider Delivered → admin shows "Delivered by Pradeep" → customer Orders tab shows Delivered.

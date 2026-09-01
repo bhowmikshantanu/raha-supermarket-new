@@ -169,7 +169,7 @@ export const HomeHeader: React.FC<Props> = ({
             style={styles.searchPlaceholder}
             numberOfLines={1}
           >
-            Search "Amul butter", "oil", "biscuits"...
+            {'Search "Amul butter", "oil", "biscuits"...'}
           </Text>
         </TouchableOpacity>
 
