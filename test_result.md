@@ -101,3 +101,22 @@
 #====================================================================================================
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
+## Iteration 3 — Final Stabilization Pass (main agent, June 2026 fork)
+
+### Changes implemented this iteration:
+1. **Admin Orders rider visibility fix** (`/app/admin-app/app/admin/orders/index.tsx` + `/app/admin-app/src/services/firebaseOrders.ts`)
+   - Root cause: `documentToOrder` in firebaseOrders.ts stripped deliveryBoy* fields → admin never saw assignments.
+   - Now: collapsed card shows rider strip ("Assigned to X" / "Out for delivery · X" / "Delivered by X"); expanded card shows Assigned to/Delivered by + Mobile + Vehicle (looked up from deliveryBoys collection) + Assigned at + Delivered at; button says "Change delivery boy" when assigned, "Assign rider" when not; delivered/cancelled orders show NO assign button.
+2. **Auth session clobbering fix** (`firebaseOrders.ts` + `pushNotifications.ts` ensureFirebaseUser)
+   - Root cause: signInAnonymously ran before persisted admin/rider session restored on page refresh/app restart, replacing the login with a fresh anonymous user → "Unable to load live orders".
+   - Now waits for initial onAuthStateChanged emission before falling back to anonymous.
+3. **Admin orders subscriptions gated on auth-ready** (onAuthStateChanged) so refresh works.
+4. **expo-notifications web guards** (`app/_layout.tsx`, `src/services/pushNotifications.ts`) — all native notification APIs skipped when Platform.OS === 'web'. Android behavior unchanged.
+
+### Verified by main agent (real production Firebase + Railway):
+- Firestore: RH78387575 status=delivered, deliveryBoyName=Pradeep, vehicle=up32nb6543, all timestamps present.
+- Rider login via Firebase REST OK; POST /api/orders/RH78387575/customer-notify with rider token → 200 {"ok":true,"sent":1} (real push accepted by Expo).
+- Role isolation: rider→foreign order 403, no auth 401, rider→admin endpoint 403.
+- Web UI (after full page refresh): admin login → /admin/orders → RH78387575 expanded shows "Delivered by Pradeep", vehicle, timestamps, NO Assign rider button.
+
+### Credentials: see /app/memory/test_credentials.md (admin + Pradeep rider). LIVE PRODUCTION Firebase — do not change passwords, do not delete Pradeep, do not modify order RH78387575 (read-only).

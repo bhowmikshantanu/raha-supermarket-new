@@ -13,7 +13,9 @@ import {
 } from "firebase/firestore";
 
 import {
+  onAuthStateChanged,
   signInAnonymously,
+  type User,
 } from "firebase/auth";
 
 import {
@@ -61,6 +63,15 @@ function removeUndefinedDeep(
   return value;
 }
 
+function waitForInitialAuthState(): Promise<User | null> {
+  return new Promise((resolve) => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      unsubscribe();
+      resolve(user);
+    });
+  });
+}
+
 async function ensureFirebaseUser(): Promise<string> {
   if (auth.currentUser) {
     console.log(
@@ -69,6 +80,23 @@ async function ensureFirebaseUser(): Promise<string> {
     );
 
     return auth.currentUser.uid;
+  }
+
+  /*
+   * IMPORTANT: wait for the persisted session (admin / delivery /
+   * returning customer) to restore before creating an anonymous
+   * user — otherwise a page refresh or app restart clobbers the
+   * signed-in admin/rider session with a fresh anonymous account.
+   */
+  const restoredUser = await waitForInitialAuthState();
+
+  if (restoredUser) {
+    console.log(
+      "[Orders] Restored persisted Firebase user:",
+      restoredUser.uid,
+    );
+
+    return restoredUser.uid;
   }
 
   console.log(
@@ -138,6 +166,39 @@ function documentToOrder(
         data.estimatedDeliveryMinutes,
         30,
       ),
+
+    // Delivery rider assignment (optional, backward-compatible).
+    deliveryBoyId:
+      typeof data.deliveryBoyId === "string"
+        ? data.deliveryBoyId
+        : undefined,
+
+    deliveryBoyUid:
+      typeof data.deliveryBoyUid === "string"
+        ? data.deliveryBoyUid
+        : undefined,
+
+    deliveryBoyName:
+      typeof data.deliveryBoyName === "string"
+        ? data.deliveryBoyName
+        : undefined,
+
+    deliveryBoyMobile:
+      typeof data.deliveryBoyMobile === "string"
+        ? data.deliveryBoyMobile
+        : undefined,
+
+    assignedAt:
+      safeNumber(data.assignedAtMs, 0) ||
+      undefined,
+
+    pickedUpAt:
+      safeNumber(data.pickedUpAtMs, 0) ||
+      undefined,
+
+    deliveredAt:
+      safeNumber(data.deliveredAtMs, 0) ||
+      undefined,
   };
 }
 
@@ -247,6 +308,17 @@ export function subscribeToCustomerOrders(
   void ensureFirebaseUser()
     .then((customerUid) => {
       if (cancelled) {
+        return;
+      }
+
+      // Customer order subscription belongs to anonymous customer sessions.
+      // Admin and delivery-boy Firebase accounts must never open this query.
+      if (auth.currentUser && !auth.currentUser.isAnonymous) {
+        console.log(
+          "[Orders] Skipping customer orders subscription for authenticated staff:",
+          auth.currentUser.uid,
+        );
+        onOrders([]);
         return;
       }
 

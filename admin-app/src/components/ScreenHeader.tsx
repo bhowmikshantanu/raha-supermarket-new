@@ -13,6 +13,11 @@ interface Props {
   rightIcon?: keyof typeof Ionicons.glyphMap;
   onRightPress?: () => void;
   rightBadge?: number;
+  rightAction?: {
+    icon: keyof typeof Ionicons.glyphMap;
+    accessibilityLabel?: string;
+    onPress: () => void;
+  };
   showBack?: boolean;
 }
 
@@ -23,6 +28,7 @@ export const ScreenHeader: React.FC<Props> = ({
   rightIcon,
   onRightPress,
   rightBadge,
+  rightAction,
   showBack = true,
 }) => {
   const router = useRouter();
@@ -47,9 +53,31 @@ export const ScreenHeader: React.FC<Props> = ({
             </Text>
           )}
         </View>
-        {rightIcon ? (
-          <TouchableOpacity onPress={onRightPress} style={styles.iconBtn} testID="header-right">
-            <Ionicons name={rightIcon} size={22} color={COLORS.textPrimary} />
+        {rightAction ? (
+          <TouchableOpacity
+            onPress={rightAction.onPress}
+            style={styles.iconBtn}
+            accessibilityRole="button"
+            accessibilityLabel={rightAction.accessibilityLabel}
+            testID="header-right"
+          >
+            <Ionicons
+              name={rightAction.icon}
+              size={22}
+              color={COLORS.textPrimary}
+            />
+          </TouchableOpacity>
+        ) : rightIcon ? (
+          <TouchableOpacity
+            onPress={onRightPress}
+            style={styles.iconBtn}
+            testID="header-right"
+          >
+            <Ionicons
+              name={rightIcon}
+              size={22}
+              color={COLORS.textPrimary}
+            />
             {rightBadge && rightBadge > 0 ? (
               <View style={styles.badge}>
                 <Text style={styles.badgeText}>{rightBadge}</Text>

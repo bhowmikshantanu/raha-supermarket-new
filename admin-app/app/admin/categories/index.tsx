@@ -1355,7 +1355,7 @@ const styles =
         SPACING.md,
       alignItems:
         "center",
-      ...SHADOW.sm,
+      ...SHADOW.card,
     },
 
     statValue: {
@@ -1464,7 +1464,7 @@ const styles =
         SPACING.md,
       marginBottom:
         SPACING.md,
-      ...SHADOW.sm,
+      ...SHADOW.card,
     },
 
     categoryIconWrap: {

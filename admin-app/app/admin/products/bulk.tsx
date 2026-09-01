@@ -1,5 +1,4 @@
 import { Ionicons } from "@expo/vector-icons";
-import * as DocumentPicker from "expo-document-picker";
 import { useRouter } from "expo-router";
 import React, { useMemo, useState } from "react";
 import {
@@ -29,6 +28,8 @@ import {
   type BulkImportMode,
   type BulkProductInput,
 } from "@/src/services/firebaseProducts";
+
+import type { Product } from "@/src/types";
 
 type PreviewRow = {
   rowNumber: number;
@@ -175,7 +176,7 @@ function parseRow(
     product: {
       id,
       name,
-      category,
+      category: category as Product["category"],
       size,
       mrp,
       price,
@@ -256,6 +257,8 @@ export default function BulkProductImportScreen() {
   const chooseFile = async () => {
     try {
       setReading(true);
+
+      const DocumentPicker = await import("expo-document-picker");
 
       const result = await DocumentPicker.getDocumentAsync({
         type: [
@@ -576,7 +579,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.surface,
   },
   headerText: { flex: 1 },
-  title: { fontSize: FONT.xl, fontWeight: "900", color: COLORS.textPrimary },
+  title: { fontSize: FONT.size.xl, fontWeight: "900", color: COLORS.textPrimary },
   subtitle: { marginTop: 3, color: COLORS.textSecondary },
   content: { padding: SPACING.md, paddingBottom: 70 },
   actionCard: {
@@ -586,7 +589,7 @@ const styles = StyleSheet.create({
     marginBottom: SPACING.md,
     ...SHADOW.card,
   },
-  sectionTitle: { fontSize: FONT.md, fontWeight: "900", color: COLORS.textPrimary },
+  sectionTitle: { fontSize: FONT.size.md, fontWeight: "900", color: COLORS.textPrimary },
   helpText: { marginTop: 7, color: COLORS.textSecondary, lineHeight: 20 },
   primaryButton: {
     marginTop: SPACING.md,
@@ -638,7 +641,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     ...SHADOW.card,
   },
-  statValue: { fontSize: FONT.lg, fontWeight: "900", color: COLORS.primary },
+  statValue: { fontSize: FONT.size.lg, fontWeight: "900", color: COLORS.primary },
   statLabel: { marginTop: 4, color: COLORS.textSecondary },
   dangerText: { color: "#DC2626" },
   modeRow: { flexDirection: "row", flexWrap: "wrap", gap: SPACING.sm, marginTop: SPACING.md },
@@ -654,7 +657,7 @@ const styles = StyleSheet.create({
   modeTextActive: { color: COLORS.textOnPrimary },
   previewTitle: {
     marginBottom: SPACING.sm,
-    fontSize: FONT.md,
+    fontSize: FONT.size.md,
     fontWeight: "900",
     color: COLORS.textPrimary,
   },

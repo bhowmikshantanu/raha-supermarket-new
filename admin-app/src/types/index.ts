@@ -113,3 +113,25 @@ export interface DeliveryBoy {
   createdAt: number; // epoch ms
   updatedAt?: number; // epoch ms
 }
+
+
+export type NotificationType =
+  | "order"
+  | "offer"
+  | "payment"
+  | "wishlist"
+  | "system";
+
+export interface AppNotification {
+  id: string;
+  type: NotificationType;
+  title: string;
+  message?: string;
+  body?: string;
+  description?: string;
+  createdAt: number;
+  isRead: boolean;
+  actionRoute?: string;
+  orderId?: string;
+  productId?: string;
+}

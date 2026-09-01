@@ -22,6 +22,11 @@ let cachedExpoPushToken: string | null = null;
 let registrationPromise: Promise<string | null> | null = null;
 
 export function setupNotificationHandler() {
+  // expo-notifications is not supported in the browser preview.
+  if (Platform.OS === "web") {
+    return;
+  }
+
   Notifications.setNotificationHandler({
     handleNotification: async () => ({
       shouldShowBanner: true,
@@ -82,6 +87,20 @@ function getExpoProjectId(): string | undefined {
 async function ensureFirebaseUser(): Promise<User> {
   if (auth.currentUser) {
     return auth.currentUser;
+  }
+
+  // Wait for the persisted session to restore before falling back to
+  // anonymous auth — prevents clobbering an admin/rider login on app
+  // restart.
+  const restoredUser = await new Promise<User | null>((resolve) => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      unsubscribe();
+      resolve(user);
+    });
+  });
+
+  if (restoredUser) {
+    return restoredUser;
   }
 
   const credential = await signInAnonymously(auth);
@@ -238,6 +257,10 @@ async function getOrCreateExpoPushToken(): Promise<string | null> {
 export async function registerForPushNotifications(): Promise<
   string | null
 > {
+  if (Platform.OS === "web") {
+    return null;
+  }
+
   const token = await getOrCreateExpoPushToken();
 
   if (!token) {
@@ -251,6 +274,12 @@ export async function registerForPushNotifications(): Promise<
 }
 
 export function startPushTokenRegistrationLifecycle(): () => void {
+  // No remote push on web — skip entirely so the browser preview
+  // never touches expo-notifications native APIs.
+  if (Platform.OS === "web") {
+    return () => {};
+  }
+
   let cancelled = false;
 
   void registerForPushNotifications().catch((error) => {

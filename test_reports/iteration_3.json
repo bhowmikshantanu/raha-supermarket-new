@@ -1,0 +1,49 @@
+{
+  "summary": "Iteration 3 stabilization pass on Raha Supermarket admin-app (production Firebase, live data). VERIFIED all four main fixes from this iteration: (1) documentToOrder mapping — RH78387575 (Delivered) admin view shows collapsed strip 'Delivered by Pradeep' AND expanded card shows 'Delivered by Pradeep', 'Mobile: +91 7838616364', 'Vehicle: up32nb6543' (rendered as UP32NB6543-style lowercase in current UI), 'Assigned at' and 'Delivered at' timestamps, and neither 'Assign rider' nor 'Change delivery boy' button is present on the delivered order. (2) Auth-restore race — full browser reload on /admin/orders KEEPS user on /admin/orders and orders list re-populates with all 3 orders (no redirect to /admin/login). (3) expo-notifications web guard — NO `crypto.getRandomValues` errors, NO `getLastNotificationResponse is not available on web` errors observed on any admin screen this run; only a benign informational warning '[expo-notifications] Listening to push token changes is not yet fully supported on web. Adding a listener will have no effect.' remains. (4) Delivery module — Pradeep login succeeds, dashboard shows 'Hi, Pradeep' with vehicle 'up32nb6543' and stats 0 Active · 1 Delivered · 1 Total; Active tab shows empty-state 'No active orders' correctly. Additionally found and FIXED a JSX bug on Admin Dashboard where `keyboardShouldPersistTaps=\"handled\"` was placed AFTER the ScrollView's `>` closing bracket in /app/admin-app/app/admin/index.tsx (lines 146-150), rendering the literal string as a visible text node and producing 'Unexpected text node' console error. Customer regression sweep, coupon UI, notifications-broadcast screen, and admin reports screen were NOT re-tested this iteration (iteration_1 covered customer regression comprehensively); the assign→out-for-delivery→delivered lifecycle drive using a newly placed test order was NOT executed due to strict LIVE PRODUCTION DATA constraints (limited test order creation risk & token budget). Recommend main agent self-verify the assign→deliver flow using the existing 'Placed' order RH82099032 in-app if desired, or that this iteration's targeted fix-verifications are sufficient before Android release.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [
+      {"component": "Admin Dashboard ScrollView (/app/admin-app/app/admin/index.tsx:146-150)", "issue": "JSX syntax bug: `keyboardShouldPersistTaps=\"handled\"` was placed on a line AFTER the ScrollView opening tag was already closed with `>`, so it rendered as a text node child of the ScrollView. Visible as raw text on admin dashboard and produced console error 'Unexpected text node: keyboardShouldPersistTaps=\"handled\". A text node cannot be a child of a <View>.' FIXED by moving the prop inside the ScrollView tag before `>`.", "testID": "n/a", "priority": "HIGH"}
+    ],
+    "integration_issues": [
+      {"flow": "Delivery-boy authenticated view -> customer orders subscription", "issue": "Console error observed on /delivery dashboard after Pradeep login: 'FirebaseError: Missing or insufficient permissions. [Orders] Customer subscription failed' and 'Live orders sync failed'. If a delivery-boy user is not supposed to subscribe to the customer orders collection, the subscription should be gated by role. Non-blocking (delivery dashboard still renders own orders), but noisy in production console.", "affected_testIDs": []}
+    ],
+    "design_issues": [
+      {"screen": "Customer home (/)", "issues": ["Hydration warnings: 'In HTML, <button> cannot be a descendant of <button>' — nested button/pressable structure inside FlatList items (product cards).", "'Unexpected text node: Premium Picks. A text node cannot be a child of a <View>' — a raw string is being placed as a direct child of a <View> instead of wrapped in <Text> in the Premium Picks section."]}
+    ],
+    "react_native_issues": [
+      {"component": "Admin Dashboard ScrollView", "issue": "Malformed JSX caused a text node inside <ScrollView> (a View). See /app/admin-app/app/admin/index.tsx:146-150. FIXED this iteration."},
+      {"component": "Customer home Premium Picks section", "issue": "Raw text string appears as a direct child of a <View> — must be wrapped in <Text>. Reference: any renderer emitting 'Premium Picks' outside of <Text>. Check /app/admin-app/app/(tabs)/index.tsx."},
+      {"component": "Nested <button> hydration error on customer home", "issue": "React Native Web is emitting <button> inside <button> for product cards' Add-to-cart button nested within the pressable card. Should extract the ADD button from the card Pressable or use onPress bubbling with a View wrapper. Reference: /app/admin-app/app/(tabs)/index.tsx product card renderer."},
+      {"component": "shadow* style props", "issue": "'shadow*' style props are deprecated — use boxShadow. Warning still emitted globally (SHADOW tokens in src/config/theme.ts). Non-blocking, previously reported."}
+    ]
+  },
+  "test_report_links": [
+    "/app/test_reports/screens/i3_dashboard.png",
+    "/app/test_reports/screens/i3_orders.png",
+    "/app/test_reports/screens/i3_rh78_expanded.png",
+    "/app/test_reports/screens/i3_after_reload.png",
+    "/app/test_reports/screens/i3_delivery_dash.png",
+    "/app/test_reports/screens/i3_home.png"
+  ],
+  "action_items": [
+    "Fix hydration/text-node errors on customer home (/app/admin-app/app/(tabs)/index.tsx): wrap 'Premium Picks' (and any adjacent raw strings) in <Text> and eliminate nested <Pressable>/<TouchableOpacity> that renders as <button> inside <button>.",
+    "Gate 'Customer subscription' (customer orders live-sync) so it does NOT run when the current Firebase user is a delivery-boy — currently Firestore rejects with 'Missing or insufficient permissions' and errors are logged on the delivery dashboard.",
+    "(Optional) Migrate SHADOW tokens in src/config/theme.ts from shadow* props to boxShadow to silence RN-Web deprecation warnings.",
+    "Main agent may self-verify the full assign→out-for-delivery→delivered lifecycle by driving the existing 'Placed' order RH82099032 (do NOT create a new test order to avoid extra live-data footprint) or accept the fix-level verification done in this iteration."
+  ],
+  "critical_code_review_comments": [
+    "JSX syntax hygiene: the same class of bug (props placed on a new line after `>`) can bite other ScrollViews — recommend a lint rule (eslint-plugin-react/jsx-closing-bracket-location) to catch it.",
+    "app/_layout.tsx: expo-notifications listeners are now Platform.OS==='web' guarded (verified). Good.",
+    "app/admin/orders/index.tsx and firebaseOrders.ts: verified live behaviour matches the described fixes (delivered order surfaces deliveryBoy* fields via documentToOrder)."
+  ],
+  "updated_files": [
+    "/app/admin-app/app/admin/index.tsx (moved keyboardShouldPersistTaps prop inside ScrollView opening tag)"
+  ],
+  "success_rate": {"backend": "N/A (skipped per request)", "frontend": "Fix-verification 100% (4/4 targeted fixes verified). Full customer+admin regression NOT re-executed this iteration (covered in iteration_1)."},
+  "seed_data_creation": "None. Did NOT create a customer test order or modify any live-production data. Read-only verification on RH78387575 and 3-orders list.",
+  "retest_needed": true,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Preview URL: https://b9a9e20c-61e2-4013-a69c-303d125cc2d3.preview.emergentagent.com. Admin creds: admin@rahasupermarket.in / Raha@2026Admin at /admin/login. Delivery creds: shamba8485@gmail.com / Shree@1805 at /delivery/login (testIDs: delivery-login-email, delivery-login-password, delivery-login-submit). Admin orders reload regression verified. RH78387575 is the reference Delivered order — expand card by tapping the order row (get_by_text('RH78387575').click). Firebase auth may rate-limit rapid consecutive login attempts with 'Unable to sign in. Please try again.' — space out login attempts by ≥30s. On customer home there are React Native Web hydration errors (nested buttons + raw text 'Premium Picks' outside <Text>) that should be fixed. LIVE PRODUCTION data — follow strict rules (no broadcast, no rider changes, no reference-order modifications).",
+  "rca_of_issue": "Admin Dashboard visible text bug: In /app/admin-app/app/admin/index.tsx, the ScrollView opening tag was closed with `>` on line 149 after `showsVerticalScrollIndicator={true}>`, then `keyboardShouldPersistTaps=\"handled\"` appeared on line 150 (no `<`), so JSX parsed it as a text child of ScrollView. React Native Web threw 'Unexpected text node: keyboardShouldPersistTaps=\"handled\". A text node cannot be a child of a <View>.' Fix: moved the prop into the ScrollView opening tag before the `>` and re-formatted. Verified no additional occurrences via grep across the codebase."
+}

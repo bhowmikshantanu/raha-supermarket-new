@@ -913,7 +913,7 @@ const styles =
 
     heading: {
       fontSize:
-        FONT.xl,
+        FONT.size.xl,
       fontWeight:
         "900",
       color:
@@ -952,7 +952,7 @@ const styles =
 
     statValue: {
       fontSize:
-        FONT.lg,
+        FONT.size.lg,
       fontWeight:
         "900",
       color:
@@ -1014,7 +1014,7 @@ const styles =
       color:
         COLORS.textPrimary,
       fontSize:
-        FONT.md,
+        FONT.size.md,
     },
 
     sectionSubtitle: {
@@ -1134,7 +1134,7 @@ const styles =
       fontWeight:
         "900",
       fontSize:
-        FONT.md,
+        FONT.size.md,
     },
 
     historyHeader: {
@@ -1150,7 +1150,7 @@ const styles =
       color:
         COLORS.textPrimary,
       fontSize:
-        FONT.md,
+        FONT.size.md,
     },
 
     historySubtitle: {

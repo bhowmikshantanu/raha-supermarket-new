@@ -1,4 +1,3 @@
-import * as DocumentPicker from "expo-document-picker";
 import { Platform } from "react-native";
 
 export type UploadedProductImage = {
@@ -24,6 +23,8 @@ export async function pickAndUploadProductImage(
       "Cloudinary configuration is missing. Check the admin-app .env file.",
     );
   }
+
+  const DocumentPicker = await import("expo-document-picker");
 
   const result = await DocumentPicker.getDocumentAsync({
     type: "image/*",

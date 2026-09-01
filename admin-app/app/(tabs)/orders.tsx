@@ -600,7 +600,7 @@ const styles = StyleSheet.create({
   headerIcon: {
     width: 48,
     height: 48,
-    borderRadius: RADIUS.full,
+    borderRadius: RADIUS.pill,
     alignItems: "center",
     justifyContent: "center",
     backgroundColor: COLORS.surface,
@@ -630,7 +630,7 @@ const styles = StyleSheet.create({
   statIcon: {
     width: 32,
     height: 32,
-    borderRadius: RADIUS.full,
+    borderRadius: RADIUS.pill,
     alignItems: "center",
     justifyContent: "center",
     backgroundColor: COLORS.background,
@@ -686,7 +686,7 @@ const styles = StyleSheet.create({
     minWidth: 22,
     height: 22,
     paddingHorizontal: 6,
-    borderRadius: RADIUS.full,
+    borderRadius: RADIUS.pill,
     alignItems: "center",
     justifyContent: "center",
     backgroundColor: COLORS.background,
@@ -777,7 +777,7 @@ const styles = StyleSheet.create({
   orderIcon: {
     width: 42,
     height: 42,
-    borderRadius: RADIUS.full,
+    borderRadius: RADIUS.pill,
     alignItems: "center",
     justifyContent: "center",
     backgroundColor: COLORS.surface,
@@ -829,7 +829,7 @@ const styles = StyleSheet.create({
   progressDot: {
     width: 20,
     height: 20,
-    borderRadius: RADIUS.full,
+    borderRadius: RADIUS.pill,
     alignItems: "center",
     justifyContent: "center",
     backgroundColor: COLORS.borderLight,

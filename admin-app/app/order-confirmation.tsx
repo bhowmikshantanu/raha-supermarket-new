@@ -929,7 +929,7 @@ const styles = StyleSheet.create({
   invoiceIconWrap: {
     width: 44,
     height: 44,
-    borderRadius: RADIUS.full,
+    borderRadius: RADIUS.pill,
     backgroundColor: COLORS.primaryLight,
     alignItems: "center",
     justifyContent: "center",
@@ -1124,7 +1124,7 @@ const styles = StyleSheet.create({
   addressIcon: {
     width: 36,
     height: 36,
-    borderRadius: RADIUS.full,
+    borderRadius: RADIUS.pill,
     backgroundColor: COLORS.primaryLight,
     alignItems: "center",
     justifyContent: "center",

@@ -3,6 +3,8 @@ import { Image } from "expo-image";
 import React, { useCallback, useMemo, useState } from "react";
 import {
   GestureResponderEvent,
+  Platform,
+  Pressable,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -135,7 +137,7 @@ export const ProductCard: React.FC<Props> = React.memo(
           <Ionicons
             name={wishlisted ? "heart" : "heart-outline"}
             size={18}
-            color={wishlisted ? COLORS.danger : COLORS.textOnSurface}
+            color={wishlisted ? COLORS.danger : COLORS.textPrimary}
           />
         </TouchableOpacity>
 
@@ -247,11 +249,10 @@ export const ProductCard: React.FC<Props> = React.memo(
 
     if (layout === "list") {
       return (
-        <TouchableOpacity
-          activeOpacity={0.9}
+        <Pressable
           onPress={onPress}
           style={styles.listCard}
-          accessibilityRole="button"
+          accessibilityRole={Platform.OS === "web" ? undefined : "button"}
           accessibilityLabel={`${product.name}, ${product.size}, ${formatCurrency(
             product.price,
           )}`}
@@ -263,16 +264,15 @@ export const ProductCard: React.FC<Props> = React.memo(
           <View style={styles.listInfo}>
             {productDetails}
           </View>
-        </TouchableOpacity>
+        </Pressable>
       );
     }
 
     return (
-      <TouchableOpacity
-        activeOpacity={0.9}
+      <Pressable
         onPress={onPress}
         style={styles.gridCard}
-        accessibilityRole="button"
+        accessibilityRole={Platform.OS === "web" ? undefined : "button"}
         accessibilityLabel={`${product.name}, ${product.size}, ${formatCurrency(
           product.price,
         )}`}
@@ -281,7 +281,7 @@ export const ProductCard: React.FC<Props> = React.memo(
       >
         {productImage}
         {productDetails}
-      </TouchableOpacity>
+      </Pressable>
     );
   },
 );

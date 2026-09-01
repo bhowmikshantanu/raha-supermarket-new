@@ -1490,7 +1490,7 @@ const styles =
     },
     title: {
       fontSize:
-        FONT.xl,
+        FONT.size.xl,
       fontWeight:
         "800",
       color:
@@ -1535,7 +1535,7 @@ const styles =
     },
     statValue: {
       fontSize:
-        FONT.xl,
+        FONT.size.xl,
       fontWeight:
         "800",
       color:
@@ -1602,7 +1602,7 @@ const styles =
       marginTop:
         SPACING.md,
       fontSize:
-        FONT.lg,
+        FONT.size.lg,
       fontWeight:
         "800",
       color:
@@ -1675,7 +1675,7 @@ const styles =
     },
     couponCode: {
       fontSize:
-        FONT.md,
+        FONT.size.md,
       fontWeight:
         "900",
       color:
@@ -1779,7 +1779,7 @@ const styles =
     },
     modalTitle: {
       fontSize:
-        FONT.xl,
+        FONT.size.xl,
       fontWeight:
         "900",
       color:

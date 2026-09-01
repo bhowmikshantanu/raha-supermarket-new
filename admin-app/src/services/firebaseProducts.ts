@@ -26,7 +26,7 @@ function sanitizeProduct(product: Product): Product {
   return {
     id: String(product.id),
     name: String(product.name ?? "").trim(),
-    category: String(product.category ?? "").trim(),
+    category: product.category,
     size: String(product.size ?? "").trim(),
     mrp: Math.max(0, safeNumber(product.mrp)),
     price: Math.max(0, safeNumber(product.price)),
@@ -55,7 +55,7 @@ function documentToProduct(
   return sanitizeProduct({
     id: documentId,
     name: data.name,
-    category: data.category,
+    category: data.category as Product["category"],
     size: typeof data.size === "string" ? data.size : "",
     mrp: safeNumber(data.mrp),
     price: safeNumber(data.price),

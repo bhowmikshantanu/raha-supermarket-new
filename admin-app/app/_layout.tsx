@@ -4,6 +4,7 @@ import * as SplashScreen from "expo-splash-screen";
 import React, { useEffect } from "react";
 import {
   LogBox,
+  Platform,
   StatusBar,
 } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
@@ -44,6 +45,10 @@ export default function RootLayout() {
   }, []);
 
   useEffect(() => {
+    if (Platform.OS === "web") {
+      return;
+    }
+
     const subscription =
       Notifications.addNotificationResponseReceivedListener(
         (response) => {
@@ -79,6 +84,10 @@ export default function RootLayout() {
   }, [router]);
 
   useEffect(() => {
+    if (Platform.OS === "web") {
+      return;
+    }
+
     void Notifications.getLastNotificationResponseAsync()
       .then((response) => {
         if (!response) {

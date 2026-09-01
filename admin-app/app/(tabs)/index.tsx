@@ -516,7 +516,9 @@ export default function HomeScreen() {
       ) : null}
 
       <View style={styles.sectionTopMeta}>
-        <View style={styles.sectionTag}>Premium Picks</View>
+        <View style={styles.sectionTag}>
+          <Text style={styles.sectionTagText}>Premium Picks</Text>
+        </View>
         <Text style={styles.sectionLead}>
           Discover fresh essentials, premium brands, and fast deals.
         </Text>
@@ -806,6 +808,11 @@ const styles = StyleSheet.create({
     marginTop: SPACING.xl,
   },
 
+  sectionTagText: {
+    fontSize: 11,
+    fontWeight: "700",
+    color: COLORS.primary,
+  },
   sectionTag: {
     alignSelf: "flex-start",
     paddingHorizontal: SPACING.sm,

@@ -25,8 +25,13 @@ import {
   adminUpdateFirebaseOrderStatus,
   subscribeToAllOrders,
 } from "@/src/services/firebaseOrders";
+import { onAuthStateChanged } from "firebase/auth";
+
+import { auth } from "@/src/config/firebase";
 import { isOrderEligibleForAssignment } from "@/src/services/firebaseDeliveryOrders";
+import { subscribeToDeliveryBoys } from "@/src/services/firebaseDeliveryBoys";
 import type {
+  DeliveryBoy,
   Order,
   OrderStatus,
 } from "@/src/types";
@@ -79,8 +84,22 @@ export default function AdminOrdersScreen() {
   const [updatingId, setUpdatingId] = useState<string | null>(null);
   const [errorText, setErrorText] = useState("");
   const [assignForOrder, setAssignForOrder] = useState<Order | null>(null);
+  const [riders, setRiders] = useState<DeliveryBoy[]>([]);
+  const [authReady, setAuthReady] = useState(false);
 
   useEffect(() => {
+    // Wait for the persisted Firebase admin session to restore before
+    // opening Firestore listeners — otherwise a page refresh races the
+    // auth restore and security rules reject the read.
+    const unsubscribe = onAuthStateChanged(auth, () => {
+      setAuthReady(true);
+    });
+    return unsubscribe;
+  }, []);
+
+  useEffect(() => {
+    if (!authReady) return;
+
     const unsubscribe = subscribeToAllOrders(
       (items) => {
         setOrders(items);
@@ -97,7 +116,33 @@ export default function AdminOrdersScreen() {
     );
 
     return unsubscribe;
-  }, []);
+  }, [authReady]);
+
+  useEffect(() => {
+    if (!authReady) return;
+
+    // Rider directory — used to enrich orders with vehicle numbers.
+    const unsubscribe = subscribeToDeliveryBoys(
+      (items) => setRiders(items),
+      () => {
+        /* non-fatal — vehicle info simply stays hidden */
+      },
+    );
+    return unsubscribe;
+  }, [authReady]);
+
+  const riderVehicleById = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const rider of riders) {
+      if (rider.vehicleNumber) {
+        map.set(rider.id, rider.vehicleNumber);
+        if (rider.firebaseUid) {
+          map.set(rider.firebaseUid, rider.vehicleNumber);
+        }
+      }
+    }
+    return map;
+  }, [riders]);
 
   const stats = useMemo(() => {
     const count = (status: OrderStatus) =>
@@ -446,6 +491,45 @@ export default function AdminOrdersScreen() {
                     style={{ marginLeft: "auto" }}
                   />
                 </View>
+
+                {item.deliveryBoyName ? (
+                  <View
+                    style={[
+                      styles.riderStrip,
+                      item.status === "out-for-delivery" &&
+                        styles.riderStripActive,
+                    ]}
+                    testID={`rider-strip-${item.id}`}
+                  >
+                    <Ionicons
+                      name={
+                        item.status === "delivered"
+                          ? "checkmark-done-circle"
+                          : "bicycle"
+                      }
+                      size={15}
+                      color={
+                        item.status === "delivered"
+                          ? "#15803D"
+                          : COLORS.primary
+                      }
+                    />
+                    <Text
+                      style={[
+                        styles.riderStripText,
+                        item.status === "delivered" &&
+                          styles.riderStripDelivered,
+                      ]}
+                      numberOfLines={1}
+                    >
+                      {item.status === "delivered"
+                        ? `Delivered by ${item.deliveryBoyName}`
+                        : item.status === "out-for-delivery"
+                          ? `Out for delivery · ${item.deliveryBoyName}`
+                          : `Assigned to ${item.deliveryBoyName}`}
+                    </Text>
+                  </View>
+                ) : null}
               </TouchableOpacity>
 
               {expanded ? (
@@ -546,24 +630,55 @@ export default function AdminOrdersScreen() {
                   </View>
 
                   {item.deliveryBoyName ? (
-                    <View style={styles.riderInfoBox}>
+                    <View
+                      style={styles.riderInfoBox}
+                      testID={`rider-info-${item.id}`}
+                    >
                       <View style={styles.riderInfoIcon}>
                         <Ionicons
-                          name="bicycle"
+                          name={
+                            item.status === "delivered"
+                              ? "checkmark-done"
+                              : "bicycle"
+                          }
                           size={18}
                           color={COLORS.primary}
                         />
                       </View>
                       <View style={{ flex: 1 }}>
                         <Text style={styles.riderInfoLabel}>
-                          Delivery Boy
+                          {item.status === "delivered"
+                            ? "Delivered by"
+                            : "Assigned to"}
                         </Text>
                         <Text style={styles.riderInfoName}>
                           {item.deliveryBoyName}
                         </Text>
                         {item.deliveryBoyMobile ? (
                           <Text style={styles.riderInfoMeta}>
-                            +91 {item.deliveryBoyMobile}
+                            Mobile: +91 {item.deliveryBoyMobile}
+                          </Text>
+                        ) : null}
+                        {(() => {
+                          const vehicle =
+                            (item.deliveryBoyId &&
+                              riderVehicleById.get(item.deliveryBoyId)) ||
+                            (item.deliveryBoyUid &&
+                              riderVehicleById.get(item.deliveryBoyUid));
+                          return vehicle ? (
+                            <Text style={styles.riderInfoMeta}>
+                              Vehicle: {vehicle}
+                            </Text>
+                          ) : null;
+                        })()}
+                        {item.assignedAt ? (
+                          <Text style={styles.riderInfoMeta}>
+                            Assigned at: {formatDateTime(item.assignedAt)}
+                          </Text>
+                        ) : null}
+                        {item.status === "delivered" && item.deliveredAt ? (
+                          <Text style={styles.riderInfoDelivered}>
+                            Delivered at: {formatDateTime(item.deliveredAt)}
                           </Text>
                         ) : null}
                       </View>
@@ -588,7 +703,9 @@ export default function AdminOrdersScreen() {
                           color={COLORS.primary}
                         />
                         <Text style={styles.assignActionText}>
-                          {item.deliveryBoyId ? "Change rider" : "Assign rider"}
+                          {item.deliveryBoyId
+                            ? "Change delivery boy"
+                            : "Assign rider"}
                         </Text>
                       </TouchableOpacity>
                     ) : null}
@@ -1373,5 +1490,34 @@ const styles = StyleSheet.create({
     marginTop: 2,
     fontSize: FONT.size.xs,
     color: COLORS.textSecondary,
+  },
+  riderInfoDelivered: {
+    marginTop: 2,
+    fontSize: FONT.size.xs,
+    fontWeight: FONT.weight.semibold,
+    color: "#15803D",
+  },
+
+  riderStrip: {
+    marginTop: SPACING.sm,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    paddingHorizontal: SPACING.sm,
+    paddingVertical: 7,
+    borderRadius: RADIUS.md,
+    backgroundColor: COLORS.surface,
+  },
+  riderStripActive: {
+    backgroundColor: "#E0F2FE",
+  },
+  riderStripText: {
+    flex: 1,
+    fontSize: FONT.size.xs,
+    fontWeight: FONT.weight.semibold,
+    color: COLORS.textSecondary,
+  },
+  riderStripDelivered: {
+    color: "#15803D",
   },
 });

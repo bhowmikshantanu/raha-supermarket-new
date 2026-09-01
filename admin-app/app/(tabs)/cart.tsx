@@ -1319,7 +1319,7 @@ const styles = StyleSheet.create({
     gap: 5,
     paddingHorizontal: SPACING.sm,
     paddingVertical: 7,
-    borderRadius: RADIUS.full,
+    borderRadius: RADIUS.pill,
     backgroundColor: COLORS.surface,
   },
 
@@ -1353,7 +1353,7 @@ const styles = StyleSheet.create({
   deliveryIcon: {
     width: 40,
     height: 40,
-    borderRadius: RADIUS.full,
+    borderRadius: RADIUS.pill,
     alignItems: "center",
     justifyContent: "center",
     backgroundColor: COLORS.surface,
@@ -1553,7 +1553,7 @@ const styles = StyleSheet.create({
   removeButton: {
     width: 34,
     height: 34,
-    borderRadius: RADIUS.full,
+    borderRadius: RADIUS.pill,
     alignItems: "center",
     justifyContent: "center",
     backgroundColor: COLORS.surface,
@@ -1562,7 +1562,7 @@ const styles = StyleSheet.create({
   wishlistButton: {
     width: 34,
     height: 34,
-    borderRadius: RADIUS.full,
+    borderRadius: RADIUS.pill,
     alignItems: "center",
     justifyContent: "center",
     backgroundColor: COLORS.surface,
@@ -1801,7 +1801,7 @@ const styles = StyleSheet.create({
   offerIcon: {
     width: 44,
     height: 44,
-    borderRadius: RADIUS.full,
+    borderRadius: RADIUS.pill,
     alignItems: "center",
     justifyContent: "center",
     backgroundColor: COLORS.surface,

@@ -1436,7 +1436,7 @@ const styles = StyleSheet.create({
   sectionIcon: {
     width: 40,
     height: 40,
-    borderRadius: RADIUS.full,
+    borderRadius: RADIUS.pill,
     backgroundColor: COLORS.surface,
     alignItems: "center",
     justifyContent: "center",
@@ -1521,7 +1521,7 @@ const styles = StyleSheet.create({
   deliveryIcon: {
     width: 44,
     height: 44,
-    borderRadius: RADIUS.full,
+    borderRadius: RADIUS.pill,
     backgroundColor: COLORS.background,
     alignItems: "center",
     justifyContent: "center",
@@ -1691,7 +1691,7 @@ const styles = StyleSheet.create({
   selectedSlotIcon: {
     width: 40,
     height: 40,
-    borderRadius: RADIUS.full,
+    borderRadius: RADIUS.pill,
     backgroundColor: COLORS.background,
     alignItems: "center",
     justifyContent: "center",
@@ -1745,7 +1745,7 @@ const styles = StyleSheet.create({
   paymentIcon: {
     width: 44,
     height: 44,
-    borderRadius: RADIUS.full,
+    borderRadius: RADIUS.pill,
     backgroundColor: COLORS.surface,
     alignItems: "center",
     justifyContent: "center",
@@ -1814,7 +1814,7 @@ const styles = StyleSheet.create({
   offerIcon: {
     width: 42,
     height: 42,
-    borderRadius: RADIUS.full,
+    borderRadius: RADIUS.pill,
     backgroundColor: COLORS.surface,
     alignItems: "center",
     justifyContent: "center",
@@ -1856,7 +1856,7 @@ const styles = StyleSheet.create({
   appliedCouponIcon: {
     width: 42,
     height: 42,
-    borderRadius: RADIUS.full,
+    borderRadius: RADIUS.pill,
     alignItems: "center",
     justifyContent: "center",
     backgroundColor: COLORS.primaryLight,
@@ -2006,7 +2006,7 @@ const styles = StyleSheet.create({
   deliverySummaryIcon: {
     width: 32,
     height: 32,
-    borderRadius: RADIUS.full,
+    borderRadius: RADIUS.pill,
     alignItems: "center",
     justifyContent: "center",
     backgroundColor: COLORS.primaryLight,

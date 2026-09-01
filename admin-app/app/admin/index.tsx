@@ -144,10 +144,10 @@ export default function AdminDashboard() {
   return (
     <SafeAreaView style={styles.container} edges={["top", "bottom"]}>
       <ScrollView
-  style={styles.scrollView}
-  contentContainerStyle={styles.scrollContent}
-  showsVerticalScrollIndicator={true}>
-  keyboardShouldPersistTaps="handled"
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={true}
+        keyboardShouldPersistTaps="handled">
         <View style={styles.header}>
           <View style={styles.headerContent}>
             <Text style={styles.heading}>Admin Dashboard</Text>
@@ -274,7 +274,7 @@ const styles = StyleSheet.create({
   scrollContent: { padding: SPACING.md, paddingBottom: 60 },
   header: { minHeight: 58, flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
   headerContent: { flex: 1 },
-  heading: { fontSize: FONT.xl, fontWeight: "900", color: COLORS.textPrimary },
+  heading: { fontSize: FONT.size.xl, fontWeight: "900", color: COLORS.textPrimary },
   email: { marginTop: 4, color: COLORS.textSecondary },
   adminBadge: {
     flexDirection: "row",
@@ -306,7 +306,7 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(255,255,255,0.18)",
   },
   heroContent: { flex: 1 },
-  heroTitle: { color: "#FFFFFF", fontWeight: "900", fontSize: FONT.md },
+  heroTitle: { color: "#FFFFFF", fontWeight: "900", fontSize: FONT.size.md },
   heroSubtitle: { marginTop: 5, color: "rgba(255,255,255,0.9)", lineHeight: 18 },
   liveBadge: {
     flexDirection: "row",
@@ -326,7 +326,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
   },
-  sectionTitle: { fontSize: FONT.md, fontWeight: "900", color: COLORS.textPrimary },
+  sectionTitle: { fontSize: FONT.size.md, fontWeight: "900", color: COLORS.textPrimary },
   viewReportsText: { color: COLORS.primary, fontWeight: "800" },
   statsGrid: { flexDirection: "row", flexWrap: "wrap", gap: SPACING.sm },
   statCard: {
@@ -345,7 +345,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     backgroundColor: COLORS.primarySoft,
   },
-  statValue: { marginTop: 12, fontSize: FONT.lg, fontWeight: "900", color: COLORS.textPrimary },
+  statValue: { marginTop: 12, fontSize: FONT.size.lg, fontWeight: "900", color: COLORS.textPrimary },
   statLabel: { marginTop: 3, fontSize: 12, color: COLORS.textSecondary },
   salesCard: {
     marginTop: SPACING.sm,
@@ -368,7 +368,7 @@ const styles = StyleSheet.create({
   },
   salesContent: { flex: 1 },
   salesLabel: { color: COLORS.textSecondary, fontWeight: "700" },
-  salesValue: { marginTop: 3, fontSize: FONT.xl, fontWeight: "900", color: COLORS.textPrimary },
+  salesValue: { marginTop: 3, fontSize: FONT.size.xl, fontWeight: "900", color: COLORS.textPrimary },
   salesHint: { marginTop: 3, fontSize: 11, color: COLORS.textMuted },
   salesArrow: {
     width: 40,
@@ -397,7 +397,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     backgroundColor: COLORS.primarySoft,
   },
-  cardTitle: { marginTop: SPACING.md, fontWeight: "900", color: COLORS.textPrimary, fontSize: FONT.md },
+  cardTitle: { marginTop: SPACING.md, fontWeight: "900", color: COLORS.textPrimary, fontSize: FONT.size.md },
   cardSubtitle: { marginTop: 7, maxWidth: "84%", lineHeight: 18, color: COLORS.textSecondary },
   cardArrow: {
     position: "absolute",
@@ -422,7 +422,7 @@ const styles = StyleSheet.create({
     gap: SPACING.sm,
     backgroundColor: COLORS.surface,
   },
-  logoutText: { color: COLORS.primary, fontWeight: "900", fontSize: FONT.md },
+  logoutText: { color: COLORS.primary, fontWeight: "900", fontSize: FONT.size.md },
   loadingWrap: { flex: 1, alignItems: "center", justifyContent: "center", padding: SPACING.lg },
   loadingText: { marginTop: SPACING.md, color: COLORS.textSecondary },
 });
