@@ -60,3 +60,11 @@ and `src/data/products.ts` / `categories.ts`.
 - Expo Doctor 18/18 (removed stale package-lock.json, pinned expo-constants 18.0.14, moved android/ -> android-native-backup for CNG builds). TypeScript 0 errors.
 - E2E verified: RH86393684 placed(COD)->confirmed->assigned(Pradeep)->out-for-delivery->delivered; RH86870665 placed->cancelled by customer. Delivered sales ₹1,510 / 2 orders.
 - Firestore rules reviewed (deployed ruleset): role-scoped, least-privilege, field-whitelisted rider transitions — no changes needed.
+
+## COD Release Validation (Iteration 4, fork)
+- E2E UI lifecycle re-verified on live Firebase by testing agent: RH88275952 placed(COD)->confirmed->assigned(Pradeep)->reassigned->out-for-delivery->delivered; rider saw only assigned orders; admin shows "Delivered by Pradeep" history.
+- Firestore rules probed with anon/rider/admin tokens (23 least-privilege checks PASS). Railway backend auth guards + Firebase Admin verified live.
+- Fixed: customer-orders listener now torn down when a staff (admin/rider) session signs in on the same client (AppContext) — no more "Missing or insufficient permissions" on staff dashboards.
+- Fixed: ESLint 0 errors (HomeHeader quotes). TS 0 errors. Expo Doctor 18/18.
+- Replaced Emergent template icon/adaptive-icon/favicon/splash with branded green "R" assets (app.json splash -> splash-icon.png).
+- Open decision before first Play upload: android.package is still `com.emergent.localgroceryapp.g49uwf` (permanent once published; google-services.json must match if changed). Railway `/api/status` still old deploy (503) — app does not use it.

@@ -1,0 +1,50 @@
+{
+  "summary": "COD release validation E2E on LIVE PRODUCTION Firebase — Raha Supermarket admin-app (viewport 390x844). Placed EXACTLY ONE test order RH88275952 (address 'QA TEST IGNORE', COD, Nutella Hazelnut Spread ₹365, total ₹415) and drove the full lifecycle. RESULTS: STEP 0 PASS — `/` → onboarding → Skip → /login → guest-login-button → Home tabs visible. STEP 1 PASS — order RH88275952 created; oc-order-id confirmation screen shown. STEP 2 PASS — customer Orders tab shows RH88275952 with status 'Placed'; NO 'Missing or insufficient permissions' errors on customer screens. STEP 3 PASS — admin login OK; on 'Placed' order the 'Assign rider' button is NOT present; tapping 'Confirm Order' transitions status to Confirmed and 'Assign rider' button appears. STEP 4 PASS — Assign rider → AssignRiderSheet → Pradeep row (testID assign-rider-<riderId>): collapsed strip shows 'Assigned to Pradeep', expanded card shows ASSIGNED TO Pradeep, Mobile +91 7838616364, Vehicle up32nb6543, 'Assigned at 01 Sept, 06:51 pm'; button label is now 'Change delivery boy'. Reassign to same Pradeep succeeds — no error, still 'Assigned to Pradeep'. STEP 5 PASS — rider (Pradeep) login OK; dashboard 'Hi, Pradeep · up32nb6543 · 1 Active · 2 Delivered · 3 Total'; Active tab shows ONLY RH88275952 (does NOT show RH82099032 unassigned/Placed, RH86870665 cancelled, RH88589744 cancelled — verified). delivery-next-status-btn tap #1 → status 'Out for delivery'. Tap #2 → status Delivered with 'Delivered — great work!' toast. STEP 6 PASS — admin view of RH88275952 (post-delivery): collapsed strip 'Delivered by Pradeep'; expanded shows 'Delivered by', Pradeep, Mobile, 7838616364, 'Assigned at', 'Delivered at'; NO 'Assign rider' / NO 'Change delivery boy' button. STEP 7 NOT DIRECTLY TESTABLE via new browser context (the customer-order↔user linkage is bound to the anonymous Firebase UID created inside the initial guest session; each fresh Playwright context re-signs anonymously and gets a new UID, so the previous order is not visible from a new guest session). Order status IS Delivered in Firestore (STEP 6 admin proof); if the same guest session in the customer's device is re-opened, live sync will surface the Delivered status. STEP 8 PASS — no 'ExpoDocumentPicker' or 'Cannot find native module' errors anywhere in the full run. Deprecated packages detected: none. Known benign warnings only: 'shadow*' deprecation, '[expo-notifications] Listening to push token changes is not yet fully supported on web', 'props.pointerEvents deprecated', 'Animated: useNativeDriver missing'. All rules honored: 1 test order, no admin broadcast, no rider changes, no reference-order modifications, no product/category/coupon edits.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [
+      {"flow": "Delivery-boy dashboard — customer orders subscription", "issue": "On /delivery after Pradeep login, the app still starts a customer-orders Firestore subscription; Firestore rules correctly reject it and 2 errors are logged: '[Orders] Customer subscription failed: FirebaseError: Missing or insufficient permissions.' and 'Live orders sync failed'. Non-blocking (delivery dashboard renders own orders correctly and both status transitions succeed) but noisy in production console. Same issue was reported in iteration_3 — remains unfixed. Ref: /app/admin-app/app/delivery/index.tsx (should gate customer-orders subscription on role !== 'delivery').", "affected_testIDs": []}
+    ],
+    "design_issues": [],
+    "react_native_issues": [
+      {"component": "shadow* style props", "issue": "'shadow*' style props are deprecated on RN-Web — use boxShadow. Global emit from SHADOW tokens. Reference: /app/admin-app/src/config/theme.ts. Non-blocking; noted in iteration_3."},
+      {"component": "Nested <button> hydration on customer home", "issue": "Console: 'In HTML, <button> cannot be a descendant of <button>' — product-card renders a Pressable Add-to-cart button nested inside the card's outer Pressable. Reference: /app/admin-app/app/(tabs)/index.tsx product-card renderer. Non-blocking; noted in iteration_3."}
+    ]
+  },
+  "test_report_links": [
+    "/app/test_reports/screens/i4_00_landing.png",
+    "/app/test_reports/screens/i4_01_login.png",
+    "/app/test_reports/screens/i4_02_home.png",
+    "/app/test_reports/screens/i4_12_cart.png",
+    "/app/test_reports/screens/i4_13_checkout.png",
+    "/app/test_reports/screens/i4_15_confirm.png",
+    "/app/test_reports/screens/i4_20_orders.png",
+    "/app/test_reports/screens/i4_34b_confirmed.png",
+    "/app/test_reports/screens/i4_60_assigned_ok.png",
+    "/app/test_reports/screens/i4_61_reassigned_ok.png",
+    "/app/test_reports/screens/i4_70_delivery_dash.png",
+    "/app/test_reports/screens/i4_73_out_for_delivery.png",
+    "/app/test_reports/screens/i4_74_delivered.png",
+    "/app/test_reports/screens/i4_80_admin_after_deliver.png",
+    "/app/test_reports/screens/i4_81_admin_expanded.png"
+  ],
+  "action_items": [
+    "OPTIONAL/NON-BLOCKING: Gate the customer-orders Firestore subscription in the delivery module so it doesn't run when the current user has role delivery-boy — currently produces 2 'Missing or insufficient permissions' errors per rider session. Ref: /app/admin-app/app/delivery/index.tsx or the shared subscribeToCustomerOrders caller in the delivery module.",
+    "OPTIONAL/NON-BLOCKING: Migrate SHADOW tokens (src/config/theme.ts) from shadow* props to boxShadow for RN-Web parity.",
+    "OPTIONAL: Fix nested <button> in the customer home product-card renderer (/app/admin-app/app/(tabs)/index.tsx) — currently emits hydration warning.",
+    "Housekeeping: The test order RH88275952 (address 'QA TEST IGNORE') is now Delivered in production Firestore. Leave in place per prior policy or archive as appropriate."
+  ],
+  "critical_code_review_comments": [
+    "AssignRiderSheet testID `assign-rider-${rider.id}` collides with the outer 'Assign rider' button testID `assign-rider-btn-${orderId}` when using a prefix selector — both start with 'assign-rider-'. Not a functional bug (they render on different orders / different DOM levels), but a testability improvement would be to rename the sheet row testID to `rider-option-${rider.id}` for clarity. Ref: /app/admin-app/src/components/AssignRiderSheet.tsx:147 and /app/admin-app/app/admin/orders/index.tsx:694.",
+    "documentToOrder deliveryBoy* mapping verified working end-to-end on a brand-new order lifecycle: Placed → Confirmed → Assigned (Pradeep) → Reassigned → Out for delivery → Delivered → admin history rendered fully. No regressions vs iteration_3.",
+    "Auth-restore across contexts works: admin login lands on /admin, admin orders subscription starts, receives 6 orders. Rider login lands on /delivery, receives own 3 orders (1 active + 2 delivered)."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "N/A (skipped per request — frontend only)", "frontend": "7 of 8 steps PASS (STEP 7 not directly testable due to per-context anonymous Firebase UID; verified indirectly via STEP 6 admin panel showing order Delivered). Overall lifecycle: PASS."},
+  "seed_data_creation": "Created EXACTLY ONE COD test order in LIVE PRODUCTION Firestore: RH88275952 (QA TEST IGNORE, 9999900001, 1×Nutella Hazelnut Spread ₹365 + ₹50 delivery = ₹415, Delivered by Pradeep on 01 Sept 2026). Compliant with 'exactly one order' rule.",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Preview URL: https://local-grocery-app-9.preview.emergentagent.com. Test order this iteration: RH88275952 (Delivered by Pradeep). Reference orders: RH78387575 (delivered — iter 3), RH82099032 (Placed unassigned), RH86870665 & RH88589744 (cancelled), RH86393684 (delivered — TEST AGENT). Admin: admin@rahasupermarket.in / Raha@2026Admin at /admin/login; login button text is 'Login to Admin Panel'. Rider: shamba8485@gmail.com / Shree@1805 at /delivery/login (testIDs delivery-login-email/password/submit). Customer guest: '/' → onboarding → Skip → /login → data-testid=guest-login-button. For AssignRiderSheet: use `[data-testid^=\"assign-rider-\"]:not([data-testid^=\"assign-rider-btn-\"])` to reliably click the rider row (the current sheet testID pattern collides with the outer Assign-rider button prefix). Firebase Auth rate-limits rapid consecutive logins with 'auth/network-request-failed' — space ≥30s between login attempts and use separate browser contexts for each role. Customer anonymous UID is per browser context — STEP 7 (customer-sees-delivered) is not reliably testable in Playwright across contexts; verify via admin panel instead.",
+  "rca_of_issue": "N/A — no functional blockers found. Full COD lifecycle works end-to-end on LIVE Firebase. The 2 'Missing or insufficient permissions' errors on the delivery dashboard originate from an unconditional customer-orders Firestore subscription running for authenticated rider users; Firestore rules correctly deny that read. The subscription should be gated on role but this does not block any UX flow (the rider's own orders subscription succeeds independently)."
+}
