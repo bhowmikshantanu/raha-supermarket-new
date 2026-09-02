@@ -95,3 +95,5 @@ admin-app/.env.before-admin-preview-fix
 
 # Production Expo app public config (EXPO_PUBLIC_* only, no secrets) must ship with the build
 !admin-app/.env
+!backend/.env
+!frontend/.env
