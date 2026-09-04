@@ -38,3 +38,4 @@ yarn-error.*
 *.tsbuildinfo
 
 app-example
+assets/images/app-image.emergent-backup.png
