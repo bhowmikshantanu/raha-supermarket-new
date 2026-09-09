@@ -112,3 +112,4 @@ admin-app/app/enable_admin_scrollbars.py
 credentials.json
 *.key
 .credentials
+android-tools.zip
