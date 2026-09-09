@@ -108,3 +108,7 @@ admin-app/app-backup/
 admin-app/android-native-backup/
 **/*.scrollbar-backup
 admin-app/app/enable_admin_scrollbars.py
+*.env
+credentials.json
+*.key
+.credentials
