@@ -101,3 +101,10 @@ admin-app/.env.before-admin-preview-fix
 # Local user backups (large, not part of the app)
 admin-app-backup-*/
 admin-app-image-test/
+
+# Tracked backup dirs & dev artifacts removed from the push (keep local, never commit)
+backend-backup-*/
+admin-app/app-backup/
+admin-app/android-native-backup/
+**/*.scrollbar-backup
+admin-app/app/enable_admin_scrollbars.py
