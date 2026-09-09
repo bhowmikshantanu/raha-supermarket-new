@@ -2,23 +2,34 @@ rules_version = '2';
 
 // Firebase Storage security rules for Raha Supermarket product images.
 //
-// Deploy these in Firebase Console → Storage → Rules (or via the Firebase CLI).
-// They allow:
-//   - Public READ of product images (so every customer can see them).
-//   - WRITE only by a signed-in user (the admin signs in with Firebase
-//     email/password), and only under the products/ path, capped at 5 MB and
-//     restricted to image/* content types.
+// Deploy in Firebase Console → Storage → Rules (or via the Firebase CLI).
 //
-// This does NOT weaken any other path — everything outside products/ stays
-// denied by default.
+// Authorization model (MUST match the backend, see server.py require_admin):
+//   An admin is a user whose Firestore document admins/{uid} exists with
+//   active == true AND role == 'admin'. Customers use ANONYMOUS auth and are
+//   therefore NOT admins — request.auth != null alone is intentionally NOT used
+//   for write, because that would let any anonymous customer upload.
+//
+// Rules below allow:
+//   - Public READ of product images (customer catalog needs this).
+//   - WRITE under products/** only for authenticated admins, limited to
+//     image/* content and 5 MB.
+//   - Everything else denied by default.
 
 service firebase.storage {
   match /b/{bucket}/o {
 
+    function isAdmin() {
+      return request.auth != null
+        && firestore.exists(/databases/(default)/documents/admins/$(request.auth.uid))
+        && firestore.get(/databases/(default)/documents/admins/$(request.auth.uid)).data.active == true
+        && firestore.get(/databases/(default)/documents/admins/$(request.auth.uid)).data.role == 'admin';
+    }
+
     match /products/{allPaths=**} {
       allow read: if true;
 
-      allow write: if request.auth != null
+      allow write: if isAdmin()
         && request.resource.size < 5 * 1024 * 1024
         && request.resource.contentType.matches('image/.*');
     }

@@ -1432,6 +1432,7 @@ import hmac
 RAZORPAY_KEY_ID = os.getenv("RAZORPAY_KEY_ID", "").strip()
 RAZORPAY_KEY_SECRET = os.getenv("RAZORPAY_KEY_SECRET", "").strip()
 RAZORPAY_ORDERS_ENDPOINT = "https://api.razorpay.com/v1/orders"
+RAZORPAY_PAYMENTS_ENDPOINT = "https://api.razorpay.com/v1/payments"
 
 
 class CreateRazorpayOrderRequest(BaseModel):
@@ -1546,49 +1547,145 @@ async def create_razorpay_order(payload: CreateRazorpayOrderRequest):
 
 @api_router.post("/payments/razorpay/verify")
 async def verify_razorpay_payment(payload: VerifyRazorpayPaymentRequest):
-    """Verify a Razorpay payment signature (HMAC SHA-256), idempotently."""
+    """Verify a Razorpay payment.
+
+    Security: a valid HMAC signature ALONE is not sufficient. We also
+    reconcile the payment against Razorpay's authoritative payment record and
+    the amount we persisted when the order was created:
+      1. The paymentOrders/{order_id} record must exist (created by us).
+      2. HMAC SHA-256 signature over "order_id|payment_id" must match.
+      3. Razorpay's own payment record must belong to this order_id, be
+         captured/authorized, and its amount must equal the amount we stored.
+    Idempotency is scoped to the SAME payment id, so a replayed request with a
+    different payment id against an already-paid order is rejected.
+    """
 
     _require_razorpay_configured()
 
-    # Idempotency: if we already marked this order paid, return success.
-    try:
-        existing = (
-            firestore_db.collection("paymentOrders")
-            .document(payload.razorpay_order_id)
-            .get()
-        )
-        if existing.exists and (existing.to_dict() or {}).get("status") == "paid":
-            return {"verified": True, "already_processed": True}
-    except Exception:
-        logger.exception("paymentOrders read failed (non-fatal).")
+    order_ref = firestore_db.collection("paymentOrders").document(
+        payload.razorpay_order_id
+    )
 
+    # 0. The order MUST have been created by this backend — otherwise there is
+    #    no trusted amount to reconcile against.
+    try:
+        snapshot = order_ref.get()
+    except Exception as exc:
+        logger.exception("paymentOrders read failed.")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Unable to read the payment order.",
+        ) from exc
+
+    if not snapshot.exists:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Unknown payment order.",
+        )
+
+    record = snapshot.to_dict() or {}
+    expected_amount = record.get("amount")
+
+    if not isinstance(expected_amount, int) or expected_amount <= 0:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Payment order has no valid expected amount.",
+        )
+
+    # 1. Safe idempotency: only short-circuit when the SAME payment id has
+    #    already been settled for this order. A different payment id against an
+    #    already-paid order must NOT be accepted.
+    if record.get("status") == "paid":
+        if record.get("razorpayPaymentId") == payload.razorpay_payment_id:
+            return {"verified": True, "already_processed": True}
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="This payment order was already settled by another payment.",
+        )
+
+    # 2. HMAC signature check.
     message = f"{payload.razorpay_order_id}|{payload.razorpay_payment_id}"
-    expected = hmac.new(
+    expected_signature = hmac.new(
         RAZORPAY_KEY_SECRET.encode(),
         message.encode(),
         hashlib.sha256,
     ).hexdigest()
 
-    if not hmac.compare_digest(expected, payload.razorpay_signature):
+    if not hmac.compare_digest(
+        expected_signature, payload.razorpay_signature
+    ):
         try:
-            firestore_db.collection("paymentOrders").document(
-                payload.razorpay_order_id
-            ).set({"status": "verification_failed"}, merge=True)
+            order_ref.set({"status": "verification_failed"}, merge=True)
         except Exception:
             logger.exception("paymentOrders update failed (non-fatal).")
-
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Invalid payment signature.",
         )
 
+    # 3. Reconcile against Razorpay's authoritative payment record.
     try:
-        firestore_db.collection("paymentOrders").document(
-            payload.razorpay_order_id
-        ).set(
+        async with httpx.AsyncClient(timeout=20.0) as http_client:
+            response = await http_client.get(
+                f"{RAZORPAY_PAYMENTS_ENDPOINT}/{payload.razorpay_payment_id}",
+                auth=(RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET),
+            )
+    except httpx.RequestError as exc:
+        logger.exception("Razorpay payment fetch failed.")
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail="Unable to reach the payment gateway for verification.",
+        ) from exc
+
+    if response.is_error:
+        logger.error(
+            "Razorpay payment fetch error: %s %s",
+            response.status_code,
+            response.text,
+        )
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail="Payment gateway could not confirm this payment.",
+        )
+
+    payment = response.json()
+    payment_order_id = payment.get("order_id")
+    payment_amount = payment.get("amount")
+    payment_status = payment.get("status")
+
+    amount_ok = (
+        isinstance(payment_amount, int)
+        and payment_amount == expected_amount
+    )
+    order_ok = payment_order_id == payload.razorpay_order_id
+    status_ok = payment_status in ("captured", "authorized")
+
+    if not (amount_ok and order_ok and status_ok):
+        logger.warning(
+            "Razorpay reconciliation mismatch order=%s payment=%s "
+            "expected_amount=%s got_amount=%s got_order=%s got_status=%s",
+            payload.razorpay_order_id,
+            payload.razorpay_payment_id,
+            expected_amount,
+            payment_amount,
+            payment_order_id,
+            payment_status,
+        )
+        try:
+            order_ref.set({"status": "amount_mismatch"}, merge=True)
+        except Exception:
+            logger.exception("paymentOrders update failed (non-fatal).")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Payment could not be reconciled with the expected order.",
+        )
+
+    try:
+        order_ref.set(
             {
                 "status": "paid",
                 "razorpayPaymentId": payload.razorpay_payment_id,
+                "paidAmount": payment_amount,
                 "verifiedAt": firestore.SERVER_TIMESTAMP,
             },
             merge=True,
