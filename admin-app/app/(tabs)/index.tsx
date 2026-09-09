@@ -53,6 +53,8 @@ interface QuickAction {
   id: string;
   title: string;
   icon: React.ComponentProps<typeof Ionicons>["name"];
+  color: string;
+  backgroundColor: string;
   onPress: () => void;
 }
 
@@ -339,6 +341,8 @@ export default function HomeScreen() {
         id: "categories",
         title: "Categories",
         icon: "grid-outline",
+        color: COLORS.indigo,
+        backgroundColor: COLORS.indigoLight,
         onPress: () =>
           router.push("/(tabs)/categories"),
       },
@@ -346,6 +350,8 @@ export default function HomeScreen() {
         id: "offers",
         title: "Best Offers",
         icon: "pricetag-outline",
+        color: COLORS.saffronDark,
+        backgroundColor: COLORS.saffronLight,
         onPress: () =>
           router.push({
             pathname: "/products",
@@ -356,6 +362,8 @@ export default function HomeScreen() {
         id: "popular",
         title: "Popular",
         icon: "flame-outline",
+        color: COLORS.maroon,
+        backgroundColor: COLORS.primaryLight,
         onPress: () =>
           router.push({
             pathname: "/products",
@@ -366,6 +374,8 @@ export default function HomeScreen() {
         id: "search",
         title: "Search",
         icon: "search-outline",
+        color: COLORS.indigo,
+        backgroundColor: COLORS.indigoLight,
         onPress: () => router.push("/search"),
       },
     ],
@@ -469,11 +479,16 @@ export default function HomeScreen() {
             accessibilityLabel={action.title}
             testID={`quick-action-${action.id}`}
           >
-            <View style={styles.quickActionIcon}>
+            <View
+              style={[
+                styles.quickActionIcon,
+                { backgroundColor: action.backgroundColor },
+              ]}
+            >
               <Ionicons
                 name={action.icon}
                 size={21}
-                color={COLORS.primary}
+                color={action.color}
               />
             </View>
 
@@ -798,7 +813,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: SPACING.sm,
     paddingVertical: SPACING.xs,
     borderRadius: RADIUS.pill,
-    backgroundColor: COLORS.primaryLight,
+    backgroundColor: COLORS.saffronLight,
     marginBottom: SPACING.sm,
   },
 
@@ -902,7 +917,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: FONT.size.lg,
     fontWeight: FONT.weight.bold,
-    color: COLORS.textPrimary,
+    color: COLORS.maroon,
   },
 
   sectionSubtitle: {
@@ -920,7 +935,7 @@ const styles = StyleSheet.create({
   },
 
   seeAll: {
-    color: COLORS.primary,
+    color: COLORS.saffronDark,
     fontSize: FONT.size.sm,
     fontWeight: FONT.weight.semibold,
   },

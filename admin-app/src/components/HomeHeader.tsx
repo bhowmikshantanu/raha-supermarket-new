@@ -58,7 +58,7 @@ export const HomeHeader: React.FC<Props> = ({
                   styles.statusDot,
                   {
                     backgroundColor: status.isOpen
-                      ? COLORS.primary
+                      ? COLORS.success
                       : COLORS.danger,
                   },
                 ]}
@@ -69,7 +69,7 @@ export const HomeHeader: React.FC<Props> = ({
                   styles.statusText,
                   {
                     color: status.isOpen
-                      ? COLORS.primary
+                      ? COLORS.success
                       : COLORS.danger,
                   },
                 ]}
@@ -183,7 +183,7 @@ export const HomeHeader: React.FC<Props> = ({
           <Ionicons
             name="mic-outline"
             size={20}
-            color={COLORS.primary}
+            color={COLORS.saffronDark}
           />
         </TouchableOpacity>
       </View>
@@ -216,10 +216,10 @@ const styles = StyleSheet.create({
   },
 
   locIcon: {
-    width: 44,
-    height: 44,
-    borderRadius: 18,
-    backgroundColor: COLORS.primary,
+    width: 38,
+    height: 38,
+    borderRadius: 14,
+    backgroundColor: COLORS.maroon,
     justifyContent: "center",
     alignItems: "center",
   },
@@ -243,7 +243,7 @@ const styles = StyleSheet.create({
   brandName: {
     fontSize: FONT.size.xl,
     fontWeight: FONT.weight.heavy,
-    color: COLORS.textPrimary,
+    color: COLORS.maroon,
     flexShrink: 1,
   },
 
@@ -278,8 +278,8 @@ const styles = StyleSheet.create({
   },
 
   iconBtn: {
-    width: 40,
-    height: 40,
+    width: 36,
+    height: 36,
     borderRadius: RADIUS.md,
     backgroundColor: COLORS.surface,
     justifyContent: "center",
@@ -313,8 +313,8 @@ const styles = StyleSheet.create({
   },
 
   profileBtn: {
-    width: 44,
-    height: 44,
+    width: 38,
+    height: 38,
     justifyContent: "center",
     alignItems: "center",
   },
@@ -332,7 +332,7 @@ const styles = StyleSheet.create({
     gap: SPACING.sm,
     backgroundColor: COLORS.surface,
     borderRadius: RADIUS.xl,
-    paddingVertical: 12,
+    paddingVertical: 9,
     paddingHorizontal: SPACING.md,
     borderWidth: 1,
     borderColor: COLORS.borderLight,
@@ -345,12 +345,12 @@ const styles = StyleSheet.create({
   },
 
   voiceBtn: {
-    width: 48,
-    height: 48,
-    borderRadius: RADIUS.xl,
-    backgroundColor: COLORS.primaryLight,
+    width: 40,
+    height: 40,
+    borderRadius: RADIUS.lg,
+    backgroundColor: COLORS.saffronLight,
     borderWidth: 1,
-    borderColor: COLORS.primary,
+    borderColor: COLORS.saffron,
     justifyContent: "center",
     alignItems: "center",
   },

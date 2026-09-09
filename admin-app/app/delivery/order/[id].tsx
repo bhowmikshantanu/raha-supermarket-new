@@ -374,6 +374,16 @@ export default function DeliveryOrderDetailScreen() {
                 {formatCurrency(order.subtotal)}
               </Text>
             </View>
+            {Math.max(0, order.subtotal + order.deliveryFee - order.total) > 0 && (
+              <View style={styles.billRow}>
+                <Text style={styles.billLabel}>Discount</Text>
+                <Text style={styles.billValue}>
+                  -{formatCurrency(
+                    Math.max(0, order.subtotal + order.deliveryFee - order.total)
+                  )}
+                </Text>
+              </View>
+            )}
             <View style={styles.billRow}>
               <Text style={styles.billLabel}>Delivery Fee</Text>
               <Text style={styles.billValue}>

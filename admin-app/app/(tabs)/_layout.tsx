@@ -1,56 +1,177 @@
+import { BottomTabBarProps } from "@react-navigation/bottom-tabs";
 import { Ionicons } from "@expo/vector-icons";
 import { Tabs } from "expo-router";
 import React from "react";
-import { StyleSheet, View, Text } from "react-native";
+import {
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { COLORS, FONT, SPACING } from "@/src/config/theme";
 import { useApp } from "@/src/context/AppContext";
 
+const TAB_BAR_HEIGHT = 36;
+
+function CompactTabBar({
+  state,
+  descriptors,
+  navigation,
+}: BottomTabBarProps) {
+  const insets = useSafeAreaInsets();
+
+  return (
+    <View
+      style={[
+        styles.tabBarSafeArea,
+        {
+          paddingBottom: Math.max(insets.bottom, 8),
+        },
+      ]}
+    >
+      <View style={styles.tabBar}>
+        {state.routes.map((route, index) => {
+          const { options } = descriptors[route.key];
+
+          // Preserve Expo Router hidden route behavior,
+          // e.g. notifications with href: null.
+          const href = (options as { href?: string | null }).href;
+
+          if (href === null) {
+            return null;
+          }
+
+          const isFocused = state.index === index;
+
+          const label =
+            typeof options.tabBarLabel === "string"
+              ? options.tabBarLabel
+              : typeof options.title === "string"
+                ? options.title
+                : route.name;
+
+          const color = isFocused
+            ? COLORS.maroon
+            : COLORS.indigo;
+
+          const onPress = () => {
+            const event = navigation.emit({
+              type: "tabPress",
+              target: route.key,
+              canPreventDefault: true,
+            });
+
+            if (!isFocused && !event.defaultPrevented) {
+              navigation.navigate(route.name);
+            }
+          };
+
+          const onLongPress = () => {
+            navigation.emit({
+              type: "tabLongPress",
+              target: route.key,
+            });
+          };
+
+          return (
+            <Pressable
+              key={route.key}
+              onPress={onPress}
+              onLongPress={onLongPress}
+              accessibilityRole="button"
+              accessibilityState={
+                isFocused ? { selected: true } : {}
+              }
+              accessibilityLabel={
+                options.tabBarAccessibilityLabel
+              }
+              testID={options.tabBarButtonTestID}
+              style={styles.tabItem}
+            >
+              <View style={styles.iconContainer}>
+                {options.tabBarIcon?.({
+                  focused: isFocused,
+                  color,
+                  size: 17,
+                })}
+              </View>
+
+              <Text
+                numberOfLines={1}
+                style={[
+                  styles.tabLabel,
+                  { color },
+                ]}
+              >
+                {label}
+              </Text>
+            </Pressable>
+          );
+        })}
+      </View>
+    </View>
+  );
+}
+
 export default function TabsLayout() {
   const { cartCount } = useApp();
+
   return (
     <Tabs
+      tabBar={(props) => <CompactTabBar {...props} />}
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: COLORS.primary,
-        tabBarInactiveTintColor: COLORS.textMuted,
-        tabBarLabelStyle: { fontSize: 11, fontWeight: FONT.weight.semibold },
-        tabBarStyle: {
-          borderTopWidth: 1,
-          borderTopColor: COLORS.borderLight,
-          height: 64,
-          paddingTop: 6,
-          paddingBottom: 8,
-          backgroundColor: COLORS.background,
-        },
       }}
     >
       <Tabs.Screen
         name="index"
         options={{
           title: "Home",
-          tabBarIcon: ({ color, size }) => <Ionicons name="home" size={size} color={color} />,
+          tabBarIcon: ({ color }) => (
+            <Ionicons
+              name="home"
+              size={17}
+              color={color}
+            />
+          ),
           tabBarButtonTestID: "tab-home",
         }}
       />
+
       <Tabs.Screen
         name="categories"
         options={{
           title: "Categories",
-          tabBarIcon: ({ color, size }) => <Ionicons name="grid" size={size} color={color} />,
+          tabBarIcon: ({ color }) => (
+            <Ionicons
+              name="grid"
+              size={17}
+              color={color}
+            />
+          ),
           tabBarButtonTestID: "tab-categories",
         }}
       />
+
       <Tabs.Screen
         name="cart"
         options={{
           title: "Cart",
-          tabBarIcon: ({ color, size }) => (
+          tabBarIcon: ({ color }) => (
             <View>
-              <Ionicons name="cart" size={size} color={color} />
+              <Ionicons
+                name="cart"
+                size={17}
+                color={color}
+              />
+
               {cartCount > 0 && (
                 <View style={styles.badge}>
-                  <Text style={styles.badgeText}>{cartCount}</Text>
+                  <Text style={styles.badgeText}>
+                    {cartCount}
+                  </Text>
                 </View>
               )}
             </View>
@@ -58,19 +179,40 @@ export default function TabsLayout() {
           tabBarButtonTestID: "tab-cart",
         }}
       />
+
       <Tabs.Screen
         name="orders"
         options={{
           title: "Orders",
-          tabBarIcon: ({ color, size }) => <Ionicons name="receipt" size={size} color={color} />,
+          tabBarIcon: ({ color }) => (
+            <Ionicons
+              name="receipt"
+              size={17}
+              color={color}
+            />
+          ),
           tabBarButtonTestID: "tab-orders",
         }}
       />
+
+      <Tabs.Screen
+        name="notifications"
+        options={{
+          href: null,
+        }}
+      />
+
       <Tabs.Screen
         name="profile"
         options={{
           title: "Profile",
-          tabBarIcon: ({ color, size }) => <Ionicons name="person" size={size} color={color} />,
+          tabBarIcon: ({ color }) => (
+            <Ionicons
+              name="person"
+              size={17}
+              color={color}
+            />
+          ),
           tabBarButtonTestID: "tab-profile",
         }}
       />
@@ -79,6 +221,50 @@ export default function TabsLayout() {
 }
 
 const styles = StyleSheet.create({
+  tabBarSafeArea: {
+    backgroundColor: COLORS.background,
+  },
+
+  tabBar: {
+    height: TAB_BAR_HEIGHT,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-around",
+    backgroundColor: COLORS.cream,
+    borderTopWidth: 1,
+    borderTopColor: COLORS.border,
+
+    // Slight horizontal breathing space.
+    marginHorizontal: 6,
+
+    // Rounded top corners like the reference.
+    borderTopLeftRadius: 10,
+    borderTopRightRadius: 10,
+
+    paddingVertical: 0,
+  },
+
+  tabItem: {
+    flex: 1,
+    height: TAB_BAR_HEIGHT,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 0,
+  },
+
+  iconContainer: {
+    height: 18,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  tabLabel: {
+    fontSize: 8,
+    lineHeight: 9,
+    fontWeight: FONT.weight.semibold,
+    marginTop: 1,
+  },
+
   badge: {
     position: "absolute",
     top: -6,
@@ -93,5 +279,11 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: COLORS.background,
   },
-  badgeText: { color: COLORS.textOnPrimary, fontSize: 10, fontWeight: FONT.weight.bold, paddingHorizontal: SPACING.xs / 2 },
+
+  badgeText: {
+    color: COLORS.textOnPrimary,
+    fontSize: 10,
+    fontWeight: FONT.weight.bold,
+    paddingHorizontal: SPACING.xs / 2,
+  },
 });

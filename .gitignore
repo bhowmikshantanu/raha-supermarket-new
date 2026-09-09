@@ -97,3 +97,7 @@ admin-app/.env.before-admin-preview-fix
 !admin-app/.env
 !backend/.env
 !frontend/.env
+
+# Local user backups (large, not part of the app)
+admin-app-backup-*/
+admin-app-image-test/

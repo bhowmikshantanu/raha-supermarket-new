@@ -613,6 +613,14 @@ export default function AdminOrdersScreen() {
                       label="Subtotal"
                       value={formatCurrency(item.subtotal)}
                     />
+                    {Math.max(0, item.subtotal + item.deliveryFee - item.total) > 0 && (
+                      <BillRow
+                        label="Discount"
+                        value={`-${formatCurrency(
+                          Math.max(0, item.subtotal + item.deliveryFee - item.total)
+                        )}`}
+                      />
+                    )}
                     <BillRow
                       label="Delivery Fee"
                       value={

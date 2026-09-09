@@ -2,7 +2,7 @@
   "expo": {
     "name": "Raha Supermarket",
     "slug": "rahasupermarket",
-    "version": "1.0.0",
+    "version": "1.0.8",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "rahasupermarket",
@@ -15,11 +15,11 @@
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
-        "backgroundColor": "#16A34A"
+        "backgroundColor": "#7A1F3D"
       },
       "edgeToEdgeEnabled": true,
       "package": "in.rahasupermarket.app",
-      "versionCode": 1,
+      "versionCode": 9,
       "googleServicesFile": "./google-services.json"
     },
     "web": {
@@ -32,7 +32,7 @@
       [
         "expo-notifications",
         {
-          "color": "#16A34A",
+          "color": "#F28C28",
           "defaultChannel": "orders"
         }
       ],
@@ -54,6 +54,11 @@
       "eas": {
         "projectId": "a05e8ce6-60d4-411b-8af9-0203a50665a3"
       }
+    },
+    "androidNavigationBar": {
+      "backgroundColor": "#FFF9F2",
+      "barStyle": "dark-content",
+      "enforceContrast": false
     }
   }
 }

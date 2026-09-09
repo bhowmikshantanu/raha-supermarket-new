@@ -2,32 +2,50 @@
 // Change palette here to re-skin the entire app.
 
 export const COLORS = {
-  primary: "#16A34A",
-  primaryDark: "#15803D",
-  primaryLight: "#DCFCE7",
-  primarySoft: "#F0FDF4",
+  // Raha warm premium palette
+  primary: "#7A1F3D",
+  primaryDark: "#5A1630",
+  primaryLight: "#FCE7EE",
+  primarySoft: "#FFF4F7",
 
-  background: "#FFFFFF",
-  surface: "#F9FAFB",
-  surfaceAlt: "#F3F4F6",
-  border: "#E5E7EB",
-  borderLight: "#F3F4F6",
+  maroon: "#7A1F3D",
+  maroonDark: "#5A1630",
 
-  textPrimary: "#111827",
-  textSecondary: "#6B7280",
-  textMuted: "#9CA3AF",
+  saffron: "#F28C28",
+  saffronDark: "#D96B0B",
+  saffronLight: "#FFF0DD",
+
+  indigo: "#4B3F8F",
+  indigoDark: "#33296D",
+  indigoLight: "#EEEAFB",
+
+  cream: "#FFF9F2",
+  creamStrong: "#FFF2E2",
+
+  background: "#FFFCF8",
+  surface: "#FFF8F1",
+  surfaceAlt: "#FDF1EA",
+  border: "#EADDD5",
+  borderLight: "#F3E9E3",
+
+  textPrimary: "#33233A",
+  textSecondary: "#6F6373",
+  textMuted: "#9B909D",
   textOnPrimary: "#FFFFFF",
 
-  warning: "#F59E0B",
-  warningLight: "#FEF3C7",
-  danger: "#EF4444",
-  dangerLight: "#FEE2E2",
-  success: "#16A34A",
-  info: "#3B82F6",
-  infoLight: "#DBEAFE",
+  warning: "#F28C28",
+  warningLight: "#FFF0DD",
+  danger: "#C2414B",
+  dangerLight: "#FCE8EA",
 
-  shadow: "rgba(17, 24, 39, 0.08)",
-  overlay: "rgba(0, 0, 0, 0.5)",
+  // Open/available status should remain green
+  success: "#16A34A",
+
+  info: "#4B3F8F",
+  infoLight: "#EEEAFB",
+
+  shadow: "rgba(74, 39, 58, 0.10)",
+  overlay: "rgba(28, 18, 25, 0.52)",
 } as const;
 
 export const SPACING = {
@@ -84,7 +102,7 @@ export const SHADOW = {
     elevation: 1,
   },
   fab: {
-    shadowColor: "#16A34A",
+    shadowColor: COLORS.maroon,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.25,
     shadowRadius: 10,

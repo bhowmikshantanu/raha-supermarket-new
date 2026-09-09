@@ -368,7 +368,7 @@ const styles = StyleSheet.create({
   gridCard: {
     backgroundColor: COLORS.background,
     borderRadius: RADIUS.lg,
-    padding: SPACING.md,
+    padding: SPACING.sm,
     borderWidth: 1,
     borderColor: COLORS.borderLight,
     ...SHADOW.card,
@@ -402,8 +402,8 @@ const styles = StyleSheet.create({
   },
 
   listImageWrap: {
-    width: 104,
-    height: 104,
+    width: 88,
+    height: 88,
     backgroundColor: COLORS.surface,
     borderRadius: RADIUS.md,
     justifyContent: "center",
@@ -508,8 +508,8 @@ const styles = StyleSheet.create({
     fontWeight: FONT.weight.semibold,
     color: COLORS.textPrimary,
     marginBottom: 3,
-    minHeight: 38,
-    lineHeight: 19,
+    minHeight: 34,
+    lineHeight: 17,
   },
 
   size: {
@@ -539,7 +539,7 @@ const styles = StyleSheet.create({
   },
 
   addBtn: {
-    minHeight: 40,
+    minHeight: 34,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
@@ -553,7 +553,7 @@ const styles = StyleSheet.create({
   },
 
   addBtnList: {
-    minHeight: 38,
+    minHeight: 34,
     alignSelf: "flex-start",
     flexDirection: "row",
     alignItems: "center",
@@ -575,7 +575,7 @@ const styles = StyleSheet.create({
   },
 
   stepper: {
-    minHeight: 40,
+    minHeight: 34,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
@@ -586,9 +586,9 @@ const styles = StyleSheet.create({
   },
 
   stepBtn: {
-    width: 32,
-    height: 32,
-    borderRadius: 8,
+    width: 28,
+    height: 28,
+    borderRadius: 7,
     justifyContent: "center",
     alignItems: "center",
     backgroundColor: "rgba(255,255,255,0.12)",
