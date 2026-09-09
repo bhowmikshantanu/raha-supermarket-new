@@ -1,0 +1,246 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return signedIn()
+        && exists(
+          /databases/$(database)/documents/admins/$(request.auth.uid)
+        )
+        && get(
+          /databases/$(database)/documents/admins/$(request.auth.uid)
+        ).data.active == true
+        && get(
+          /databases/$(database)/documents/admins/$(request.auth.uid)
+        ).data.role == "admin";
+    }
+
+    function isActiveDeliveryBoy() {
+      return signedIn()
+        && exists(
+          /databases/$(database)/documents/deliveryBoys/$(request.auth.uid)
+        )
+        && get(
+          /databases/$(database)/documents/deliveryBoys/$(request.auth.uid)
+        ).data.active == true
+        && get(
+          /databases/$(database)/documents/deliveryBoys/$(request.auth.uid)
+        ).data.role == "delivery";
+    }
+
+    // -------------------------
+    // PRODUCTS
+    // -------------------------
+
+    match /products/{productId} {
+      allow read: if true;
+
+      allow create, update, delete:
+        if isAdmin();
+    }
+
+    // -------------------------
+    // ADMINS
+    // -------------------------
+
+    match /admins/{adminId} {
+      allow read:
+        if signedIn()
+        && request.auth.uid == adminId;
+
+      allow create, update, delete:
+        if false;
+    }
+
+    // -------------------------
+    // DELIVERY BOYS
+    // -------------------------
+
+    match /deliveryBoys/{deliveryBoyId} {
+
+      allow read:
+        if isAdmin()
+        || (
+          isActiveDeliveryBoy()
+          && request.auth.uid == deliveryBoyId
+        );
+
+      // Admin app can manage riders.
+      // Backend Admin SDK also bypasses Firestore rules.
+      allow create, update, delete:
+        if isAdmin();
+    }
+
+    // -------------------------
+    // ORDERS
+    // -------------------------
+
+    match /orders/{orderId} {
+
+      allow create:
+        if signedIn()
+        && request.resource.data.customerUid
+          == request.auth.uid;
+
+      allow read:
+        if signedIn()
+        && (
+          resource.data.customerUid
+            == request.auth.uid
+          || isAdmin()
+          || (
+            isActiveDeliveryBoy()
+            && resource.data.deliveryBoyUid
+              == request.auth.uid
+          )
+        );
+
+      allow update:
+        if isAdmin()
+
+        // Customer may cancel only their own PLACED order.
+        || (
+          signedIn()
+          && resource.data.customerUid
+            == request.auth.uid
+          && request.resource.data.customerUid
+            == resource.data.customerUid
+          && resource.data.status == "placed"
+          && request.resource.data.status
+            == "cancelled"
+        )
+
+        // Assigned active delivery boy may perform
+        // only the permitted delivery status transitions.
+        || (
+          isActiveDeliveryBoy()
+
+          && resource.data.deliveryBoyUid
+            == request.auth.uid
+
+          && request.resource.data.deliveryBoyUid
+            == request.auth.uid
+
+          && request.resource.data.customerUid
+            == resource.data.customerUid
+
+          && (
+            (
+              (
+                resource.data.status == "confirmed"
+                || resource.data.status == "preparing"
+              )
+              && request.resource.data.status
+                == "out-for-delivery"
+            )
+            ||
+            (
+              resource.data.status == "out-for-delivery"
+              && request.resource.data.status
+                == "delivered"
+            )
+          )
+
+          && request.resource.data.diff(resource.data)
+            .affectedKeys()
+            .hasOnly([
+              "status",
+              "updatedAt",
+              "updatedAtMs",
+              "pickedUpAt",
+              "pickedUpAtMs",
+              "deliveredAt",
+              "deliveredAtMs"
+            ])
+        );
+
+      allow delete:
+        if isAdmin();
+    }
+
+    // -------------------------
+    // PUSH TOKENS
+    // -------------------------
+
+    match /pushTokens/{tokenId} {
+
+      // Document id MUST be the caller's own uid: pushTokens/{uid}.
+      allow create:
+        if signedIn()
+        && tokenId == request.auth.uid
+        && request.resource.data.uid
+          == request.auth.uid;
+
+      allow update:
+        if signedIn()
+        && tokenId == request.auth.uid
+        && resource.data.uid
+          == request.auth.uid
+        && request.resource.data.uid
+          == request.auth.uid;
+
+      allow read:
+        if isAdmin();
+
+      allow delete:
+        if signedIn()
+        && (
+          resource.data.uid
+            == request.auth.uid
+          || isAdmin()
+        );
+    }
+
+    // -------------------------
+    // CATEGORIES
+    // -------------------------
+
+    match /categories/{categoryId} {
+      allow read: if true;
+
+      allow create, update, delete:
+        if isAdmin();
+    }
+
+    // -------------------------
+    // COUPONS
+    // -------------------------
+
+    match /coupons/{couponId} {
+
+      allow read: if true;
+
+      allow create, update, delete:
+        if isAdmin();
+    }
+
+    // -------------------------
+    // NOTIFICATION CAMPAIGNS
+    // -------------------------
+
+    match /notificationCampaigns/{campaignId} {
+
+      allow read:
+        if isAdmin();
+
+      allow create:
+        if isAdmin();
+
+      allow update, delete:
+        if false;
+    }
+
+    // -------------------------
+    // DEFAULT DENY
+    // -------------------------
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
