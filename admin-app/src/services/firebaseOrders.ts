@@ -208,6 +208,27 @@ function documentToOrder(
     couponDiscount:
       safeNumber(data.couponDiscount, 0) ||
       undefined,
+
+    paymentStatus:
+      data.paymentStatus === "paid"
+        ? "paid"
+        : data.paymentStatus === "pending"
+          ? "pending"
+          : undefined,
+
+    razorpayOrderId:
+      typeof data.razorpayOrderId === "string" && data.razorpayOrderId
+        ? data.razorpayOrderId
+        : undefined,
+
+    razorpayPaymentId:
+      typeof data.razorpayPaymentId === "string" && data.razorpayPaymentId
+        ? data.razorpayPaymentId
+        : undefined,
+
+    paidAt:
+      safeNumber(data.paidAtMs, 0) ||
+      undefined,
   };
 }
 
@@ -250,6 +271,11 @@ export async function createFirebaseOrder(
 
       createdAtMs:
         order.createdAt,
+
+      // Persist paid timestamp in the *Ms convention the mapper reads.
+      ...(order.paidAt
+        ? { paidAtMs: order.paidAt }
+        : {}),
 
       /*
        * Inventory is NOT deducted when the

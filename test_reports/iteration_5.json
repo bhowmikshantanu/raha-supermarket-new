@@ -1,0 +1,46 @@
+{
+  "summary": "Iteration 5 frontend-only regression + new-feature UI verification on LIVE production Firebase (viewport 390x844). ALL 5 targeted checks PASS. (1) CHECKOUT UI REFACTOR — Online Payment card now shows 'Secure' pill (NOT 'Coming Soon'); button label toggles correctly: COD default => 'Place Order', switch to Online => 'Pay & Place Order', switch back to COD => 'Place Order'. Verified via testIDs pay-cod, pay-online, place-order-btn. (2) COD FULL LIFECYCLE — placed ONE new test order RH74738807 (QA TEST IGNORE, 9999900002, 1x Nutella Hazelnut Spread ₹365 + ₹50 delivery = ₹415, COD). Firestore save logged '[Orders] Firestore order saved successfully: RH74738807'; order-confirmation screen rendered with Status 'Placed', Payment Method 'Cash on Delivery', Invoice INV-RH74738807, discount breakdown Item MRP ₹399 → Product Discount -₹34 → Item Total ₹365 → Delivery Fee ₹50 all present. No regression from checkout.tsx refactor. Full assignment→delivery lifecycle was already exhaustively covered in iteration_4 (RH88275952) and re-verifying end-to-end delivery would require creating another delivery, so this iteration stopped after the confirmation screen per '1 new test order' policy. (3) BULK IMPORT — /admin/products/bulk renders cleanly after admin login; 'Download Excel Template' triggers a real browser download of raha-products-import-template.xlsx (verified via Playwright download event, so Android-safe legacy expo-file-system fallback path is not exercised on web but native code is intact in source). Uploaded a 2-row CSV (test_products.csv): preview shows 2 Rows / 2 Valid / 0 Errors, 'Import 2 Products' CTA enabled, each preview row shows a thumbnail placeholder + an 'Add Image' button (row 1, empty image) and 'Change Image' button (row 2, image URL supplied) — matches spec. Firebase Storage upload was NOT triggered (does not hard-fail per instructions). (4) ORDER SUMMARY DISCOUNT BREAKDOWN — checkout summary card contains Item Total, Delivery Fee, Total Amount rows; confirmation screen shows Item MRP, Product Discount (-₹34), Item Total, Delivery Fee, and admin-side breakdown was already validated in iteration_4. (5) BOTTOM TAB BAR — all 5 tabs (tab-home, tab-categories, tab-cart, tab-orders, tab-profile) visible with readable Ionicons + labels; hidden 'notifications' route is correctly excluded from the bar (href: null branch in CompactTabBar). Height 52px, safe-area padding respected. No red-screen errors anywhere. Deprecated packages detected: none. Pre-existing benign warnings (unchanged since iteration_3/4): shadow* style deprecation from SHADOW tokens, nested <button> hydration warning on product-card, expo-notifications web-listener no-op, props.pointerEvents deprecation, Animated useNativeDriver missing. No new deprecations introduced by this iteration.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [
+      {"flow": "Delivery-boy dashboard — customer orders subscription (carry-over from iteration_4)", "issue": "Same as iteration_4 — still unfixed. When a rider signs in, an unconditional customer-orders Firestore subscription still runs and Firestore rules correctly reject it, producing '[Orders] Customer subscription failed: FirebaseError: Missing or insufficient permissions.' Non-blocking. Ref: /app/admin-app/app/delivery/index.tsx.", "affected_testIDs": []}
+    ],
+    "design_issues": [],
+    "react_native_issues": [
+      {"component": "shadow* style props (carry-over)", "issue": "'shadow*' style props are deprecated on react-native-web — use boxShadow. Global emit from SHADOW tokens. Reference: /app/admin-app/src/config/theme.ts. Non-blocking."},
+      {"component": "Nested <button> in product-card (carry-over)", "issue": "'In HTML, <button> cannot be a descendant of <button>' hydration warning on customer Home — a Pressable add-to-cart button is nested inside the card's outer Pressable. Reference: /app/admin-app/app/(tabs)/index.tsx product-card renderer. Non-blocking."}
+    ]
+  },
+  "test_report_links": [
+    "/app/test_reports/screens/i5_02_home.png",
+    "/app/test_reports/screens/i5_11_checkout.png",
+    "/app/test_reports/screens/i5_12_online.png",
+    "/app/test_reports/screens/i5_20_admin_login.png",
+    "/app/test_reports/screens/i5_21_admin_home.png",
+    "/app/test_reports/screens/i5_22_bulk_import.png",
+    "/app/test_reports/screens/i5_24_bulk_preview.png",
+    "/app/test_reports/screens/i5_30_confirm.png"
+  ],
+  "action_items": [
+    "OPTIONAL/NON-BLOCKING (still carry-over from iteration_3/4): Gate customer-orders Firestore subscription behind role !== 'delivery' to eliminate the 'Missing or insufficient permissions' console errors on the rider dashboard.",
+    "OPTIONAL/NON-BLOCKING (still carry-over): Migrate SHADOW tokens from shadow* to boxShadow for RN-Web parity.",
+    "OPTIONAL (still carry-over): Fix nested <button> in customer home product-card renderer.",
+    "HOUSEKEEPING: A new test order RH74738807 (QA TEST IGNORE, COD, ₹415) is now in production Firestore in status 'Placed' — the main agent (or a subsequent iteration) can either drive it to Delivered or archive/cancel; it was NOT progressed past Placed here per the '1 new test order' policy and because the previous iteration already fully validated the assignment→out-for-delivery→delivered flow on RH88275952.",
+    "Razorpay E2E was intentionally NOT exercised — the backend still has no Razorpay keys per E1's context note; UI/labels are verified, actual payment sheet was not opened."
+  ],
+  "critical_code_review_comments": [
+    "checkout.tsx refactor is clean: finalizeOrder is a single reusable path for both COD and online, with a paymentMeta merge for paid orders. The Object.assign after placeOrder is documented in-file (line 444-449) and is safe because the Firestore write is scheduled on a microtask after the sync return. Confirmed empirically — the created order (RH74738807) was written to Firestore including all decorated fields.",
+    "razorpayCheckout.ts native path uses lazy require('react-native-razorpay') — good; web bundles never execute native module and error is not raised on Expo web. RazorpayCancelledError branch differentiated correctly.",
+    "payments.ts amount is passed in rupees and rounded on the client — backend still owns the paise conversion + signature secret; no secret leakage to client. Good.",
+    "bulk.tsx per-row image upload disables the Import CTA via anyRowUploading useMemo — verified in source (line 626 disabled={... || anyRowUploading}). Could not fully exercise because Firebase Storage upload requires pending Storage rules config per instructions.",
+    "(tabs)/_layout.tsx custom CompactTabBar correctly honours the Expo Router hidden-route pattern (href: null branch at line 41-44) so notifications is excluded. Height 52px + insets.bottom padding is Android-safe. Labels use numberOfLines={1} to prevent wrap on narrow devices."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "N/A (skipped per request — frontend only)", "frontend": "5/5 targeted checks PASS."},
+  "seed_data_creation": "Created EXACTLY ONE COD test order in LIVE production Firestore this iteration: RH74738807 (address 'QA TEST IGNORE', mobile 9999900002, 1x Nutella Hazelnut Spread ₹365 + ₹50 delivery = ₹415, status 'Placed'). Complies with '1 new order per iteration' policy. Reference order RH78387575 was NOT touched.",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Preview URL: https://local-grocery-app-9.preview.emergentagent.com. Test order this iteration: RH74738807 (Placed, COD). Prior orders (iter 4): RH88275952 (Delivered by Pradeep). Reference: RH78387575 (do NOT modify). Admin: admin@rahasupermarket.in / Raha@2026Admin at /admin/login (button 'Login to Admin Panel'); admin login form has NO testIDs on the email/password inputs — target them via `page.locator('input').all()` (index 0 = email, 1 = password). Rider: shamba8485@gmail.com / Shree@1805 at /delivery/login (testIDs delivery-login-email / delivery-login-password / delivery-login-submit). Customer guest: '/' → 'Skip' → /login → [data-testid=guest-login-button]. Checkout testIDs: in-fullname, in-mobile, in-house, in-landmark, in-area, in-pincode, in-instructions, pay-cod, pay-online, place-order-btn. Bulk import: web set_input_files on hidden `input[type=file]` doesn't work because the DocumentPicker triggers an off-DOM native call in RN-Web; use `page.expect_file_chooser()` + `chooser.set_files(path)` pattern instead — verified working here. Razorpay: backend has NO keys yet, do NOT hit createRazorpayOrder — will 4xx/5xx. Firebase Storage upload rules also not yet configured — 'Add Image' button will open picker but upload will fail with permission error; only verify the picker opens.",
+  "rca_of_issue": "N/A — no functional blockers. All targeted iteration_5 changes verified working."
+}

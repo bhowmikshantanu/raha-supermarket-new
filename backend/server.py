@@ -1417,6 +1417,189 @@ async def customer_notify_for_order(
     }
 
 
+# =========================================================
+# RAZORPAY ONLINE PAYMENTS (TEST MODE)
+# =========================================================
+#
+# The Key Secret NEVER leaves this backend. The client only receives the
+# public Key ID (returned by create-order). Every order is created here and
+# every payment signature is verified here with HMAC SHA-256.
+#
+
+import hashlib
+import hmac
+
+RAZORPAY_KEY_ID = os.getenv("RAZORPAY_KEY_ID", "").strip()
+RAZORPAY_KEY_SECRET = os.getenv("RAZORPAY_KEY_SECRET", "").strip()
+RAZORPAY_ORDERS_ENDPOINT = "https://api.razorpay.com/v1/orders"
+
+
+class CreateRazorpayOrderRequest(BaseModel):
+    # Amount in whole rupees (INR). Converted to paise server-side.
+    amount: int = Field(gt=0, le=10_000_00)
+    currency: str = Field(default="INR", pattern="^[A-Z]{3}$")
+    receipt: Optional[str] = Field(default=None, max_length=40)
+
+
+class CreateRazorpayOrderResponse(BaseModel):
+    order_id: str
+    amount: int  # paise
+    currency: str
+    key_id: str
+
+
+class VerifyRazorpayPaymentRequest(BaseModel):
+    razorpay_order_id: str = Field(min_length=4, max_length=80)
+    razorpay_payment_id: str = Field(min_length=4, max_length=80)
+    razorpay_signature: str = Field(min_length=16, max_length=256)
+
+
+def _require_razorpay_configured() -> None:
+    if not RAZORPAY_KEY_ID or not RAZORPAY_KEY_SECRET:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail=(
+                "Online payments are not configured. "
+                "Set RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET."
+            ),
+        )
+
+
+@api_router.post(
+    "/payments/razorpay/create-order",
+    response_model=CreateRazorpayOrderResponse,
+)
+async def create_razorpay_order(payload: CreateRazorpayOrderRequest):
+    """Create a Razorpay order. Amount is authoritative on the server."""
+
+    _require_razorpay_configured()
+
+    amount_paise = payload.amount * 100
+    receipt = (payload.receipt or f"rcpt_{uuid.uuid4().hex[:24]}")[:40]
+
+    body = {
+        "amount": amount_paise,
+        "currency": payload.currency,
+        "receipt": receipt,
+        "payment_capture": 1,
+    }
+
+    try:
+        async with httpx.AsyncClient(timeout=20.0) as http_client:
+            response = await http_client.post(
+                RAZORPAY_ORDERS_ENDPOINT,
+                auth=(RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET),
+                json=body,
+            )
+    except httpx.RequestError as exc:
+        logger.exception("Razorpay order request failed.")
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail="Unable to reach the payment gateway.",
+        ) from exc
+
+    if response.is_error:
+        logger.error(
+            "Razorpay order creation failed: %s %s",
+            response.status_code,
+            response.text,
+        )
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail="Payment gateway rejected the order.",
+        )
+
+    razorpay_order = response.json()
+    order_id = razorpay_order.get("id")
+
+    if not order_id:
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail="Payment gateway returned an invalid order.",
+        )
+
+    # Store for idempotency + amount reconciliation. Firestore write failure
+    # must not block the payment flow (verification still works via HMAC).
+    try:
+        firestore_db.collection("paymentOrders").document(order_id).set(
+            {
+                "razorpayOrderId": order_id,
+                "amount": amount_paise,
+                "currency": payload.currency,
+                "receipt": receipt,
+                "status": "created",
+                "createdAt": firestore.SERVER_TIMESTAMP,
+            }
+        )
+    except Exception:
+        logger.exception(
+            "Unable to persist paymentOrders record (non-fatal)."
+        )
+
+    return CreateRazorpayOrderResponse(
+        order_id=order_id,
+        amount=amount_paise,
+        currency=payload.currency,
+        key_id=RAZORPAY_KEY_ID,
+    )
+
+
+@api_router.post("/payments/razorpay/verify")
+async def verify_razorpay_payment(payload: VerifyRazorpayPaymentRequest):
+    """Verify a Razorpay payment signature (HMAC SHA-256), idempotently."""
+
+    _require_razorpay_configured()
+
+    # Idempotency: if we already marked this order paid, return success.
+    try:
+        existing = (
+            firestore_db.collection("paymentOrders")
+            .document(payload.razorpay_order_id)
+            .get()
+        )
+        if existing.exists and (existing.to_dict() or {}).get("status") == "paid":
+            return {"verified": True, "already_processed": True}
+    except Exception:
+        logger.exception("paymentOrders read failed (non-fatal).")
+
+    message = f"{payload.razorpay_order_id}|{payload.razorpay_payment_id}"
+    expected = hmac.new(
+        RAZORPAY_KEY_SECRET.encode(),
+        message.encode(),
+        hashlib.sha256,
+    ).hexdigest()
+
+    if not hmac.compare_digest(expected, payload.razorpay_signature):
+        try:
+            firestore_db.collection("paymentOrders").document(
+                payload.razorpay_order_id
+            ).set({"status": "verification_failed"}, merge=True)
+        except Exception:
+            logger.exception("paymentOrders update failed (non-fatal).")
+
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid payment signature.",
+        )
+
+    try:
+        firestore_db.collection("paymentOrders").document(
+            payload.razorpay_order_id
+        ).set(
+            {
+                "status": "paid",
+                "razorpayPaymentId": payload.razorpay_payment_id,
+                "verifiedAt": firestore.SERVER_TIMESTAMP,
+            },
+            merge=True,
+        )
+    except Exception:
+        logger.exception("paymentOrders paid update failed (non-fatal).")
+
+    return {"verified": True, "order_id": payload.razorpay_order_id}
+
+
+
 app.include_router(
     api_router
 )

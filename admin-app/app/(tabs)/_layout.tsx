@@ -13,7 +13,8 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { COLORS, FONT, SPACING } from "@/src/config/theme";
 import { useApp } from "@/src/context/AppContext";
 
-const TAB_BAR_HEIGHT = 36;
+const TAB_BAR_HEIGHT = 52;
+const TAB_ICON_SIZE = 22;
 
 function CompactTabBar({
   state,
@@ -27,7 +28,7 @@ function CompactTabBar({
       style={[
         styles.tabBarSafeArea,
         {
-          paddingBottom: Math.max(insets.bottom, 8),
+          paddingBottom: insets.bottom > 0 ? insets.bottom : 8,
         },
       ]}
     >
@@ -94,7 +95,7 @@ function CompactTabBar({
                 {options.tabBarIcon?.({
                   focused: isFocused,
                   color,
-                  size: 17,
+                  size: TAB_ICON_SIZE,
                 })}
               </View>
 
@@ -132,7 +133,7 @@ export default function TabsLayout() {
           tabBarIcon: ({ color }) => (
             <Ionicons
               name="home"
-              size={17}
+              size={TAB_ICON_SIZE}
               color={color}
             />
           ),
@@ -147,7 +148,7 @@ export default function TabsLayout() {
           tabBarIcon: ({ color }) => (
             <Ionicons
               name="grid"
-              size={17}
+              size={TAB_ICON_SIZE}
               color={color}
             />
           ),
@@ -163,7 +164,7 @@ export default function TabsLayout() {
             <View>
               <Ionicons
                 name="cart"
-                size={17}
+                size={TAB_ICON_SIZE}
                 color={color}
               />
 
@@ -187,7 +188,7 @@ export default function TabsLayout() {
           tabBarIcon: ({ color }) => (
             <Ionicons
               name="receipt"
-              size={17}
+              size={TAB_ICON_SIZE}
               color={color}
             />
           ),
@@ -209,7 +210,7 @@ export default function TabsLayout() {
           tabBarIcon: ({ color }) => (
             <Ionicons
               name="person"
-              size={17}
+              size={TAB_ICON_SIZE}
               color={color}
             />
           ),
@@ -253,16 +254,16 @@ const styles = StyleSheet.create({
   },
 
   iconContainer: {
-    height: 18,
+    height: TAB_ICON_SIZE + 2,
     alignItems: "center",
     justifyContent: "center",
   },
 
   tabLabel: {
-    fontSize: 8,
-    lineHeight: 9,
+    fontSize: 11,
+    lineHeight: 13,
     fontWeight: FONT.weight.semibold,
-    marginTop: 1,
+    marginTop: 2,
   },
 
   badge: {

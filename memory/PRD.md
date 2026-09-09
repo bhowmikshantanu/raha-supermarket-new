@@ -68,3 +68,14 @@ and `src/data/products.ts` / `categories.ts`.
 - Fixed: ESLint 0 errors (HomeHeader quotes). TS 0 errors. Expo Doctor 18/18.
 - Replaced Emergent template icon/adaptive-icon/favicon/splash with branded green "R" assets (app.json splash -> splash-icon.png).
 - Open decision before first Play upload: android.package is still `com.emergent.localgroceryapp.g49uwf` (permanent once published; google-services.json must match if changed). Railway `/api/status` still old deploy (503) — app does not use it.
+
+## Iteration 5 — Final Completion + Audit Pass (fork, June 2026)
+- Product images migrated Cloudinary → Firebase Storage (single-product form + NEW bulk per-row uploads). Old http/Cloudinary URLs still render; no mass migration.
+- Admin Bulk Import: per-row image attach — Web=local file, Android=Gallery/Camera → Firebase Storage → row.image → Firestore on import. Import blocked while any row uploading.
+- Bulk template download made Android-safe (base64 + expo-file-system/legacy + expo-sharing); web keeps browser download.
+- Razorpay TEST-mode online payment added: backend /api/payments/razorpay/create-order + /verify (HMAC SHA-256, secret backend-only, amount in paise authoritative, idempotent, paymentOrders/{id} in Firestore). Client payments.ts + razorpayCheckout.ts (web checkout.js + native react-native-razorpay). Checkout online path finalizes order only after server verify; cancel/fail keeps cart.
+- Order gained optional paymentStatus/razorpayOrderId/razorpayPaymentId/paidAt (backward-compatible).
+- Android bottom tab bar resized to compact-but-readable (h52/icon22/label11, insets.bottom padding).
+- Deps: expo-image-picker, expo-file-system, react-native-razorpay. app.json camera/photo permissions + expo-image-picker plugin.
+- PENDING USER MANUAL CONFIG (runtime-blocking): (1) deploy /app/backend/storage.rules to Firebase Storage; (2) set RAZORPAY_KEY_ID + RAZORPAY_KEY_SECRET on Railway backend and redeploy. Native Razorpay needs a dev/prod build (not Expo Go). EXPO_PUBLIC_RAZORPAY_KEY_ID is optional (client gets key_id from create-order response).
+- Static: tsc 0 errors, ESLint 0 on changed files, web+android bundles compile. Frontend regression (testing agent, iteration_5): COD lifecycle intact (RH74738807), checkout UI, bulk per-row image buttons, tab bar — ALL PASS.

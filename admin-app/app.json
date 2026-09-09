@@ -10,7 +10,11 @@
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "in.rahasupermarket.app"
+      "bundleIdentifier": "in.rahasupermarket.app",
+      "infoPlist": {
+        "NSCameraUsageDescription": "Take product photos for the catalog",
+        "NSPhotoLibraryUsageDescription": "Choose product photos from your gallery"
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -20,7 +24,8 @@
       "edgeToEdgeEnabled": true,
       "package": "in.rahasupermarket.app",
       "versionCode": 9,
-      "googleServicesFile": "./google-services.json"
+      "googleServicesFile": "./google-services.json",
+      "permissions": ["android.permission.CAMERA"]
     },
     "web": {
       "bundler": "metro",
@@ -43,6 +48,13 @@
           "imageWidth": 240,
           "resizeMode": "contain",
           "backgroundColor": "#FFFFFF"
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Choose product photos from your gallery",
+          "cameraPermission": "Take product photos for the catalog"
         }
       ]
     ],

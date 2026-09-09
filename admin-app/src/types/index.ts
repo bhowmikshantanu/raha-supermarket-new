@@ -82,6 +82,12 @@ export interface Order {
   couponCode?: string;
   couponDiscount?: number;
 
+  // Online payment metadata (optional — COD/older orders have none).
+  paymentStatus?: "paid" | "pending";
+  razorpayOrderId?: string;
+  razorpayPaymentId?: string;
+  paidAt?: number; // epoch ms
+
   // Delivery rider assignment (all optional — older orders remain valid).
   deliveryBoyId?: string;
   deliveryBoyUid?: string;

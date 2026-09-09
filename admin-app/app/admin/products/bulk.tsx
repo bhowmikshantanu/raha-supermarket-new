@@ -1,7 +1,9 @@
 import { Ionicons } from "@expo/vector-icons";
+import { Image } from "expo-image";
 import { useRouter } from "expo-router";
 import React, { useMemo, useState } from "react";
 import {
+  ActivityIndicator,
   Alert,
   FlatList,
   Platform,
@@ -21,6 +23,12 @@ import {
   SHADOW,
   SPACING,
 } from "@/src/config/theme";
+import {
+  pickAndUploadProductImage,
+  pickGalleryAndUploadProductImage,
+  takeAndUploadProductImage,
+  type UploadedProductImage,
+} from "@/src/services/firebaseProductImages";
 import {
   bulkImportProducts,
   createProductFingerprint,
@@ -208,6 +216,14 @@ export default function BulkProductImportScreen() {
   const [reading, setReading] = useState(false);
   const [importing, setImporting] = useState(false);
   const [mode, setMode] = useState<BulkImportMode>("skip-existing");
+  const [uploadingRows, setUploadingRows] = useState<
+    Record<number, boolean>
+  >({});
+
+  const anyRowUploading = useMemo(
+    () => Object.values(uploadingRows).some(Boolean),
+    [uploadingRows],
+  );
 
   const stats = useMemo(() => {
     const structurallyValid = rows.filter(
@@ -227,31 +243,163 @@ export default function BulkProductImportScreen() {
     };
   }, [rows]);
 
-  const downloadTemplate = () => {
-    const sample = [
-      {
-        id: "amul-butter-100g",
-        name: "Amul Butter",
-        category: "dairy",
-        size: "100 g",
-        mrp: 60,
-        price: 58,
-        stock: 25,
-        image: "https://example.com/amul-butter.jpg",
-        description: "Creamy salted butter",
-        isFeatured: true,
-        isPopular: true,
-        isBestOffer: false,
-        isActive: true,
-      },
-    ];
+  const downloadTemplate = async () => {
+    try {
+      const sample = [
+        {
+          id: "amul-butter-100g",
+          name: "Amul Butter",
+          category: "dairy",
+          size: "100 g",
+          mrp: 60,
+          price: 58,
+          stock: 25,
+          image: "https://example.com/amul-butter.jpg",
+          description: "Creamy salted butter",
+          isFeatured: true,
+          isPopular: true,
+          isBestOffer: false,
+          isActive: true,
+        },
+      ];
 
-    const worksheet = XLSX.utils.json_to_sheet(sample, {
-      header: TEMPLATE_HEADERS,
-    });
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Products");
-    XLSX.writeFile(workbook, "raha-products-import-template.xlsx");
+      const worksheet = XLSX.utils.json_to_sheet(sample, {
+        header: TEMPLATE_HEADERS,
+      });
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, "Products");
+
+      const templateFileName = "raha-products-import-template.xlsx";
+
+      if (Platform.OS === "web") {
+        // Browser download.
+        XLSX.writeFile(workbook, templateFileName);
+        return;
+      }
+
+      // Native (Android/iOS): XLSX.writeFile relies on the browser DOM and
+      // crashes on native. Write a base64 file with expo-file-system, then
+      // open the native share/save sheet.
+      const base64 = XLSX.write(workbook, {
+        type: "base64",
+        bookType: "xlsx",
+      });
+
+      const FileSystem = await import("expo-file-system/legacy");
+      const Sharing = await import("expo-sharing");
+
+      const fileUri = `${FileSystem.cacheDirectory}${templateFileName}`;
+
+      await FileSystem.writeAsStringAsync(fileUri, base64, {
+        encoding: FileSystem.EncodingType.Base64,
+      });
+
+      if (await Sharing.isAvailableAsync()) {
+        await Sharing.shareAsync(fileUri, {
+          mimeType:
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+          dialogTitle: "Save products import template",
+          UTI: "org.openxmlformats.spreadsheetml.sheet",
+        });
+      } else {
+        showMessage(
+          "Template saved",
+          `The template was created at:\n${fileUri}`,
+        );
+      }
+    } catch (error) {
+      console.error("Template download failed:", error);
+      showMessage(
+        "Unable to create template",
+        error instanceof Error
+          ? error.message
+          : "Please try again.",
+      );
+    }
+  };
+
+  const applyUploadedImageToRow = (
+    rowNumber: number,
+    uploaded: UploadedProductImage,
+  ) => {
+    setRows((previous) =>
+      previous.map((row) =>
+        row.rowNumber === rowNumber && row.product
+          ? {
+              ...row,
+              product: { ...row.product, image: uploaded.url },
+            }
+          : row,
+      ),
+    );
+  };
+
+  const uploadForRow = async (
+    row: PreviewRow,
+    picker: (
+      productKey: string,
+    ) => Promise<UploadedProductImage | null>,
+  ) => {
+    if (!row.product) return;
+
+    const productKey = row.product.id || row.product.name;
+
+    setUploadingRows((previous) => ({
+      ...previous,
+      [row.rowNumber]: true,
+    }));
+
+    try {
+      const uploaded = await picker(productKey);
+      if (!uploaded) return;
+
+      applyUploadedImageToRow(row.rowNumber, uploaded);
+      showToast("Image uploaded.", "success");
+    } catch (error) {
+      console.error("Row image upload failed:", error);
+      showMessage(
+        "Image upload failed",
+        error instanceof Error
+          ? error.message
+          : "Unable to upload the image.",
+      );
+    } finally {
+      setUploadingRows((previous) => {
+        const next = { ...previous };
+        delete next[row.rowNumber];
+        return next;
+      });
+    }
+  };
+
+  const handleAttachImage = (row: PreviewRow) => {
+    if (!row.product || uploadingRows[row.rowNumber]) return;
+
+    if (Platform.OS === "web") {
+      // Web/laptop: choose a local image file from the computer.
+      void uploadForRow(row, pickAndUploadProductImage);
+      return;
+    }
+
+    // Android/iOS: offer Gallery or Camera.
+    Alert.alert(
+      "Add product image",
+      "Choose an image source",
+      [
+        {
+          text: "Choose from Gallery",
+          onPress: () =>
+            void uploadForRow(row, pickGalleryAndUploadProductImage),
+        },
+        {
+          text: "Take Photo",
+          onPress: () =>
+            void uploadForRow(row, takeAndUploadProductImage),
+        },
+        { text: "Cancel", style: "cancel" },
+      ],
+      { cancelable: true },
+    );
   };
 
   const chooseFile = async () => {
@@ -329,6 +477,14 @@ export default function BulkProductImportScreen() {
   };
 
   const runImport = async () => {
+    if (anyRowUploading) {
+      showMessage(
+        "Please wait",
+        "An image is still uploading. Please wait for it to finish.",
+      );
+      return;
+    }
+
     const importableRows = rows.filter((item) => {
       if (!item.product || item.errors.length > 0) return false;
 
@@ -411,7 +567,7 @@ export default function BulkProductImportScreen() {
                 are blocked using Product ID and Name + Size + Category.
               </Text>
 
-              <TouchableOpacity style={styles.secondaryButton} onPress={downloadTemplate}>
+              <TouchableOpacity style={styles.secondaryButton} onPress={() => void downloadTemplate()}>
                 <Ionicons name="download-outline" size={19} color={COLORS.primary} />
                 <Text style={styles.secondaryButtonText}>Download Excel Template</Text>
               </TouchableOpacity>
@@ -467,13 +623,18 @@ export default function BulkProductImportScreen() {
                   <TouchableOpacity
                     style={[styles.importButton, importing && styles.disabled]}
                     onPress={() => void runImport()}
-                    disabled={importing || (mode === "skip-existing" ? stats.newItems === 0 : stats.valid === 0)}
+                    disabled={importing || anyRowUploading || (mode === "skip-existing" ? stats.newItems === 0 : stats.valid === 0)}
                   >
                     <Ionicons name="cloud-upload-outline" size={21} color={COLORS.textOnPrimary} />
                     <Text style={styles.primaryButtonText}>
                       {importing ? "Importing..." : `Import ${mode === "skip-existing" ? stats.newItems : stats.valid} Products`}
                     </Text>
                   </TouchableOpacity>
+                  {anyRowUploading ? (
+                    <Text style={styles.helpText}>
+                      Waiting for image upload to finish…
+                    </Text>
+                  ) : null}
                 </View>
 
                 <Text style={styles.previewTitle}>Preview</Text>
@@ -507,6 +668,52 @@ export default function BulkProductImportScreen() {
               <Text style={styles.rowMeta}>
                 {item.product.id} • {item.product.category} • ₹{item.product.price} • Stock {item.product.stock}
               </Text>
+            ) : null}
+
+            {item.product && item.errors.length === 0 ? (
+              <View style={styles.imageRow}>
+                {item.product.image ? (
+                  <Image
+                    source={{ uri: item.product.image }}
+                    style={styles.imageThumb}
+                    contentFit="cover"
+                    transition={150}
+                  />
+                ) : (
+                  <View style={[styles.imageThumb, styles.imagePlaceholder]}>
+                    <Ionicons
+                      name="image-outline"
+                      size={22}
+                      color={COLORS.textMuted}
+                    />
+                  </View>
+                )}
+
+                <TouchableOpacity
+                  style={styles.imageButton}
+                  onPress={() => handleAttachImage(item)}
+                  disabled={Boolean(uploadingRows[item.rowNumber])}
+                >
+                  {uploadingRows[item.rowNumber] ? (
+                    <ActivityIndicator size="small" color={COLORS.primary} />
+                  ) : (
+                    <>
+                      <Ionicons
+                        name={
+                          item.product.image
+                            ? "sync-outline"
+                            : "camera-outline"
+                        }
+                        size={17}
+                        color={COLORS.primary}
+                      />
+                      <Text style={styles.imageButtonText}>
+                        {item.product.image ? "Change Image" : "Add Image"}
+                      </Text>
+                    </>
+                  )}
+                </TouchableOpacity>
+              </View>
             ) : null}
 
             {item.duplicateReason && item.errors.length === 0 ? (
@@ -673,6 +880,35 @@ const styles = StyleSheet.create({
   rowTop: { flexDirection: "row", alignItems: "center", gap: 8 },
   rowTitle: { flex: 1, fontWeight: "900", color: COLORS.textPrimary },
   rowMeta: { marginTop: 6, color: COLORS.textSecondary },
+  imageRow: {
+    marginTop: 10,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: SPACING.md,
+  },
+  imageThumb: {
+    width: 54,
+    height: 54,
+    borderRadius: RADIUS.md,
+    backgroundColor: COLORS.background,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+  },
+  imagePlaceholder: {
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  imageButton: {
+    minHeight: 40,
+    paddingHorizontal: 14,
+    borderRadius: RADIUS.md,
+    borderWidth: 1,
+    borderColor: COLORS.primary,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 7,
+  },
+  imageButtonText: { color: COLORS.primary, fontWeight: "800" },
   existingBadge: {
     color: "#B45309",
     fontSize: 11,

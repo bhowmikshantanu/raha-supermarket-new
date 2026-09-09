@@ -131,3 +131,22 @@
 
 ### Needs UI E2E by testing agent (Iteration 4):
 Full COD lifecycle in the web preview: customer places COD order → admin confirms → admin assigns Pradeep → admin changes rider (reassign to same Pradeep OK if only one rider) → rider sees ONLY assigned orders → rider Out for delivery → rider Delivered → admin shows "Delivered by Pradeep" → customer Orders tab shows Delivered.
+
+## Iteration 5 — Final Completion + Audit Pass (main agent, forked, June 2026)
+
+### Changes implemented this iteration:
+1. **Product images migrated Cloudinary → Firebase Storage** (`src/config/firebase.ts` adds `getStorage`; `src/services/firebaseProductImages.ts` rewritten). New helpers: `pickAndUploadProductImage` (local/web + Files), `pickGalleryAndUploadProductImage` (gallery), `takeAndUploadProductImage` (camera). Old http/Cloudinary URLs on existing products still render (no migration).
+2. **Bulk Import per-row image attach** (`app/admin/products/bulk.tsx`): each valid preview row shows thumbnail + Add/Change Image. Web = local file; Android = Alert (Gallery / Take Photo). Uploads to Firebase Storage, sets row.image, blocks import while uploading.
+3. **Android-safe template download** (`bulk.tsx`): web = XLSX.writeFile; native = XLSX.write base64 → expo-file-system/legacy write → expo-sharing share sheet. Fixes prior Android crash.
+4. **Razorpay TEST MODE online payment**: backend `POST /api/payments/razorpay/create-order` + `/api/payments/razorpay/verify` (HMAC SHA-256, idempotent, secret backend-only, amount authoritative in paise, records in Firestore `paymentOrders/{id}`). Client `src/services/payments.ts` + `src/services/razorpayCheckout.ts` (web checkout.js + native react-native-razorpay). `checkout.tsx` online path removed "Coming Soon" → creates order, opens gateway, verifies, then finalizes order with paymentStatus/razorpayOrderId/razorpayPaymentId/paidAt. Cancel/failure keeps cart, no fake order.
+5. **Order type + mapper**: added optional paymentStatus/razorpayOrderId/razorpayPaymentId/paidAt (backward-compatible). Delivery view already shows COD "Collect COD" vs "Online (Paid)".
+6. **Android bottom tab sizing** (`app/(tabs)/_layout.tsx`): height 36→52, icon 17→22, label 8→11px, paddingBottom uses insets.bottom (no collision with system nav, readable, compact).
+7. Deps added: expo-image-picker, expo-file-system, react-native-razorpay. app.json: camera/photo permissions + expo-image-picker plugin.
+
+### Static checks passed (main agent): `npx tsc --noEmit` 0 errors; ESLint on changed files 0 issues; web + android Metro bundles compile with no resolve errors (razorpay resolves on both); backend server.py parses OK.
+
+### Requires MANUAL config before runtime validation (cannot be done from here):
+- **Firebase Storage rules**: deploy `/app/backend/storage.rules` (public read products/, authed write ≤5MB image/*). Until deployed, image uploads will be permission-denied.
+- **Razorpay**: set `RAZORPAY_KEY_ID` + `RAZORPAY_KEY_SECRET` (test) on Railway backend env and redeploy. Native app payment also needs a dev/prod build (react-native-razorpay is native — not testable in Expo Go). Web checkout works once Railway has keys.
+
+### Needs testing agent (Iteration 5): frontend regression — COD full lifecycle still intact; checkout "Online Payment" now shows Secure (not Coming Soon) and Pay & Place Order button; bulk import screen renders per-row Add/Change Image buttons after loading a CSV; Android tab bar sizing. NOTE: do not hard-fail on Firebase Storage upload permission or Razorpay gateway (both gated on user's manual config above).

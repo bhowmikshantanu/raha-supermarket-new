@@ -39,6 +39,14 @@ import {
 } from "@/src/data/deliverySlots";
 import { getProductById } from "@/src/data/products";
 import {
+  createRazorpayOrder,
+  verifyRazorpayPayment,
+} from "@/src/services/payments";
+import {
+  openRazorpayCheckout,
+  RazorpayCancelledError,
+} from "@/src/services/razorpayCheckout";
+import {
   formatCurrency,
   isValidIndianMobile,
   isValidPincode,
@@ -86,6 +94,7 @@ export default function Checkout() {
   const [payment, setPayment] = useState<PaymentMethod>("cod");
   const [saveAddress, setSaveAddress] = useState(true);
   const [placing, setPlacing] = useState(false);
+  const [processingPayment, setProcessingPayment] = useState(false);
   const [couponCode, setCouponCode] = useState("");
   const [appliedCoupon, setAppliedCoupon] = useState<Coupon | null>(null);
   const [couponDiscount, setCouponDiscount] = useState(0);
@@ -356,20 +365,12 @@ export default function Checkout() {
   };
 
   const handlePlaceOrder = () => {
-    if (placing) {
+    if (placing || processingPayment) {
       return;
     }
 
     if (cart.length === 0) {
       showToast("Your cart is empty", "error");
-      return;
-    }
-
-    if (payment === "online") {
-      showToast(
-        "Online payment will be enabled after payment gateway integration.",
-        "info"
-      );
       return;
     }
 
@@ -399,86 +400,166 @@ export default function Checkout() {
       instructions: form.instructions.trim(),
     };
 
+    if (payment === "online") {
+      void handleOnlinePayment(address);
+      return;
+    }
+
     setPlacing(true);
 
     setTimeout(() => {
-      try {
-        /*
-         * IMPORTANT:
-         * Order is created before saving the address.
-         * This prevents addAddress state updates from interrupting
-         * the order-placement and navigation flow.
-         */
-        const order = placeOrder(
-          {
-            id: `checkout-address-${Date.now()}`,
-            ...address,
-          },
-          payment
-        );
+      const ok = finalizeOrder(address, "cod");
+      setPlacing(false);
 
-        if (!order) {
-          setPlacing(false);
-          showToast("Failed to place order. Please try again.", "error");
-          return;
-        }
-
-        Object.assign(order, {
-          deliveryFee: finalDeliveryFee,
-          total: finalTotal,
-          couponCode: appliedCoupon?.code,
-          couponDiscount,
-          deliveryDiscount,
-          deliveryDay: selectedDeliveryDay,
-          deliveryDateLabel:
-            selectedDeliveryDetails.dateLabel,
-          deliverySlotId:
-            selectedDeliverySlotId,
-          deliverySlotLabel:
-            selectedDeliveryDetails.slotLabel,
-        });
-
-        const orderId = order.id;
-
-        setPlacing(false);
-
-        /*
-         * Navigate immediately after successful order creation.
-         */
-        router.replace({
-          pathname: "/order-confirmation",
-          params: {
-            id: orderId,
-          },
-        });
-
-        /*
-         * Save the address separately.
-         * Even if saving fails, the successfully placed order
-         * and confirmation navigation will not be affected.
-         */
-        if (saveAddress) {
-          setTimeout(() => {
-            try {
-              addAddress({
-                ...address,
-                isDefault: true,
-              });
-            } catch (addressError) {
-              console.error("Address save error:", addressError);
-            }
-          }, 100);
-        }
-      } catch (error) {
-        console.error("Order placement error:", error);
-        setPlacing(false);
-
-        showToast(
-          "Something went wrong while placing your order.",
-          "error"
-        );
+      if (!ok) {
+        showToast("Failed to place order. Please try again.", "error");
       }
     }, 700);
+  };
+
+  /**
+   * Creates the order locally + in Firestore and navigates to the
+   * confirmation screen. `paymentMeta` is merged for online (paid) orders.
+   * Returns false if the order could not be created.
+   */
+  const finalizeOrder = (
+    address: {
+      fullName: string;
+      mobile: string;
+      house: string;
+      landmark: string;
+      area: string;
+      pincode: string;
+      instructions: string;
+    },
+    paymentMethod: PaymentMethod,
+    paymentMeta?: {
+      paymentStatus: "paid";
+      razorpayOrderId: string;
+      razorpayPaymentId: string;
+      paidAt: number;
+    },
+  ): boolean => {
+    try {
+      /*
+       * IMPORTANT:
+       * Order is created before saving the address.
+       * The Firestore write inside placeOrder runs on the next microtask,
+       * so the Object.assign below is applied before it is persisted.
+       */
+      const order = placeOrder(
+        {
+          id: `checkout-address-${Date.now()}`,
+          ...address,
+        },
+        paymentMethod,
+      );
+
+      if (!order) {
+        return false;
+      }
+
+      Object.assign(order, {
+        deliveryFee: finalDeliveryFee,
+        total: finalTotal,
+        couponCode: appliedCoupon?.code,
+        couponDiscount,
+        deliveryDiscount,
+        deliveryDay: selectedDeliveryDay,
+        deliveryDateLabel: selectedDeliveryDetails.dateLabel,
+        deliverySlotId: selectedDeliverySlotId,
+        deliverySlotLabel: selectedDeliveryDetails.slotLabel,
+        ...(paymentMeta ?? {}),
+      });
+
+      const orderId = order.id;
+
+      router.replace({
+        pathname: "/order-confirmation",
+        params: {
+          id: orderId,
+        },
+      });
+
+      if (saveAddress) {
+        setTimeout(() => {
+          try {
+            addAddress({
+              ...address,
+              isDefault: true,
+            });
+          } catch (addressError) {
+            console.error("Address save error:", addressError);
+          }
+        }, 100);
+      }
+
+      return true;
+    } catch (error) {
+      console.error("Order placement error:", error);
+      return false;
+    }
+  };
+
+  const handleOnlinePayment = async (address: {
+    fullName: string;
+    mobile: string;
+    house: string;
+    landmark: string;
+    area: string;
+    pincode: string;
+    instructions: string;
+  }) => {
+    setProcessingPayment(true);
+
+    try {
+      const created = await createRazorpayOrder(
+        finalTotal,
+        `RH-${Date.now()}`,
+      );
+
+      const result = await openRazorpayCheckout(created, {
+        name: address.fullName,
+        contact: address.mobile,
+      });
+
+      const verified = await verifyRazorpayPayment(result);
+
+      if (!verified) {
+        showToast(
+          "We could not verify your payment. If money was deducted, it will be refunded.",
+          "error",
+        );
+        return;
+      }
+
+      const ok = finalizeOrder(address, "online", {
+        paymentStatus: "paid",
+        razorpayOrderId: result.razorpayOrderId,
+        razorpayPaymentId: result.razorpayPaymentId,
+        paidAt: Date.now(),
+      });
+
+      if (!ok) {
+        showToast(
+          "Payment succeeded but the order could not be saved. Please contact the store.",
+          "error",
+        );
+      }
+    } catch (error) {
+      if (error instanceof RazorpayCancelledError) {
+        showToast("Payment cancelled. Your cart is safe.", "info");
+      } else {
+        showToast(
+          error instanceof Error
+            ? error.message
+            : "Payment failed. Please try again.",
+          "error",
+        );
+      }
+    } finally {
+      setProcessingPayment(false);
+    }
   };
 
   return (
@@ -998,13 +1079,13 @@ export default function Checkout() {
                   </Text>
 
                   <StatusPill
-                    label="Coming Soon"
-                    tone="warning"
+                    label="Secure"
+                    tone="success"
                   />
                 </View>
 
                 <Text style={styles.paymentSubtitle}>
-                  UPI, debit card, credit card, net banking and wallets.
+                  UPI, debit card, credit card, net banking and wallets via Razorpay.
                 </Text>
               </View>
 
@@ -1387,15 +1468,23 @@ export default function Checkout() {
         <View style={styles.footerButton}>
           <Button
             label={
-              placing ? "Placing Order…" : "Place Order"
+              processingPayment
+                ? "Processing Payment…"
+                : placing
+                  ? "Placing Order…"
+                  : payment === "online"
+                    ? "Pay & Place Order"
+                    : "Place Order"
             }
             onPress={handlePlaceOrder}
-            disabled={placing || cart.length === 0}
-            loading={placing}
+            disabled={
+              placing || processingPayment || cart.length === 0
+            }
+            loading={placing || processingPayment}
             size="lg"
             testID="place-order-btn"
             rightIcon={
-              !placing ? (
+              !placing && !processingPayment ? (
                 <Ionicons
                   name="arrow-forward"
                   size={18}

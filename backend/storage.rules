@@ -1,0 +1,31 @@
+rules_version = '2';
+
+// Firebase Storage security rules for Raha Supermarket product images.
+//
+// Deploy these in Firebase Console → Storage → Rules (or via the Firebase CLI).
+// They allow:
+//   - Public READ of product images (so every customer can see them).
+//   - WRITE only by a signed-in user (the admin signs in with Firebase
+//     email/password), and only under the products/ path, capped at 5 MB and
+//     restricted to image/* content types.
+//
+// This does NOT weaken any other path — everything outside products/ stays
+// denied by default.
+
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    match /products/{allPaths=**} {
+      allow read: if true;
+
+      allow write: if request.auth != null
+        && request.resource.size < 5 * 1024 * 1024
+        && request.resource.contentType.matches('image/.*');
+    }
+
+    // Everything else is denied by default.
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}
