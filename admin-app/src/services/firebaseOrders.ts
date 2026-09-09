@@ -199,6 +199,15 @@ function documentToOrder(
     deliveredAt:
       safeNumber(data.deliveredAtMs, 0) ||
       undefined,
+
+    couponCode:
+      typeof data.couponCode === "string" && data.couponCode
+        ? data.couponCode
+        : undefined,
+
+    couponDiscount:
+      safeNumber(data.couponDiscount, 0) ||
+      undefined,
   };
 }
 

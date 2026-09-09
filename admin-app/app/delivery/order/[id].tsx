@@ -58,6 +58,14 @@ function documentToOrder(id: string, data: any): Order | null {
       typeof data.deliveredAtMs === "number" ? data.deliveredAtMs : undefined,
     assignedAt:
       typeof data.assignedAtMs === "number" ? data.assignedAtMs : undefined,
+    couponCode:
+      typeof data.couponCode === "string" && data.couponCode
+        ? data.couponCode
+        : undefined,
+    couponDiscount:
+      Number(data.couponDiscount ?? 0) > 0
+        ? Number(data.couponDiscount)
+        : undefined,
   };
 }
 
@@ -374,16 +382,24 @@ export default function DeliveryOrderDetailScreen() {
                 {formatCurrency(order.subtotal)}
               </Text>
             </View>
-            {Math.max(0, order.subtotal + order.deliveryFee - order.total) > 0 && (
-              <View style={styles.billRow}>
-                <Text style={styles.billLabel}>Discount</Text>
-                <Text style={styles.billValue}>
-                  -{formatCurrency(
-                    Math.max(0, order.subtotal + order.deliveryFee - order.total)
-                  )}
-                </Text>
-              </View>
-            )}
+            {(() => {
+              const discount =
+                order.couponDiscount ??
+                Math.max(0, order.subtotal + order.deliveryFee - order.total);
+              if (discount <= 0) return null;
+              return (
+                <View style={styles.billRow}>
+                  <Text style={styles.billLabel}>
+                    {order.couponCode
+                      ? `Discount (${order.couponCode})`
+                      : "Discount"}
+                  </Text>
+                  <Text style={styles.billValue}>
+                    -{formatCurrency(discount)}
+                  </Text>
+                </View>
+              );
+            })()}
             <View style={styles.billRow}>
               <Text style={styles.billLabel}>Delivery Fee</Text>
               <Text style={styles.billValue}>

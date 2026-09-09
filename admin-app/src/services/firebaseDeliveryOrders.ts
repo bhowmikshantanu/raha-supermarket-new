@@ -68,6 +68,11 @@ function documentToOrder(id: string, data: DocumentData): Order | null {
     assignedAt: safeNumber(data.assignedAtMs, 0) || undefined,
     pickedUpAt: safeNumber(data.pickedUpAtMs, 0) || undefined,
     deliveredAt: safeNumber(data.deliveredAtMs, 0) || undefined,
+    couponCode:
+      typeof data.couponCode === "string" && data.couponCode
+        ? data.couponCode
+        : undefined,
+    couponDiscount: safeNumber(data.couponDiscount, 0) || undefined,
   };
 }
 

@@ -613,14 +613,22 @@ export default function AdminOrdersScreen() {
                       label="Subtotal"
                       value={formatCurrency(item.subtotal)}
                     />
-                    {Math.max(0, item.subtotal + item.deliveryFee - item.total) > 0 && (
-                      <BillRow
-                        label="Discount"
-                        value={`-${formatCurrency(
-                          Math.max(0, item.subtotal + item.deliveryFee - item.total)
-                        )}`}
-                      />
-                    )}
+                    {(() => {
+                      const discount =
+                        item.couponDiscount ??
+                        Math.max(0, item.subtotal + item.deliveryFee - item.total);
+                      if (discount <= 0) return null;
+                      return (
+                        <BillRow
+                          label={
+                            item.couponCode
+                              ? `Discount (${item.couponCode})`
+                              : "Discount"
+                          }
+                          value={`-${formatCurrency(discount)}`}
+                        />
+                      );
+                    })()}
                     <BillRow
                       label="Delivery Fee"
                       value={

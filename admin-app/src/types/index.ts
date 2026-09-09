@@ -78,6 +78,10 @@ export interface Order {
   paymentMethod: "cod" | "online";
   estimatedDeliveryMinutes: number;
 
+  // Coupon applied at checkout (optional — older orders have none).
+  couponCode?: string;
+  couponDiscount?: number;
+
   // Delivery rider assignment (all optional — older orders remain valid).
   deliveryBoyId?: string;
   deliveryBoyUid?: string;
