@@ -1519,8 +1519,9 @@ async def create_razorpay_order(payload: CreateRazorpayOrderRequest):
             detail="Payment gateway returned an invalid order.",
         )
 
-    # Store for idempotency + amount reconciliation. Firestore write failure
-    # must not block the payment flow (verification still works via HMAC).
+    # Persist the trusted order record (amount reconciled by /verify). This
+    # MUST succeed before we hand the order to the client, otherwise verify
+    # would later reject a genuine payment as "Unknown payment order".
     try:
         firestore_db.collection("paymentOrders").document(order_id).set(
             {
@@ -1532,10 +1533,14 @@ async def create_razorpay_order(payload: CreateRazorpayOrderRequest):
                 "createdAt": firestore.SERVER_TIMESTAMP,
             }
         )
-    except Exception:
+    except Exception as exc:
         logger.exception(
-            "Unable to persist paymentOrders record (non-fatal)."
+            "Unable to persist paymentOrders record."
         )
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Unable to start the payment. Please try again.",
+        ) from exc
 
     return CreateRazorpayOrderResponse(
         order_id=order_id,
@@ -1592,18 +1597,8 @@ async def verify_razorpay_payment(payload: VerifyRazorpayPaymentRequest):
             detail="Payment order has no valid expected amount.",
         )
 
-    # 1. Safe idempotency: only short-circuit when the SAME payment id has
-    #    already been settled for this order. A different payment id against an
-    #    already-paid order must NOT be accepted.
-    if record.get("status") == "paid":
-        if record.get("razorpayPaymentId") == payload.razorpay_payment_id:
-            return {"verified": True, "already_processed": True}
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="This payment order was already settled by another payment.",
-        )
-
-    # 2. HMAC signature check.
+    # 1. HMAC signature check FIRST — no idempotent success may be returned
+    #    for a request whose signature has not been validated.
     message = f"{payload.razorpay_order_id}|{payload.razorpay_payment_id}"
     expected_signature = hmac.new(
         RAZORPAY_KEY_SECRET.encode(),
@@ -1614,13 +1609,26 @@ async def verify_razorpay_payment(payload: VerifyRazorpayPaymentRequest):
     if not hmac.compare_digest(
         expected_signature, payload.razorpay_signature
     ):
-        try:
-            order_ref.set({"status": "verification_failed"}, merge=True)
-        except Exception:
-            logger.exception("paymentOrders update failed (non-fatal).")
+        # Do not clobber a previously-settled order's status on a bad replay.
+        if record.get("status") != "paid":
+            try:
+                order_ref.set({"status": "verification_failed"}, merge=True)
+            except Exception:
+                logger.exception("paymentOrders update failed (non-fatal).")
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Invalid payment signature.",
+        )
+
+    # 2. Safe idempotency (only reachable AFTER a valid signature): short-circuit
+    #    when the SAME payment id has already been settled for this order. A
+    #    different payment id against an already-paid order must NOT be accepted.
+    if record.get("status") == "paid":
+        if record.get("razorpayPaymentId") == payload.razorpay_payment_id:
+            return {"verified": True, "already_processed": True}
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="This payment order was already settled by another payment.",
         )
 
     # 3. Reconcile against Razorpay's authoritative payment record.
@@ -1658,7 +1666,9 @@ async def verify_razorpay_payment(payload: VerifyRazorpayPaymentRequest):
         and payment_amount == expected_amount
     )
     order_ok = payment_order_id == payload.razorpay_order_id
-    status_ok = payment_status in ("captured", "authorized")
+    # Require a CAPTURED payment. "authorized" is not final — the funds are not
+    # yet captured — so it must not be treated as a successful paid order.
+    status_ok = payment_status == "captured"
 
     if not (amount_ok and order_ok and status_ok):
         logger.warning(
