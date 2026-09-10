@@ -27,6 +27,7 @@ import {
   pickAndUploadProductImage,
   pickGalleryAndUploadProductImage,
   takeAndUploadProductImage,
+  uploadProductImageFromAsset,
   type UploadedProductImage,
 } from "@/src/services/firebaseProductImages";
 import {
@@ -42,6 +43,7 @@ import type { Product } from "@/src/types";
 type PreviewRow = {
   rowNumber: number;
   product: BulkProductInput | null;
+  imageFile: string;
   errors: string[];
   existing: boolean;
   duplicate: boolean;
@@ -56,6 +58,7 @@ const TEMPLATE_HEADERS = [
   "mrp",
   "price",
   "stock",
+  "imageFile",
   "image",
   "description",
   "isFeatured",
@@ -119,6 +122,7 @@ function parseRow(
   const rawMrp = numberValue(value(raw, "mrp"));
   const price = numberValue(value(raw, "price"));
   const stock = numberValue(value(raw, "stock"));
+  const imageFile = text(value(raw, "imageFile"));
 
   if (!name) errors.push("Product name is required");
   if (!category) errors.push("Category ID is required");
@@ -165,6 +169,7 @@ function parseRow(
     return {
       rowNumber,
       product: null,
+      imageFile,
       errors,
       existing,
       duplicate,
@@ -177,6 +182,7 @@ function parseRow(
 
   return {
     rowNumber,
+    imageFile,
     existing,
     duplicate,
     duplicateReason,
@@ -254,7 +260,8 @@ export default function BulkProductImportScreen() {
           mrp: 60,
           price: 58,
           stock: 25,
-          image: "https://example.com/amul-butter.jpg",
+          imageFile: "amul-butter.jpg",
+          image: "",
           description: "Creamy salted butter",
           isFeatured: true,
           isPopular: true,
@@ -400,6 +407,138 @@ export default function BulkProductImportScreen() {
       ],
       { cancelable: true },
     );
+  };
+
+  const normalizeImageFileName = (fileNameToNormalize: string) =>
+    fileNameToNormalize
+      .replace(/\\/g, "/")
+      .split("/")
+      .pop()
+      ?.trim()
+      .toLowerCase() || "";
+
+  const selectAndMatchProductImages = async () => {
+    const referencedRows = rows.filter(
+      (row) =>
+        row.product &&
+        row.errors.length === 0 &&
+        normalizeImageFileName(row.imageFile),
+    );
+
+    if (referencedRows.length === 0) {
+      showMessage(
+        "No image filenames found",
+        "Fill the imageFile column in Excel first, for example: amul-butter.jpg",
+      );
+      return;
+    }
+
+    try {
+      const DocumentPicker = await import("expo-document-picker");
+
+      const result = await DocumentPicker.getDocumentAsync({
+        type: "image/*",
+        copyToCacheDirectory: true,
+        multiple: true,
+      });
+
+      if (result.canceled) return;
+
+      const assetsByName = new Map(
+        result.assets.map((asset) => [
+          normalizeImageFileName(asset.name || ""),
+          asset,
+        ]),
+      );
+
+      const matchedRows = referencedRows.filter((row) =>
+        assetsByName.has(normalizeImageFileName(row.imageFile)),
+      );
+
+      const missingRows = referencedRows.filter(
+        (row) => !assetsByName.has(normalizeImageFileName(row.imageFile)),
+      );
+
+      if (matchedRows.length === 0) {
+        showMessage(
+          "No matching images",
+          "Selected image filenames do not match the imageFile names written in Excel.",
+        );
+        return;
+      }
+
+      setUploadingRows((previous) => {
+        const next = { ...previous };
+        for (const row of matchedRows) next[row.rowNumber] = true;
+        return next;
+      });
+
+      let uploadedCount = 0;
+      const failedNames: string[] = [];
+
+      for (const row of matchedRows) {
+        if (!row.product) continue;
+
+        const asset = assetsByName.get(
+          normalizeImageFileName(row.imageFile),
+        );
+
+        if (!asset) continue;
+
+        try {
+          const uploaded = await uploadProductImageFromAsset(
+            row.product.id || row.product.name,
+            asset,
+          );
+
+          applyUploadedImageToRow(row.rowNumber, uploaded);
+          uploadedCount += 1;
+        } catch (error) {
+          console.error(
+            `Bulk image upload failed for ${row.imageFile}:`,
+            error,
+          );
+          failedNames.push(row.imageFile);
+        } finally {
+          setUploadingRows((previous) => {
+            const next = { ...previous };
+            delete next[row.rowNumber];
+            return next;
+          });
+        }
+      }
+
+      const summary = [
+        `Uploaded: ${uploadedCount}`,
+        `Not selected / unmatched: ${missingRows.length}`,
+        `Failed: ${failedNames.length}`,
+      ];
+
+      if (missingRows.length > 0) {
+        summary.push(
+          `Missing: ${missingRows
+            .slice(0, 5)
+            .map((row) => row.imageFile)
+            .join(", ")}${missingRows.length > 5 ? "…" : ""}`,
+        );
+      }
+
+      if (failedNames.length > 0) {
+        summary.push(
+          `Failed files: ${failedNames.slice(0, 5).join(", ")}${
+            failedNames.length > 5 ? "…" : ""
+          }`,
+        );
+      }
+
+      showMessage("Product image matching complete", summary.join("\n"));
+    } catch (error) {
+      console.error("Bulk image selection failed:", error);
+      showMessage(
+        "Unable to select product images",
+        error instanceof Error ? error.message : "Please try again.",
+      );
+    }
   };
 
   const chooseFile = async () => {
@@ -562,8 +701,10 @@ export default function BulkProductImportScreen() {
               <Text style={styles.sectionTitle}>1. Download Template</Text>
               <Text style={styles.helpText}>
                 Mandatory: Product Name, Category, Selling Price and Stock.
-                Optional: Product ID, MRP, Size, Image, Description and flags.
-                If MRP is blank, Selling Price is used as MRP. Duplicate products
+                Optional: Product ID, MRP, Size, imageFile, Image URL,
+                Description and flags. For local photos, write the exact filename
+                in imageFile, for example amul-butter.jpg. If MRP is blank,
+                Selling Price is used as MRP. Duplicate products
                 are blocked using Product ID and Name + Size + Category.
               </Text>
 
@@ -588,6 +729,35 @@ export default function BulkProductImportScreen() {
               </TouchableOpacity>
 
               {fileName ? <Text style={styles.fileName}>Selected: {fileName}</Text> : null}
+
+              {rows.length > 0 ? (
+                <>
+                  <TouchableOpacity
+                    style={[
+                      styles.secondaryButton,
+                      anyRowUploading && styles.disabled,
+                    ]}
+                    onPress={() => void selectAndMatchProductImages()}
+                    disabled={anyRowUploading}
+                  >
+                    <Ionicons
+                      name="images-outline"
+                      size={19}
+                      color={COLORS.primary}
+                    />
+                    <Text style={styles.secondaryButtonText}>
+                      {anyRowUploading
+                        ? "Uploading Product Images..."
+                        : "Select Product Images"}
+                    </Text>
+                  </TouchableOpacity>
+
+                  <Text style={styles.helpText}>
+                    Select multiple photos together. The app will match each photo
+                    with the Excel imageFile filename automatically.
+                  </Text>
+                </>
+              ) : null}
             </View>
 
             {rows.length > 0 ? (

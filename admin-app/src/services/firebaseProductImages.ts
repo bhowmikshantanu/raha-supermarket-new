@@ -84,6 +84,31 @@ async function uploadProductImage(
   };
 }
 
+export async function uploadProductImageFromAsset(
+  productKey: string,
+  asset: {
+    uri: string;
+    name?: string | null;
+    mimeType?: string | null;
+    size?: number | null;
+    file?: File | null;
+  },
+): Promise<UploadedProductImage> {
+  const mimeType = asset.mimeType || "image/jpeg";
+  const size = asset.size || 0;
+  const fileName =
+    asset.name || `product-image.${extensionForMimeType(mimeType)}`;
+
+  return uploadProductImage(
+    productKey,
+    asset.uri,
+    fileName,
+    mimeType,
+    size,
+    Platform.OS === "web" ? asset.file || undefined : undefined,
+  );
+}
+
 /**
  * Pick a local file (web = local drive, native = Files browser) and upload.
  * Used by web/laptop "Choose Local Image" and by the single-product form.
