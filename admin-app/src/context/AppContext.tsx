@@ -6,13 +6,11 @@ import React, {
   useMemo,
   useState,
 } from "react";
-import { onAuthStateChanged } from "firebase/auth";
 import {
   cancelFirebaseOrder,
   createFirebaseOrder,
   subscribeToCustomerOrders,
 } from "@/src/services/firebaseOrders";
-import { auth } from "@/src/config/firebase";
 import { BRAND } from "@/src/config/brand";
 import { useProducts } from "@/src/context/ProductContext";
 import type {
@@ -354,29 +352,12 @@ export const AppProvider: React.FC<{
     }
 
     /*
-     * Customer live-order sync must run ONLY for customer sessions
-     * (anonymous or no persisted user). Admin/delivery riders sign in
-     * with email+password; running the customerUid query under a staff
-     * session violates Firestore rules and floods the console with
-     * "Missing or insufficient permissions".
+     * Customer order tracking uses an isolated anonymous
+     * Firebase session, so admin/delivery authentication
+     * cannot interrupt the customer's live order listener.
      */
-    let unsubscribeOrders: (() => void) | null = null;
-
-    const unsubscribeAuth = onAuthStateChanged(auth, (firebaseUser) => {
-      if (firebaseUser && !firebaseUser.isAnonymous) {
-        // Staff session (admin / delivery). Tear down any customer
-        // listener opened under the earlier anonymous session — otherwise
-        // Firestore re-evaluates it under the staff token and rejects it.
-        unsubscribeOrders?.();
-        unsubscribeOrders = null;
-        return;
-      }
-
-      if (unsubscribeOrders) {
-        return; // already subscribed for this customer session
-      }
-
-      unsubscribeOrders = subscribeToCustomerOrders(
+    const unsubscribeOrders =
+      subscribeToCustomerOrders(
         (firebaseOrders) => {
           setOrders(firebaseOrders);
         },
@@ -387,11 +368,9 @@ export const AppProvider: React.FC<{
           );
         },
       );
-    });
 
     return () => {
-      unsubscribeAuth();
-      unsubscribeOrders?.();
+      unsubscribeOrders();
     };
   }, [hydrated]);
 

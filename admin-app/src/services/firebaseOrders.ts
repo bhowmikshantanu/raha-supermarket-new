@@ -19,7 +19,8 @@ import {
 } from "firebase/auth";
 
 import {
-  auth,
+  customerAuth,
+  customerDb,
   db,
 } from "@/src/config/firebase";
 
@@ -65,7 +66,7 @@ function removeUndefinedDeep(
 
 function waitForInitialAuthState(): Promise<User | null> {
   return new Promise((resolve) => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
+    const unsubscribe = onAuthStateChanged(customerAuth, (user) => {
       unsubscribe();
       resolve(user);
     });
@@ -73,13 +74,13 @@ function waitForInitialAuthState(): Promise<User | null> {
 }
 
 async function ensureFirebaseUser(): Promise<string> {
-  if (auth.currentUser) {
+  if (customerAuth.currentUser) {
     console.log(
-      "[Orders] Firebase user already available:",
-      auth.currentUser.uid,
+      "[Orders] Customer Firebase user already available:",
+      customerAuth.currentUser.uid,
     );
 
-    return auth.currentUser.uid;
+    return customerAuth.currentUser.uid;
   }
 
   /*
@@ -104,7 +105,7 @@ async function ensureFirebaseUser(): Promise<string> {
   );
 
   const credential =
-    await signInAnonymously(auth);
+    await signInAnonymously(customerAuth);
 
   console.log(
     "[Orders] Anonymous Firebase UID:",
@@ -302,7 +303,7 @@ export async function createFirebaseOrder(
 
     await setDoc(
       doc(
-        db,
+        customerDb,
         ORDERS_COLLECTION,
         order.id,
       ),
@@ -346,17 +347,6 @@ export function subscribeToCustomerOrders(
         return;
       }
 
-      // Customer order subscription belongs to anonymous customer sessions.
-      // Admin and delivery-boy Firebase accounts must never open this query.
-      if (auth.currentUser && !auth.currentUser.isAnonymous) {
-        console.log(
-          "[Orders] Skipping customer orders subscription for authenticated staff:",
-          auth.currentUser.uid,
-        );
-        onOrders([]);
-        return;
-      }
-
       console.log(
         "[Orders] Starting customer orders subscription:",
         customerUid,
@@ -365,7 +355,7 @@ export function subscribeToCustomerOrders(
       const ordersQuery =
         query(
           collection(
-            db,
+            customerDb,
             ORDERS_COLLECTION,
           ),
           where(
@@ -957,8 +947,54 @@ export async function updateFirebaseOrderStatus(
 export async function cancelFirebaseOrder(
   orderId: string,
 ): Promise<void> {
-  await updateFirebaseOrderStatus(
-    orderId,
-    "cancelled",
+  const orderReference =
+    doc(
+      customerDb,
+      ORDERS_COLLECTION,
+      orderId,
+    );
+
+  await runTransaction(
+    customerDb,
+    async (transaction) => {
+      const snapshot =
+        await transaction.get(
+          orderReference,
+        );
+
+      if (!snapshot.exists()) {
+        throw new Error(
+          "Order not found.",
+        );
+      }
+
+      const data = snapshot.data();
+
+      const currentStatus =
+        (data.status ??
+          "placed") as OrderStatus;
+
+      /*
+       * Customer cancellation is permitted only
+       * before the store confirms the order.
+       *
+       * Firestore status is checked here instead
+       * of trusting potentially stale local state.
+       */
+      if (currentStatus !== "placed") {
+        throw new Error(
+          "This order can no longer be cancelled after it has been confirmed by the store.",
+        );
+      }
+
+      transaction.update(
+        orderReference,
+        {
+          status: "cancelled",
+          updatedAt:
+            serverTimestamp(),
+        },
+      );
+    },
   );
 }

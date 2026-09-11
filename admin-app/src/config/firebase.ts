@@ -4,6 +4,7 @@ import {
   getApp,
   getApps,
   initializeApp,
+  type FirebaseApp,
 } from "firebase/app";
 
 import {
@@ -51,24 +52,48 @@ const firebaseAuthModule = require("firebase/auth") as {
   ) => Persistence;
 };
 
-function createAuth(): Auth {
+function createAuth(targetApp: FirebaseApp): Auth {
   try {
     const getRNPersistence =
       firebaseAuthModule.getReactNativePersistence;
 
     if (getRNPersistence) {
-      return initializeAuth(app, {
+      return initializeAuth(targetApp, {
         persistence: getRNPersistence(AsyncStorage),
       });
     }
 
-    return getAuth(app);
+    return getAuth(targetApp);
   } catch {
-    return getAuth(app);
+    return getAuth(targetApp);
   }
 }
 
-export const auth = createAuth();
+export const auth = createAuth(app);
+
+/*
+ * Customer orders use their own Firebase Auth session.
+ * Admin/delivery login must never replace the customer's
+ * anonymous authentication session.
+ */
+const CUSTOMER_APP_NAME = "raha-customer";
+
+export const customerApp =
+  getApps().find(
+    (existingApp) =>
+      existingApp.name === CUSTOMER_APP_NAME,
+  ) ??
+  initializeApp(
+    firebaseConfig,
+    CUSTOMER_APP_NAME,
+  );
+
+export const customerAuth =
+  createAuth(customerApp);
 
 export const db = getFirestore(app);
+
+export const customerDb =
+  getFirestore(customerApp);
+
 export const storage = getStorage(app);
