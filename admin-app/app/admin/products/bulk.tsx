@@ -34,6 +34,7 @@ import {
   bulkImportProducts,
   createProductFingerprint,
   getProductDuplicateIndex,
+  updateProductImage,
   type BulkImportMode,
   type BulkProductInput,
 } from "@/src/services/firebaseProducts";
@@ -221,6 +222,7 @@ export default function BulkProductImportScreen() {
   const [rows, setRows] = useState<PreviewRow[]>([]);
   const [reading, setReading] = useState(false);
   const [importing, setImporting] = useState(false);
+  const [productsImported, setProductsImported] = useState(false);
   const [mode, setMode] = useState<BulkImportMode>("skip-existing");
   const [uploadingRows, setUploadingRows] = useState<
     Record<number, boolean>
@@ -260,7 +262,7 @@ export default function BulkProductImportScreen() {
           mrp: 60,
           price: 58,
           stock: 25,
-          imageFile: "amul-butter.jpg",
+          imageFile: "",
           image: "",
           description: "Creamy salted butter",
           isFeatured: true,
@@ -361,7 +363,17 @@ export default function BulkProductImportScreen() {
       if (!uploaded) return;
 
       applyUploadedImageToRow(row.rowNumber, uploaded);
-      showToast("Image uploaded.", "success");
+
+      if (productsImported) {
+        await updateProductImage(row.product.id, uploaded.url);
+      }
+
+      showToast(
+        productsImported
+          ? "Image uploaded and saved."
+          : "Image uploaded. It will be saved with product import.",
+        "success",
+      );
     } catch (error) {
       console.error("Row image upload failed:", error);
       showMessage(
@@ -417,18 +429,227 @@ export default function BulkProductImportScreen() {
       ?.trim()
       .toLowerCase() || "";
 
-  const selectAndMatchProductImages = async () => {
-    const referencedRows = rows.filter(
-      (row) =>
-        row.product &&
-        row.errors.length === 0 &&
-        normalizeImageFileName(row.imageFile),
+  const stripExtension = (value: string) =>
+    value.replace(/\.[^.]+$/, "");
+
+  const normalizeSmartText = (value: string) =>
+    String(value ?? "")
+      .normalize("NFKC")
+      .toLowerCase()
+      .replace(/\bkilograms?\b/g, "kg")
+      .replace(/\bkgs?\b/g, "kg")
+      .replace(/\bgrams?\b/g, "g")
+      .replace(/\bgms?\b/g, "g")
+      .replace(/\bmillilit(?:er|re)s?\b/g, "ml")
+      .replace(/\blit(?:er|re)s?\b/g, "l")
+      .replace(/[^\p{L}\p{N}]+/gu, "");
+
+  const normalizedSizeVariants = (size: string) => {
+    const compact = String(size ?? "")
+      .normalize("NFKC")
+      .toLowerCase()
+      .replace(/\s+/g, "")
+      .replace(/kilograms?/g, "kg")
+      .replace(/kgs?/g, "kg")
+      .replace(/grams?/g, "g")
+      .replace(/gms?/g, "g")
+      .replace(/millilit(?:er|re)s?/g, "ml")
+      .replace(/lit(?:er|re)s?/g, "l");
+
+    const match = compact.match(/(\d+(?:\.\d+)?)(kg|g|ml|l)/);
+
+    if (!match) {
+      const fallback = normalizeSmartText(size);
+      return fallback ? [fallback] : [];
+    }
+
+    const amount = Number(match[1]);
+    const unit = match[2];
+    const variants = new Set<string>();
+
+    variants.add(normalizeSmartText(`${amount}${unit}`));
+
+    if (unit === "kg") {
+      variants.add(normalizeSmartText(`${amount * 1000}g`));
+    } else if (unit === "l") {
+      variants.add(normalizeSmartText(`${amount * 1000}ml`));
+    } else if (unit === "g" && amount >= 1000) {
+      variants.add(normalizeSmartText(`${amount / 1000}kg`));
+    } else if (unit === "ml" && amount >= 1000) {
+      variants.add(normalizeSmartText(`${amount / 1000}l`));
+    }
+
+    return [...variants].filter(Boolean);
+  };
+
+  const diceSimilarity = (leftValue: string, rightValue: string) => {
+    const left = normalizeSmartText(leftValue);
+    const right = normalizeSmartText(rightValue);
+
+    if (!left || !right) return 0;
+    if (left === right) return 1;
+
+    if (left.includes(right) || right.includes(left)) {
+      return Math.min(left.length, right.length) /
+        Math.max(left.length, right.length);
+    }
+
+    if (left.length < 2 || right.length < 2) return 0;
+
+    const pairs = (value: string) => {
+      const map = new Map<string, number>();
+
+      for (let index = 0; index < value.length - 1; index += 1) {
+        const pair = value.slice(index, index + 2);
+        map.set(pair, (map.get(pair) || 0) + 1);
+      }
+
+      return map;
+    };
+
+    const leftPairs = pairs(left);
+    const rightPairs = pairs(right);
+
+    let intersection = 0;
+    let leftCount = 0;
+    let rightCount = 0;
+
+    for (const count of leftPairs.values()) leftCount += count;
+    for (const count of rightPairs.values()) rightCount += count;
+
+    for (const [pair, count] of leftPairs) {
+      intersection += Math.min(
+        count,
+        rightPairs.get(pair) || 0,
+      );
+    }
+
+    return (2 * intersection) / (leftCount + rightCount);
+  };
+
+  const scorePhotoAgainstProduct = (
+    searchText: string,
+    row: PreviewRow,
+  ) => {
+    if (!row.product) return 0;
+
+    const product = row.product;
+    const normalizedSearch = normalizeSmartText(searchText);
+    const nameKey = normalizeSmartText(product.name);
+    const idKey = normalizeSmartText(product.id || "");
+    const explicitFileKey = normalizeSmartText(
+      stripExtension(normalizeImageFileName(row.imageFile)),
     );
 
-    if (referencedRows.length === 0) {
+    let score = 0;
+
+    if (explicitFileKey && normalizedSearch === explicitFileKey) {
+      return 1;
+    }
+
+    if (idKey && normalizedSearch === idKey) {
+      return 0.99;
+    }
+
+    const nameSimilarity = diceSimilarity(
+      normalizedSearch,
+      nameKey,
+    );
+
+    score = nameSimilarity * 0.82;
+
+    if (
+      nameKey.length >= 4 &&
+      normalizedSearch.includes(nameKey)
+    ) {
+      score = Math.max(score, 0.84);
+    }
+
+    const sizeVariants = normalizedSizeVariants(
+      product.size || "",
+    );
+
+    if (
+      sizeVariants.length > 0 &&
+      sizeVariants.some((size) =>
+        normalizedSearch.includes(size),
+      )
+    ) {
+      score += 0.16;
+    }
+
+    return Math.min(score, 1);
+  };
+
+  const getBestUniqueMatch = (
+    searchText: string,
+    candidateRows: PreviewRow[],
+    minimumScore: number,
+  ) => {
+    const scored = candidateRows
+      .filter(
+        (row) =>
+          row.product &&
+          row.errors.length === 0,
+      )
+      .map((row) => ({
+        row,
+        score: scorePhotoAgainstProduct(searchText, row),
+      }))
+      .sort((a, b) => b.score - a.score);
+
+    const best = scored[0];
+    const second = scored[1];
+
+    if (!best || best.score < minimumScore) {
+      return null;
+    }
+
+    // Never guess if two products are too close.
+    if (
+      second &&
+      best.score - second.score < 0.10
+    ) {
+      return null;
+    }
+
+    return best;
+  };
+
+  const recognizePhotoText = async (uri: string) => {
+    if (Platform.OS === "web") {
+      return "";
+    }
+
+    try {
+      const { recognizeText } = await import("expo-ocr-kit");
+      const result = await recognizeText(uri);
+      return result.text || "";
+    } catch (error) {
+      console.warn("OCR failed:", error);
+      return "";
+    }
+  };
+
+  const selectAndMatchProductImages = async () => {
+    if (!productsImported) {
       showMessage(
-        "No image filenames found",
-        "Fill the imageFile column in Excel first, for example: amul-butter.jpg",
+        "Import products first",
+        "Please complete product import first. Then upload all product photos together.",
+      );
+      return;
+    }
+
+    const validRows = rows.filter(
+      (row) =>
+        row.product &&
+        row.errors.length === 0,
+    );
+
+    if (validRows.length === 0) {
+      showMessage(
+        "No valid products",
+        "There are no valid product rows available for image matching.",
       );
       return;
     }
@@ -444,99 +665,203 @@ export default function BulkProductImportScreen() {
 
       if (result.canceled) return;
 
-      const assetsByName = new Map(
-        result.assets.map((asset) => [
-          normalizeImageFileName(asset.name || ""),
-          asset,
-        ]),
-      );
+      const usedRows = new Set<number>();
 
-      const matchedRows = referencedRows.filter((row) =>
-        assetsByName.has(normalizeImageFileName(row.imageFile)),
-      );
+      const matches: Array<{
+        row: PreviewRow;
+        asset: (typeof result.assets)[number];
+        fileName: string;
+        method: "filename" | "ocr";
+      }> = [];
 
-      const missingRows = referencedRows.filter(
-        (row) => !assetsByName.has(normalizeImageFileName(row.imageFile)),
-      );
+      const unresolved: Array<{
+        asset: (typeof result.assets)[number];
+        fileName: string;
+      }> = [];
 
-      if (matchedRows.length === 0) {
+      // PASS 1: filename / product-name / ID / size matching.
+      for (const asset of result.assets) {
+        const browserName =
+          Platform.OS === "web" &&
+          asset.file instanceof File
+            ? asset.file.name
+            : "";
+
+        const fileName =
+          browserName ||
+          asset.name ||
+          asset.uri;
+
+        const searchName = stripExtension(
+          normalizeImageFileName(fileName),
+        );
+
+        const availableRows = validRows.filter(
+          (row) => !usedRows.has(row.rowNumber),
+        );
+
+        const best = getBestUniqueMatch(
+          searchName,
+          availableRows,
+          0.68,
+        );
+
+        if (best) {
+          usedRows.add(best.row.rowNumber);
+          matches.push({
+            row: best.row,
+            asset,
+            fileName,
+            method: "filename",
+          });
+        } else {
+          unresolved.push({
+            asset,
+            fileName,
+          });
+        }
+      }
+
+      // PASS 2: native OCR fallback.
+      // Reads product label/packet when filename was wrong or meaningless.
+      for (const unresolvedPhoto of unresolved) {
+        const availableRows = validRows.filter(
+          (row) => !usedRows.has(row.rowNumber),
+        );
+
+        if (availableRows.length === 0) break;
+
+        const detectedText = await recognizePhotoText(
+          unresolvedPhoto.asset.uri,
+        );
+
+        if (!detectedText) continue;
+
+        const best = getBestUniqueMatch(
+          detectedText,
+          availableRows,
+          0.72,
+        );
+
+        if (!best) continue;
+
+        usedRows.add(best.row.rowNumber);
+
+        matches.push({
+          row: best.row,
+          asset: unresolvedPhoto.asset,
+          fileName: unresolvedPhoto.fileName,
+          method: "ocr",
+        });
+      }
+
+      if (matches.length === 0) {
         showMessage(
-          "No matching images",
-          "Selected image filenames do not match the imageFile names written in Excel.",
+          "No confident matches",
+          Platform.OS === "web"
+            ? "No safe filename/product-name matches were found. Products remain unchanged."
+            : "No safe filename or OCR matches were found. Products remain unchanged.",
         );
         return;
       }
 
       setUploadingRows((previous) => {
         const next = { ...previous };
-        for (const row of matchedRows) next[row.rowNumber] = true;
+
+        for (const match of matches) {
+          next[match.row.rowNumber] = true;
+        }
+
         return next;
       });
 
       let uploadedCount = 0;
-      const failedNames: string[] = [];
+      let filenameCount = 0;
+      let ocrCount = 0;
+      const failedFiles: string[] = [];
 
-      for (const row of matchedRows) {
-        if (!row.product) continue;
-
-        const asset = assetsByName.get(
-          normalizeImageFileName(row.imageFile),
-        );
-
-        if (!asset) continue;
+      for (const match of matches) {
+        if (!match.row.product) continue;
 
         try {
-          const uploaded = await uploadProductImageFromAsset(
-            row.product.id || row.product.name,
-            asset,
+          const uploaded =
+            await uploadProductImageFromAsset(
+              match.row.product.id ||
+                match.row.product.name,
+              match.asset,
+            );
+
+          // Save the Storage URL directly against this product.
+          await updateProductImage(
+            match.row.product.id,
+            uploaded.url,
           );
 
-          applyUploadedImageToRow(row.rowNumber, uploaded);
+          applyUploadedImageToRow(
+            match.row.rowNumber,
+            uploaded,
+          );
+
           uploadedCount += 1;
+
+          if (match.method === "ocr") {
+            ocrCount += 1;
+          } else {
+            filenameCount += 1;
+          }
         } catch (error) {
           console.error(
-            `Bulk image upload failed for ${row.imageFile}:`,
+            `Image upload/save failed for ${match.fileName}:`,
             error,
           );
-          failedNames.push(row.imageFile);
+
+          failedFiles.push(match.fileName);
         } finally {
           setUploadingRows((previous) => {
             const next = { ...previous };
-            delete next[row.rowNumber];
+            delete next[match.row.rowNumber];
             return next;
           });
         }
       }
 
-      const summary = [
-        `Uploaded: ${uploadedCount}`,
-        `Not selected / unmatched: ${missingRows.length}`,
-        `Failed: ${failedNames.length}`,
-      ];
+      const productsWithoutPhoto =
+        validRows.filter(
+          (row) => !row.product?.image,
+        ).length -
+        uploadedCount;
 
-      if (missingRows.length > 0) {
-        summary.push(
-          `Missing: ${missingRows
-            .slice(0, 5)
-            .map((row) => row.imageFile)
-            .join(", ")}${missingRows.length > 5 ? "…" : ""}`,
-        );
-      }
+      const unusedSelectedPhotos =
+        result.assets.length -
+        matches.length;
 
-      if (failedNames.length > 0) {
-        summary.push(
-          `Failed files: ${failedNames.slice(0, 5).join(", ")}${
-            failedNames.length > 5 ? "…" : ""
-          }`,
-        );
-      }
-
-      showMessage("Product image matching complete", summary.join("\n"));
-    } catch (error) {
-      console.error("Bulk image selection failed:", error);
       showMessage(
-        "Unable to select product images",
-        error instanceof Error ? error.message : "Please try again.",
+        "Smart image matching complete",
+        [
+          `Uploaded & saved: ${uploadedCount}`,
+          `Matched from filename/name/size: ${filenameCount}`,
+          `Matched from photo text OCR: ${ocrCount}`,
+          `Selected photos not confidently matched: ${Math.max(unusedSelectedPhotos, 0)}`,
+          `Products left without photo: ${Math.max(productsWithoutPhoto, 0)}`,
+          `Failed uploads: ${failedFiles.length}`,
+          Platform.OS === "web"
+            ? "OCR fallback runs in the Android app; browser uses smart filename/name/size matching."
+            : "",
+        ]
+          .filter(Boolean)
+          .join("\n"),
+      );
+    } catch (error) {
+      console.error(
+        "Smart bulk image matching failed:",
+        error,
+      );
+
+      showMessage(
+        "Unable to process product images",
+        error instanceof Error
+          ? error.message
+          : "Please try again.",
       );
     }
   };
@@ -560,6 +885,8 @@ export default function BulkProductImportScreen() {
       if (result.canceled) return;
 
       const asset = result.assets[0];
+
+      setProductsImported(false);
       setFileName(asset.name);
 
       let arrayBuffer: ArrayBuffer;
@@ -641,7 +968,20 @@ export default function BulkProductImportScreen() {
     );
 
     if (validProducts.length === 0) {
-      showMessage("Nothing to import", "There are no valid product rows.");
+      if (stats.valid > 0 && mode === "skip-existing") {
+        setProductsImported(true);
+
+        showMessage(
+          "No new products to add",
+          "All valid rows already exist. Existing products were left unchanged. You can continue to Step 4 and upload product photos.",
+        );
+        return;
+      }
+
+      showMessage(
+        "Nothing to import",
+        "There are no valid product rows.",
+      );
       return;
     }
 
@@ -660,12 +1000,12 @@ export default function BulkProductImportScreen() {
       setImporting(true);
       const result = await bulkImportProducts(validProducts, mode);
 
+      setProductsImported(true);
+
       showMessage(
         "Bulk import complete",
-        `Created: ${result.created}\nUpdated: ${result.updated}\nSkipped: ${result.skipped}`,
+        `Created: ${result.created}\nUpdated: ${result.updated}\nSkipped: ${result.skipped}\n\nProducts are ready. Continue to Step 4 to upload photos.`,
       );
-
-      router.replace("/admin/products");
     } catch (error) {
       console.error("Bulk import failed:", error);
       showMessage(
@@ -680,7 +1020,10 @@ export default function BulkProductImportScreen() {
   return (
     <SafeAreaView style={styles.container} edges={["top", "bottom"]}>
       <View style={styles.header}>
-        <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
+        <TouchableOpacity
+          style={styles.backButton}
+          onPress={() => router.replace("/admin/products")}
+        >
           <Ionicons name="chevron-back" size={24} color={COLORS.textPrimary} />
         </TouchableOpacity>
 
@@ -702,8 +1045,8 @@ export default function BulkProductImportScreen() {
               <Text style={styles.helpText}>
                 Mandatory: Product Name, Category, Selling Price and Stock.
                 Optional: Product ID, MRP, Size, imageFile, Image URL,
-                Description and flags. For local photos, write the exact filename
-                in imageFile, for example amul-butter.jpg. If MRP is blank,
+                Description and flags. imageFile is optional; normally photos
+                are matched automatically using product name and size. If MRP is blank,
                 Selling Price is used as MRP. Duplicate products
                 are blocked using Product ID and Name + Size + Category.
               </Text>
@@ -730,34 +1073,6 @@ export default function BulkProductImportScreen() {
 
               {fileName ? <Text style={styles.fileName}>Selected: {fileName}</Text> : null}
 
-              {rows.length > 0 ? (
-                <>
-                  <TouchableOpacity
-                    style={[
-                      styles.secondaryButton,
-                      anyRowUploading && styles.disabled,
-                    ]}
-                    onPress={() => void selectAndMatchProductImages()}
-                    disabled={anyRowUploading}
-                  >
-                    <Ionicons
-                      name="images-outline"
-                      size={19}
-                      color={COLORS.primary}
-                    />
-                    <Text style={styles.secondaryButtonText}>
-                      {anyRowUploading
-                        ? "Uploading Product Images..."
-                        : "Select Product Images"}
-                    </Text>
-                  </TouchableOpacity>
-
-                  <Text style={styles.helpText}>
-                    Select multiple photos together. The app will match each photo
-                    with the Excel imageFile filename automatically.
-                  </Text>
-                </>
-              ) : null}
             </View>
 
             {rows.length > 0 ? (
@@ -793,11 +1108,26 @@ export default function BulkProductImportScreen() {
                   <TouchableOpacity
                     style={[styles.importButton, importing && styles.disabled]}
                     onPress={() => void runImport()}
-                    disabled={importing || anyRowUploading || (mode === "skip-existing" ? stats.newItems === 0 : stats.valid === 0)}
+                    disabled={
+                      importing ||
+                      anyRowUploading ||
+                      stats.valid === 0 ||
+                      productsImported
+                    }
                   >
                     <Ionicons name="cloud-upload-outline" size={21} color={COLORS.textOnPrimary} />
                     <Text style={styles.primaryButtonText}>
-                      {importing ? "Importing..." : `Import ${mode === "skip-existing" ? stats.newItems : stats.valid} Products`}
+                      {importing
+                        ? "Importing..."
+                        : productsImported
+                          ? "Products Imported"
+                          : mode === "skip-existing" && stats.newItems === 0
+                            ? "Continue With Existing Products"
+                            : `Import ${
+                                mode === "skip-existing"
+                                  ? stats.newItems
+                                  : stats.valid
+                              } Products`}
                     </Text>
                   </TouchableOpacity>
                   {anyRowUploading ? (
@@ -806,6 +1136,44 @@ export default function BulkProductImportScreen() {
                     </Text>
                   ) : null}
                 </View>
+
+                {productsImported ? (
+                  <View style={styles.actionCard}>
+                    <Text style={styles.sectionTitle}>
+                      4. Upload Product Photos
+                    </Text>
+
+                    <Text style={styles.helpText}>
+                      Select all product photos together. The system first
+                      matches Product ID, Product Name and Size from filenames.
+                      On Android, photos that still cannot be identified are
+                      checked using OCR text printed on the product pack.
+                      Missing photos are allowed and stay blank without error.
+                    </Text>
+
+                    <TouchableOpacity
+                      style={[
+                        styles.secondaryButton,
+                        anyRowUploading && styles.disabled,
+                      ]}
+                      onPress={() =>
+                        void selectAndMatchProductImages()
+                      }
+                      disabled={anyRowUploading}
+                    >
+                      <Ionicons
+                        name="images-outline"
+                        size={19}
+                        color={COLORS.primary}
+                      />
+                      <Text style={styles.secondaryButtonText}>
+                        {anyRowUploading
+                          ? "Processing Product Photos..."
+                          : "Select All Product Photos"}
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+                ) : null}
 
                 <Text style={styles.previewTitle}>Preview</Text>
               </>

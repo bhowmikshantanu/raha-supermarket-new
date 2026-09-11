@@ -4442,6 +4442,18 @@ expo-haptics@15.0.8:
   resolved "https://registry.npmjs.org/expo-haptics/-/expo-haptics-15.0.8.tgz"
   integrity sha512-lftutojy8Qs8zaDzzjwM3gKHFZ8bOOEZDCkmh2Ddpe95Ra6kt2izeOfOfKuP/QEh0MZ1j9TfqippyHdRd1ZM9g==
 
+expo-image-loader@~6.0.0:
+  version "6.0.0"
+  resolved "https://registry.yarnpkg.com/expo-image-loader/-/expo-image-loader-6.0.0.tgz#15230442cbb90e101c080a4c81e37d974e43e072"
+  integrity sha512-nKs/xnOGw6ACb4g26xceBD57FKLFkSwEUTDXEDF3Gtcu3MqF3ZIYd3YM+sSb1/z9AKV1dYT7rMSGVNgsveXLIQ==
+
+expo-image-picker@~17.0.11:
+  version "17.0.11"
+  resolved "https://registry.yarnpkg.com/expo-image-picker/-/expo-image-picker-17.0.11.tgz#8f1537df946f7c19747ba9d0043ef7e3e8cb67dc"
+  integrity sha512-/apkoyukDvsCHHb9fzP+F34A1uQqSzUtYH/2P/xJACNEwq+mwEXjXvVU8bzlJq6ih0Qo1+tpVivIa7B9kYSwOQ==
+  dependencies:
+    expo-image-loader "~6.0.0"
+
 expo-image@3.0.11:
   version "3.0.11"
   resolved "https://registry.npmjs.org/expo-image/-/expo-image-3.0.11.tgz"
@@ -4508,6 +4520,11 @@ expo-notifications@~0.32.17:
     badgin "^1.1.5"
     expo-application "~7.0.8"
     expo-constants "~18.0.13"
+
+expo-ocr-kit@0.1.4:
+  version "0.1.4"
+  resolved "https://registry.yarnpkg.com/expo-ocr-kit/-/expo-ocr-kit-0.1.4.tgz#0f07212007b9fe7563d710ee62464a988d410e3a"
+  integrity sha512-PyW2DjFFPM3PJptAsp8kqCqM9Qx2mg/V9Pugo7oORcJ1A+/pood1Z6qx/JOdzyP91k8YIbAvD5PJt9zR2vetcA==
 
 expo-print@~15.0.8:
   version "15.0.8"
@@ -6991,6 +7008,11 @@ react-native-is-edge-to-edge@^1.1.6, react-native-is-edge-to-edge@^1.2.1:
   version "1.3.1"
   resolved "https://registry.npmjs.org/react-native-is-edge-to-edge/-/react-native-is-edge-to-edge-1.3.1.tgz"
   integrity sha512-NIXU/iT5+ORyCc7p0z2nnlkouYKX425vuU1OEm6bMMtWWR9yvb+Xg5AZmImTKoF9abxCPqrKC3rOZsKzUYgYZA==
+
+react-native-razorpay@3.0.0:
+  version "3.0.0"
+  resolved "https://registry.yarnpkg.com/react-native-razorpay/-/react-native-razorpay-3.0.0.tgz#05fca397b132be97aac3f8d6c54576b3fcf269fc"
+  integrity sha512-p7bcEJd8P3/FuNuV/kDvJAhF2QCHXaOwkMA7hkZV3XnmU2IJRap3dF8BYuSBAb+OEvzAm5RQbRHlZAnkr/+h+g==
 
 react-native-reanimated@4.1.1:
   version "4.1.1"

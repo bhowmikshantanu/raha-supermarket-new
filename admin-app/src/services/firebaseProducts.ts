@@ -383,6 +383,30 @@ export async function getExistingProductIds(): Promise<Set<string>> {
   return new Set(snapshot.docs.map((item) => item.id));
 }
 
+export async function updateProductImage(
+  productId: string,
+  imageUrl: string,
+): Promise<void> {
+  const cleanProductId = String(productId ?? "").trim();
+  const cleanImageUrl = String(imageUrl ?? "").trim();
+
+  if (!cleanProductId) {
+    throw new Error("Product ID is required to update an image.");
+  }
+
+  if (!cleanImageUrl) {
+    throw new Error("Image URL is required.");
+  }
+
+  await updateDoc(
+    doc(db, PRODUCTS_COLLECTION, cleanProductId),
+    {
+      image: cleanImageUrl,
+      updatedAt: serverTimestamp(),
+    },
+  );
+}
+
 export async function bulkImportProducts(
   products: BulkProductInput[],
   mode: BulkImportMode = "upsert",
@@ -412,14 +436,22 @@ export async function bulkImportProducts(
 
       const reference = doc(db, PRODUCTS_COLLECTION, sanitized.id);
 
+      const productData: DocumentData = {
+        ...sanitized,
+        isActive: product.isActive !== false,
+        ...(exists ? {} : { createdAt: serverTimestamp() }),
+        updatedAt: serverTimestamp(),
+      };
+
+      // Never erase an existing product image just because the Excel
+      // image/imageFile cells are blank. Images are handled separately.
+      if (exists && !sanitized.image) {
+        delete productData.image;
+      }
+
       batch.set(
         reference,
-        {
-          ...sanitized,
-          isActive: product.isActive !== false,
-          ...(exists ? {} : { createdAt: serverTimestamp() }),
-          updatedAt: serverTimestamp(),
-        },
+        productData,
         { merge: true },
       );
 
