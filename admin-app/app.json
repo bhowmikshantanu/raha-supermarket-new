@@ -2,7 +2,7 @@
   "expo": {
     "name": "Raha Supermarket",
     "slug": "rahasupermarket",
-    "version": "1.0.8",
+    "version": "1.0.9",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "rahasupermarket",
@@ -23,7 +23,7 @@
       },
       "edgeToEdgeEnabled": true,
       "package": "in.rahasupermarket.app",
-      "versionCode": 9,
+      "versionCode": 10,
       "googleServicesFile": "./google-services.json",
       "permissions": [
         "android.permission.CAMERA"
