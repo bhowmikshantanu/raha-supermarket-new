@@ -11,6 +11,9 @@ import {
   createFirebaseOrder,
   subscribeToCustomerOrders,
 } from "@/src/services/firebaseOrders";
+import {
+  subscribeToNotificationCampaigns,
+} from "@/src/services/firebaseNotificationCampaigns";
 import { BRAND } from "@/src/config/brand";
 import { useProducts } from "@/src/context/ProductContext";
 import type {
@@ -58,6 +61,8 @@ const K_RECENT_SEARCHES = "raha.recentSearches.v1";
 const K_ONBOARDED = "raha.onboarded.v1";
 const K_WISHLIST = "raha.wishlist.v1";
 const K_NOTIFICATIONS = "raha.notifications.v1";
+const K_DISMISSED_CAMPAIGNS =
+  "raha.dismissedNotificationCampaigns.v1";
 const K_SAVED_FOR_LATER = "raha.savedForLater.v1";
 
 interface AppState {
@@ -209,10 +214,14 @@ export const AppProvider: React.FC<{
   const [notifications, setNotifications] = useState<
     AppNotification[]
   >([]);
+  const [
+    dismissedCampaignIds,
+    setDismissedCampaignIds,
+  ] = useState<string[]>([]);
 
   useEffect(() => {
     const hydrateApp = async () => {
-      const [u, c, o, a, r, onb, w, n, s] =
+      const [u, c, o, a, r, onb, w, n, s, dismissed] =
         await Promise.all([
           storage.getItem<string>(K_USER, ""),
           storage.getItem<string>(K_CART, ""),
@@ -223,6 +232,10 @@ export const AppProvider: React.FC<{
           storage.getItem<string>(K_WISHLIST, ""),
           storage.getItem<string>(K_NOTIFICATIONS, ""),
           storage.getItem<string>(K_SAVED_FOR_LATER, ""),
+          storage.getItem<string>(
+            K_DISMISSED_CAMPAIGNS,
+            "",
+          ),
         ]);
 
       try {
@@ -339,6 +352,21 @@ export const AppProvider: React.FC<{
         }
       } catch {}
 
+      try {
+        if (dismissed) {
+          const parsedDismissed =
+            JSON.parse(dismissed) as string[];
+
+          if (Array.isArray(parsedDismissed)) {
+            setDismissedCampaignIds(
+              parsedDismissed.filter(
+                (id) => typeof id === "string",
+              ),
+            );
+          }
+        }
+      } catch {}
+
       setHasSeenOnboarding(Boolean(onb));
       setHydrated(true);
     };
@@ -430,6 +458,113 @@ export const AppProvider: React.FC<{
       JSON.stringify(notifications),
     );
   }, [notifications, hydrated]);
+
+  useEffect(() => {
+    if (!hydrated) return;
+
+    void storage.setItem(
+      K_DISMISSED_CAMPAIGNS,
+      JSON.stringify(dismissedCampaignIds),
+    );
+  }, [dismissedCampaignIds, hydrated]);
+
+  useEffect(() => {
+    if (!hydrated) {
+      return;
+    }
+
+    const unsubscribeNotifications =
+      subscribeToNotificationCampaigns(
+        (campaigns) => {
+          setNotifications((previous) => {
+            const existingById = new Map(
+              previous.map((notification) => [
+                notification.id,
+                notification,
+              ]),
+            );
+
+            const remoteNotifications =
+              campaigns
+                .filter(
+                  (campaign) =>
+                    !dismissedCampaignIds.includes(
+                      campaign.id,
+                    ),
+                )
+                .map((campaign) => {
+                  const existing =
+                    existingById.get(campaign.id);
+
+                  return {
+                    id: campaign.id,
+                    type: campaign.type,
+                    title: campaign.title,
+                    message: campaign.message,
+                    createdAt: campaign.createdAt,
+                    isRead:
+                      existing?.isRead ?? false,
+                    actionRoute: campaign.route,
+                  } satisfies AppNotification;
+                });
+
+            const remoteIds = new Set(
+              remoteNotifications.map(
+                (notification) => notification.id,
+              ),
+            );
+
+            const localNotifications =
+              previous.filter(
+                (notification) =>
+                  !notification.id.startsWith(
+                    "campaign:",
+                  ) ||
+                  remoteIds.has(notification.id),
+              );
+
+            const merged = new Map(
+              localNotifications.map(
+                (notification) => [
+                  notification.id,
+                  notification,
+                ],
+              ),
+            );
+
+            for (
+              const notification of
+              remoteNotifications
+            ) {
+              merged.set(
+                notification.id,
+                notification,
+              );
+            }
+
+            return Array.from(
+              merged.values(),
+            )
+              .sort(
+                (first, second) =>
+                  second.createdAt -
+                  first.createdAt,
+              )
+              .slice(0, 100);
+          });
+        },
+        (error) => {
+          console.error(
+            "Notification campaign sync failed:",
+            error,
+          );
+        },
+      );
+
+    return () => {
+      unsubscribeNotifications();
+    };
+  }, [hydrated, dismissedCampaignIds]);
 
   const setOnboarded = useCallback(async () => {
     setHasSeenOnboarding(true);
@@ -1231,6 +1366,14 @@ export const AppProvider: React.FC<{
   }, []);
 
   const deleteNotification = useCallback((id: string) => {
+    if (id.startsWith("campaign:")) {
+      setDismissedCampaignIds((previous) =>
+        previous.includes(id)
+          ? previous
+          : [...previous, id],
+      );
+    }
+
     setNotifications((previous) =>
       previous.filter(
         (notification) => notification.id !== id,
@@ -1239,7 +1382,29 @@ export const AppProvider: React.FC<{
   }, []);
 
   const clearNotifications = useCallback(() => {
-    setNotifications([]);
+    setNotifications((previous) => {
+      const campaignIds = previous
+        .filter((notification) =>
+          notification.id.startsWith(
+            "campaign:",
+          ),
+        )
+        .map((notification) => notification.id);
+
+      if (campaignIds.length > 0) {
+        setDismissedCampaignIds(
+          (previousDismissed) =>
+            Array.from(
+              new Set([
+                ...previousDismissed,
+                ...campaignIds,
+              ]),
+            ),
+        );
+      }
+
+      return [];
+    });
   }, []);
     const notificationTrackingReadyRef =
     React.useRef(false);

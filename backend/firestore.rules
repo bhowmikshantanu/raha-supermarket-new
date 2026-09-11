@@ -225,8 +225,10 @@ service cloud.firestore {
 
     match /notificationCampaigns/{campaignId} {
 
+      // Customer app uses authenticated anonymous Firebase sessions.
+      // Campaigns are broadcast notifications meant for customers.
       allow read:
-        if isAdmin();
+        if signedIn();
 
       allow create:
         if isAdmin();
