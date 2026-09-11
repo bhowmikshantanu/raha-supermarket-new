@@ -252,25 +252,25 @@ export const BANNERS = [
   {
     id: "b1",
     image:
-      "https://images.unsplash.com/photo-1542838132-92c53300491e?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA0MTJ8MHwxfHNlYXJjaHwxfHxncm9jZXJ5JTIwc3VwZXJtYXJrZXQlMjBiYW5uZXJ8ZW58MHx8fHwxNzg0NTQzNTYwfDA&ixlib=rb-4.1.0&q=85",
-    title: "Fresh Groceries",
-    subtitle: "Delivered in 30 mins",
-    cta: "Shop Now",
+      "https://images.unsplash.com/photo-1550583724-b2692b85b150?auto=format&fit=crop&w=1200&q=85",
+    title: "Dairy Essentials",
+    subtitle: "Milk, curd, butter & more",
+    cta: "Shop Dairy",
   },
   {
     id: "b2",
     image:
-      "https://images.unsplash.com/photo-1628102491629-778571d893a3?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA0MTJ8MHwxfHNlYXJjaHwxfHxncm9jZXJ5JTIwc3VwZXJtYXJrZXQlMjBiYW5uZXJ8ZW58MHx8fHwxNzg0NTQzNTYwfDA&ixlib=rb-4.1.0&q=85",
-    title: "Free Delivery",
-    subtitle: "On orders above ₹500",
-    cta: "Order Now",
+      "https://images.unsplash.com/photo-1596462502278-27bfdc403348?auto=format&fit=crop&w=1200&q=85",
+    title: "Beauty & Personal Care",
+    subtitle: "Everyday care for you & your family",
+    cta: "Explore Now",
   },
   {
     id: "b3",
     image:
-      "https://images.unsplash.com/photo-1607082349566-187342175e2f?auto=format&fit=crop&w=1200&q=80",
-    title: "Best Offers",
-    subtitle: "Up to 15% off on staples",
-    cta: "Grab Deals",
+      "https://images.unsplash.com/photo-1563453392212-326f5e854473?auto=format&fit=crop&w=1200&q=85",
+    title: "Home Care Essentials",
+    subtitle: "Cleaning & household needs",
+    cta: "Shop Now",
   },
 ];

@@ -568,6 +568,23 @@ export async function adminUpdateFirebaseOrderStatus(
       }
 
       /*
+       * DELIVERY STATUS OWNERSHIP:
+       *
+       * Pickup / out-for-delivery / delivered belong to the
+       * assigned delivery boy flow. Admin may confirm, prepare,
+       * assign/reassign riders and cancel where applicable, but
+       * must not complete rider delivery actions.
+       */
+      if (
+        nextStatus === "out-for-delivery" ||
+        nextStatus === "delivered"
+      ) {
+        throw new Error(
+          "Delivery status can only be updated by the assigned delivery boy.",
+        );
+      }
+
+      /*
        * CONFIRM ORDER:
        * Deduct stock only once.
        */
@@ -726,17 +743,11 @@ export async function adminUpdateFirebaseOrderStatus(
        */
       if (
         !inventoryCommitted &&
-        (
-          nextStatus ===
-            "preparing" ||
-          nextStatus ===
-            "out-for-delivery" ||
-          nextStatus ===
-            "delivered"
-        )
+        nextStatus ===
+          "preparing"
       ) {
         throw new Error(
-          "Confirm the order before moving it to preparation or delivery.",
+          "Confirm the order before moving it to preparation.",
         );
       }
 

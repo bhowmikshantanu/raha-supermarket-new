@@ -61,15 +61,11 @@ const STATUS_LABELS: Record<OrderStatus, string> = {
 const NEXT_STATUS: Partial<Record<OrderStatus, OrderStatus>> = {
   placed: "confirmed",
   confirmed: "preparing",
-  preparing: "out-for-delivery",
-  "out-for-delivery": "delivered",
 };
 
 const NEXT_STATUS_LABEL: Partial<Record<OrderStatus, string>> = {
   placed: "Confirm Order",
   confirmed: "Start Preparing",
-  preparing: "Out for Delivery",
-  "out-for-delivery": "Mark Delivered",
 };
 
 export default function AdminOrdersScreen() {
