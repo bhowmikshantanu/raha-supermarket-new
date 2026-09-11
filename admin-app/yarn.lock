@@ -1332,6 +1332,15 @@
     base64-js "^1.2.3"
     xmlbuilder "^15.1.1"
 
+"@expo/plist@^0.8.1":
+  version "0.8.1"
+  resolved "https://registry.yarnpkg.com/@expo/plist/-/plist-0.8.1.tgz#8f024f23d7b9cf45cfff4a6f8871d1c107a8833c"
+  integrity sha512-3gTReGIUm0oRaMClsAJYxBnVPCl6fVpsl8HS+DTVxDhW4GyVyxg9E/Znm3BvcHtUJ51RJJI14pC1wvrNilCRHw==
+  dependencies:
+    "@xmldom/xmldom" "^0.8.8"
+    base64-js "^1.5.1"
+    xmlbuilder "^15.1.1"
+
 "@expo/prebuild-config@^54.0.8":
   version "54.0.8"
   resolved "https://registry.npmjs.org/@expo/prebuild-config/-/prebuild-config-54.0.8.tgz"
@@ -2251,6 +2260,20 @@
   integrity sha512-gvRvjR5JAaUZF8tv2Kcq/Gbt3JHwbKFYfmb445rhOj6NUMx3qPLixmDx5pZAyb9at1bYvJ4/eTUipU5aki45xw==
   dependencies:
     merge-options "^3.0.4"
+
+"@react-native-firebase/app@26.4.0":
+  version "26.4.0"
+  resolved "https://registry.yarnpkg.com/@react-native-firebase/app/-/app-26.4.0.tgz#6a87a29dc64272821801ef556d351ac184a31422"
+  integrity sha512-lqs9vgPcniEw5a+NPRjGNXCQKwuGdVJoSB0iW0HvExR7aGEON/VZYOtSfElBCj3zTwQSiN732zREmqmKrW7Ixw==
+  dependencies:
+    firebase "12.17.1"
+
+"@react-native-firebase/auth@26.4.0":
+  version "26.4.0"
+  resolved "https://registry.yarnpkg.com/@react-native-firebase/auth/-/auth-26.4.0.tgz#6164b61379891e6432fad7d53fa260e22ab74a2c"
+  integrity sha512-uNOI7UpR2jzrLQMRwRiIM/mgVkj18j0DQiP/jy8ZiryPJanYS1qmIOk3q2glFvJ8mlYfLCGZgBkIOpV9hwFLWQ==
+  dependencies:
+    "@expo/plist" "^0.8.1"
 
 "@react-native/assets-registry@0.81.5":
   version "0.81.5"
