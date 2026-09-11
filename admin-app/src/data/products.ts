@@ -250,6 +250,14 @@ export const searchProducts = (query: string): Product[] => {
 
 export const BANNERS = [
   {
+    id: "b0",
+    image:
+      "https://images.unsplash.com/photo-1542838132-92c53300491e?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA0MTJ8MHwxfHNlYXJjaHwxfHxncm9jZXJ5JTIwc3VwZXJtYXJrZXQlMjBiYW5uZXJ8ZW58MHx8fHwxNzg0NTQzNTYwfDA&ixlib=rb-4.1.0&q=85",
+    title: "Fresh Groceries",
+    subtitle: "Delivered in 30 mins",
+    cta: "Shop Now",
+  },
+  {
     id: "b1",
     image:
       "https://images.unsplash.com/photo-1550583724-b2692b85b150?auto=format&fit=crop&w=1200&q=85",
