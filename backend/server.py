@@ -908,9 +908,13 @@ async def send_admin_notification(
     accepted_count = 0
     failed_count = 0
 
+    # Expo rejects a single request when it contains push tokens
+    # belonging to different Expo experience/project IDs.
+    # Send one token per request so tokens from older/newer app builds
+    # can safely coexist during upgrades.
     for token_batch in chunk_list(
         tokens,
-        100,
+        1,
     ):
 
         tickets = (
