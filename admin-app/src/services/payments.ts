@@ -7,9 +7,15 @@
  * stored or referenced on the client.
  */
 
+const PRODUCTION_BACKEND_URL =
+  "https://raha-supermarket-backend-production.up.railway.app";
+
 const RAW_BASE_URL = (
-  process.env.EXPO_PUBLIC_BACKEND_URL || ""
-).trim().replace(/\/+$/, "");
+  process.env.EXPO_PUBLIC_BACKEND_URL ||
+  PRODUCTION_BACKEND_URL
+)
+  .trim()
+  .replace(/\/+$/, "");
 
 const API_BASE = `${RAW_BASE_URL}/api`;
 
@@ -35,20 +41,27 @@ export async function createRazorpayOrder(
   amountInRupees: number,
   receiptId?: string,
 ): Promise<CreatedRazorpayOrder> {
-  const response = await fetch(`${API_BASE}/payments/razorpay/create-order`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      amount: Math.round(amountInRupees),
-      currency: "INR",
-      receipt: receiptId,
-    }),
-  });
+  const response = await fetch(
+    `${API_BASE}/payments/razorpay/create-order`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        amount: Math.round(amountInRupees),
+        currency: "INR",
+        receipt: receiptId,
+      }),
+    },
+  );
 
   if (!response.ok) {
     const message = await response.text().catch(() => "");
+
     throw new Error(
-      message || "Unable to start the online payment. Please try again.",
+      message ||
+        "Unable to start the online payment. Please try again.",
     );
   }
 
@@ -63,26 +76,32 @@ export async function createRazorpayOrder(
 }
 
 /**
- * Ask the backend to verify the Razorpay payment signature. Returns true only
- * when the server confirms the HMAC signature is valid.
+ * Ask the backend to verify the Razorpay payment signature.
+ * Returns true only when the server confirms that the payment is valid.
  */
 export async function verifyRazorpayPayment(
   input: VerifyRazorpayPaymentInput,
 ): Promise<boolean> {
-  const response = await fetch(`${API_BASE}/payments/razorpay/verify`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      razorpay_order_id: input.razorpayOrderId,
-      razorpay_payment_id: input.razorpayPaymentId,
-      razorpay_signature: input.razorpaySignature,
-    }),
-  });
+  const response = await fetch(
+    `${API_BASE}/payments/razorpay/verify`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        razorpay_order_id: input.razorpayOrderId,
+        razorpay_payment_id: input.razorpayPaymentId,
+        razorpay_signature: input.razorpaySignature,
+      }),
+    },
+  );
 
   if (!response.ok) {
     return false;
   }
 
   const data = await response.json().catch(() => null);
+
   return Boolean(data?.verified);
 }
