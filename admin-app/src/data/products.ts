@@ -22,8 +22,10 @@ const IMG = {
     "https://images.unsplash.com/photo-1614088685112-0a760b71a3c8?auto=format&fit=crop&w=800&q=80",
   bread:
     "https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&w=800&q=80",
-  cola: "https://images.unsplash.com/photo-1648569883125-d01072540b4c?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjAzOTB8MHwxfHNlYXJjaHwxfHxjb2xhJTIwYm90dGxlfGVufDB8fHx8MTc4NDU0MzU2MHww&ixlib=rb-4.1.0&q=85",
-  salt: "https://images.unsplash.com/photo-1518110925495-b37653dd3f4a?auto=format&fit=crop&w=800&q=80",
+  cola:
+    "https://images.unsplash.com/photo-1648569883125-d01072540b4c?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjAzOTB8MHwxfHNlYXJjaHwxfHxjb2xhJTIwYm90dGxlfGVufDB8fHx8MTc4NDU0MzU2MHww&ixlib=rb-4.1.0&q=85",
+  salt:
+    "https://images.unsplash.com/photo-1518110925495-b37653dd3f4a?auto=format&fit=crop&w=800&q=80",
   rockSalt:
     "https://images.unsplash.com/photo-1587049633312-d628ae50a8ae?auto=format&fit=crop&w=800&q=80",
   ketchup:
@@ -239,7 +241,9 @@ export const getProductsByCategory = (categoryId: string): Product[] =>
 
 export const searchProducts = (query: string): Product[] => {
   const q = query.trim().toLowerCase();
+
   if (!q) return [];
+
   return PRODUCTS.filter(
     (p) =>
       p.name.toLowerCase().includes(q) ||
@@ -252,10 +256,10 @@ export const BANNERS = [
   {
     id: "b0",
     image:
-      "https://images.unsplash.com/photo-1542838132-92c53300491e?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA0MTJ8MHwxfHNlYXJjaHwxfHxncm9jZXJ5JTIwc3VwZXJtYXJrZXQlMjBiYW5uZXJ8ZW58MHx8fHwxNzg0NTQzNTYwfDA&ixlib=rb-4.1.0&q=85",
-    title: "Fresh Groceries",
-    subtitle: "Delivered in 30 mins",
-    cta: "Shop Now",
+      "https://cdn.shopaccino.com/asianmart/images/grocery-stples-mobile-banner-60853763727897_m.jpg?v=684",
+    title: "Grocery Essentials",
+    subtitle: "Atta, rice, oil, biscuits & daily needs",
+    cta: "Shop Groceries",
   },
   {
     id: "b1",
