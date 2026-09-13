@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Raha Supermarket</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: Arial, Helvetica, sans-serif;
+      background: #fffaf3;
+      color: #3d1515;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 720px;
+      padding: 40px 24px;
+      text-align: center;
+    }
+
+    .brand {
+      font-size: 18px;
+      font-weight: 800;
+      letter-spacing: 3px;
+      color: #7a1f1f;
+      margin-bottom: 30px;
+    }
+
+    h1 {
+      font-size: clamp(38px, 8vw, 68px);
+      line-height: 1.05;
+      margin-bottom: 18px;
+      color: #3d1515;
+    }
+
+    .subtitle {
+      font-size: 19px;
+      line-height: 1.6;
+      color: #745d55;
+      margin: 0 auto 34px;
+      max-width: 520px;
+    }
+
+    .download-btn {
+      display: inline-block;
+      background: #f28c28;
+      color: #ffffff;
+      text-decoration: none;
+      font-size: 18px;
+      font-weight: 700;
+      padding: 17px 30px;
+      border-radius: 12px;
+      box-shadow: 0 8px 22px rgba(0,0,0,0.12);
+      transition: transform 0.15s ease;
+    }
+
+    .download-btn:hover {
+      transform: translateY(-2px);
+    }
+
+    .download-btn:active {
+      transform: translateY(0);
+    }
+
+    .info {
+      margin-top: 15px;
+      font-size: 14px;
+      color: #8a746c;
+    }
+
+    .version {
+      margin-top: 30px;
+      font-size: 13px;
+      color: #a18d85;
+    }
+  </style>
+</head>
+
+<body>
+
+  <main class="container">
+
+    <div class="brand">RAHA SUPERMARKET</div>
+
+    <h1>Groceries, made easy.</h1>
+
+    <p class="subtitle">
+      Shop your everyday grocery essentials from Raha Supermarket.
+      Simple, convenient and made for our local customers.
+    </p>
+
+    <a
+      class="download-btn"
+      href="https://github.com/bhowmikshantanu/raha-supermarket-new/releases/download/v1.0.9/Raha-Supermarket-v1.0.9-production.apk"
+    >
+      Download Android App
+    </a>
+
+    <div class="info">
+      Android APK • Install directly on your phone
+    </div>
+
+    <div class="version">
+      Raha Supermarket • Android v1.0.9
+    </div>
+
+  </main>
+
+</body>
+</html>
