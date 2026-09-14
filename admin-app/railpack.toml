@@ -1,0 +1,10 @@
+$schema = "https://schema.railpack.com/schema.json"
+
+[phases.install]
+cmds = ["yarn install"]
+
+[phases.build]
+cmds = ["npx expo export --platform web"]
+
+[deploy]
+startCommand = "npx serve dist -s -l $PORT"
