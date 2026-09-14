@@ -1,12 +1,15 @@
-name: Android Test Build
+name: Android Production Build
 
 on:
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   build-android:
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 60
 
     defaults:
       run:
@@ -19,7 +22,7 @@ jobs:
       - name: Set up Node
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: "20"
           cache: yarn
           cache-dependency-path: admin-app/yarn.lock
 
@@ -27,13 +30,13 @@ jobs:
         run: corepack enable
 
       - name: Install dependencies
-        run: yarn install
+        run: yarn install --non-interactive
 
       - name: Set up Java 17
         uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: '17'
+          java-version: "17"
 
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
@@ -47,23 +50,156 @@ jobs:
             "build-tools;36.0.0" \
             "ndk;27.1.12297006"
 
+      - name: Check production signing secrets
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          test -n "$ANDROID_KEYSTORE_BASE64"
+          test -n "$ANDROID_KEY_ALIAS"
+          test -n "$ANDROID_KEYSTORE_PASSWORD"
+          test -n "$ANDROID_KEY_PASSWORD"
+          echo "Production signing secrets are available."
+
       - name: Generate Android project
         env:
           NODE_ENV: production
         run: npx expo prebuild --platform android --clean --non-interactive
 
-      - name: Build standalone test APK
+      - name: Restore production keystore
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+        run: |
+          printf '%s' "$ANDROID_KEYSTORE_BASE64" | base64 --decode > android/app/raha-production.jks
+
+          keytool -list \
+            -keystore android/app/raha-production.jks \
+            -storepass "$ANDROID_KEYSTORE_PASSWORD" \
+            -alias "$ANDROID_KEY_ALIAS" >/dev/null
+
+          echo "Production keystore restored successfully."
+
+      - name: Configure production signing
+        run: |
+          python3 <<'PY'
+          from pathlib import Path
+          import re
+
+          path = Path("android/app/build.gradle")
+          text = path.read_text()
+
+          match = re.search(
+              r'(?m)^(\s*)signingConfigs\s*\{\s*\n',
+              text
+          )
+
+          if not match:
+              raise SystemExit("Could not find signingConfigs block")
+
+          indent = match.group(1)
+
+          release_config = (
+              match.group(0)
+              + f'{indent}    release {{\n'
+              + f'{indent}        storeFile file("raha-production.jks")\n'
+              + f'{indent}        storePassword System.getenv("ANDROID_KEYSTORE_PASSWORD")\n'
+              + f'{indent}        keyAlias System.getenv("ANDROID_KEY_ALIAS")\n'
+              + f'{indent}        keyPassword System.getenv("ANDROID_KEY_PASSWORD")\n'
+              + f'{indent}    }}\n'
+          )
+
+          text = (
+              text[:match.start()]
+              + release_config
+              + text[match.end():]
+          )
+
+          build_types_pos = text.find("buildTypes {")
+
+          if build_types_pos == -1:
+              raise SystemExit("Could not find buildTypes block")
+
+          prefix = text[:build_types_pos]
+          build_types = text[build_types_pos:]
+
+          release_pos = build_types.find("release {")
+
+          if release_pos == -1:
+              raise SystemExit("Could not find release buildType")
+
+          before_release = build_types[:release_pos]
+          release_and_after = build_types[release_pos:]
+
+          release_and_after, count = re.subn(
+              r'signingConfig\s+signingConfigs\.debug',
+              'signingConfig signingConfigs.release',
+              release_and_after,
+              count=1
+          )
+
+          if count != 1:
+              raise SystemExit(
+                  "Could not switch release build to production signing"
+              )
+
+          path.write_text(
+              prefix + before_release + release_and_after
+          )
+
+          print("Production signing configuration applied.")
+          PY
+
+      - name: Build production APK
         env:
           NODE_ENV: production
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
         run: |
           cd android
           chmod +x gradlew
           ./gradlew assembleRelease --no-daemon
 
-      - name: Upload APK
+      - name: Verify production certificate
+        run: |
+          APK="$(find android/app/build/outputs/apk/release -name '*.apk' | head -n 1)"
+
+          if [ -z "$APK" ]; then
+            echo "Release APK not found."
+            exit 1
+          fi
+
+          APKSIGNER="$ANDROID_HOME/build-tools/36.0.0/apksigner"
+
+          "$APKSIGNER" verify --print-certs "$APK"
+
+          ACTUAL_SHA256="$(
+            "$APKSIGNER" verify --print-certs "$APK" |
+            awk -F': ' '/certificate SHA-256 digest/ {print $2; exit}' |
+            tr '[:lower:]' '[:upper:]' |
+            tr -d ':[:space:]'
+          )"
+
+          EXPECTED_SHA256="0A1B955DB5D6184103D615134568C9A39ADF1A3D951726158B2B3E4CA2BAEB6D"
+
+          if [ "$ACTUAL_SHA256" != "$EXPECTED_SHA256" ]; then
+            echo "ERROR: Production signing certificate does not match."
+            echo "Build stopped."
+            exit 1
+          fi
+
+          echo "Production signing certificate verified successfully."
+
+          cp "$APK" Raha-Supermarket-v1.0.10-production.apk
+
+      - name: Upload production APK
         uses: actions/upload-artifact@v4
         with:
-          name: raha-supermarket-test-apk
-          path: admin-app/android/app/build/outputs/apk/release/*.apk
+          name: Raha-Supermarket-v1.0.10-production
+          path: admin-app/Raha-Supermarket-v1.0.10-production.apk
           if-no-files-found: error
           retention-days: 7
