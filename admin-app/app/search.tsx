@@ -1,7 +1,20 @@
 import { Ionicons } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
-import React, { useMemo, useState } from "react";
 import {
+  useLocalSearchParams,
+  useRouter,
+} from "expo-router";
+import {
+  ExpoSpeechRecognitionModule,
+  useSpeechRecognitionEvent,
+} from "expo-speech-recognition";
+import React, {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+import {
+  Alert,
   FlatList,
   Keyboard,
   StyleSheet,
@@ -22,8 +35,8 @@ import {
   SPACING,
 } from "@/src/config/theme";
 import { useApp } from "@/src/context/AppContext";
-import { CATEGORIES } from "@/src/data/categories";
 import { useProducts } from "@/src/context/ProductContext";
+import { CATEGORIES } from "@/src/data/categories";
 import type { Product } from "@/src/types";
 
 const TRENDING_SEARCHES = [
@@ -143,7 +156,6 @@ function getSearchTokens(products: Product[]): string[] {
   return [...tokens];
 }
 
-
 function getClosestToken(
   queryWord: string,
   searchTokens: string[],
@@ -160,17 +172,19 @@ function getClosestToken(
     return alias;
   }
 
-  const rankedTokens = searchTokens.map((token) => ({
-    token,
-    distance: levenshteinDistance(
-      normalizedWord,
+  const rankedTokens = searchTokens
+    .map((token) => ({
       token,
-    ),
-  })).sort(
-    (first, second) =>
-      first.distance - second.distance ||
-      first.token.localeCompare(second.token),
-  );
+      distance: levenshteinDistance(
+        normalizedWord,
+        token,
+      ),
+    }))
+    .sort(
+      (first, second) =>
+        first.distance - second.distance ||
+        first.token.localeCompare(second.token),
+    );
 
   const best = rankedTokens[0];
 
@@ -329,14 +343,15 @@ function smartSearchProducts(
   products: Product[],
   searchTokens: string[],
 ): Product[] {
-  return products.map((product) => ({
-    product,
-    score: getSearchScore(
+  return products
+    .map((product) => ({
       product,
-      query,
-      searchTokens,
-    ),
-  }))
+      score: getSearchScore(
+        product,
+        query,
+        searchTokens,
+      ),
+    }))
     .filter(({ score }) => score > 0)
     .sort(
       (first, second) =>
@@ -350,6 +365,11 @@ function smartSearchProducts(
 
 export default function SearchScreen() {
   const router = useRouter();
+const { voice } = useLocalSearchParams<{
+  voice?: string;
+}>();
+
+const voiceStartedRef = useRef(false);
 
   const {
     recentSearches,
@@ -366,8 +386,112 @@ export default function SearchScreen() {
   } = useProducts();
 
   const { showToast } = useToast();
-  const [query, setQuery] = useState("");
 
+  const [query, setQuery] = useState("");
+  const [isListening, setIsListening] = useState(false);
+
+  useSpeechRecognitionEvent("start", () => {
+    setIsListening(true);
+  });
+
+  useSpeechRecognitionEvent("end", () => {
+    setIsListening(false);
+  });
+
+  useSpeechRecognitionEvent("result", (event) => {
+    const spokenText =
+      event.results?.[0]?.transcript?.trim() ?? "";
+
+    if (!spokenText) {
+      return;
+    }
+
+    setQuery(spokenText);
+
+    const isFinal = event.isFinal;
+
+    if (isFinal) {
+      addRecentSearch(spokenText);
+    }
+  });
+
+  useSpeechRecognitionEvent("error", (event) => {
+    setIsListening(false);
+
+    if (
+      event.error === "aborted" ||
+      event.error === "no-speech"
+    ) {
+      return;
+    }
+
+    console.warn(
+      "Speech recognition error:",
+      event.error,
+      event.message,
+    );
+
+    showToast(
+      "Voice search could not understand you. Please try again.",
+      "error",
+    );
+  });
+
+  const handleVoiceSearch = async () => {
+    try {
+      if (isListening) {
+        ExpoSpeechRecognitionModule.stop();
+        return;
+      }
+
+      Keyboard.dismiss();
+
+      const permission =
+        await ExpoSpeechRecognitionModule.requestPermissionsAsync();
+
+      if (!permission.granted) {
+        Alert.alert(
+          "Microphone permission required",
+          "Please allow microphone access to use voice search.",
+        );
+        return;
+      }
+
+      ExpoSpeechRecognitionModule.start({
+        lang: "en-IN",
+        interimResults: true,
+        continuous: false,
+        maxAlternatives: 1,
+      });
+    } catch (error) {
+      console.warn(
+        "Unable to start voice search:",
+        error,
+      );
+
+      setIsListening(false);
+
+      showToast(
+        "Unable to start voice search.",
+        "error",
+      );
+    }
+  };
+
+useEffect(() => {
+  if (
+    voice === "1" &&
+    !voiceStartedRef.current
+  ) {
+    voiceStartedRef.current = true;
+
+    const timer = setTimeout(() => {
+      void handleVoiceSearch();
+    }, 400);
+
+    return () => clearTimeout(timer);
+  }
+}, [voice]);
   const normalizedQuery = query.trim();
 
   const searchTokens = useMemo(
@@ -631,7 +755,12 @@ export default function SearchScreen() {
           />
         </TouchableOpacity>
 
-        <View style={styles.searchBox}>
+        <View
+          style={[
+            styles.searchBox,
+            isListening && styles.searchBoxListening,
+          ]}
+        >
           <Ionicons
             name="search"
             size={18}
@@ -639,9 +768,17 @@ export default function SearchScreen() {
           />
 
           <TextInput
-            autoFocus
-            placeholder="Search products, categories…"
-            placeholderTextColor={COLORS.textMuted}
+            autoFocus={!isListening}
+            placeholder={
+              isListening
+                ? "Listening..."
+                : "Search products, categories..."
+            }
+            placeholderTextColor={
+              isListening
+                ? COLORS.primary
+                : COLORS.textMuted
+            }
             style={styles.input}
             value={query}
             onChangeText={setQuery}
@@ -652,7 +789,7 @@ export default function SearchScreen() {
             testID="search-input"
           />
 
-          {query.length > 0 ? (
+          {query.length > 0 && !isListening ? (
             <TouchableOpacity
               onPress={() => setQuery("")}
               testID="search-clear"
@@ -664,8 +801,52 @@ export default function SearchScreen() {
               />
             </TouchableOpacity>
           ) : null}
+
+          <TouchableOpacity
+            onPress={handleVoiceSearch}
+            activeOpacity={0.7}
+            style={[
+              styles.voiceButton,
+              isListening &&
+                styles.voiceButtonListening,
+            ]}
+            accessibilityRole="button"
+            accessibilityLabel={
+              isListening
+                ? "Stop voice search"
+                : "Start voice search"
+            }
+            testID="search-voice"
+          >
+            <Ionicons
+              name={
+                isListening
+                  ? "stop-circle"
+                  : "mic-outline"
+              }
+              size={21}
+              color={
+                isListening
+                  ? COLORS.surface
+                  : COLORS.primary
+              }
+            />
+          </TouchableOpacity>
         </View>
       </View>
+
+      {isListening ? (
+        <View style={styles.listeningBanner}>
+          <Ionicons
+            name="mic"
+            size={17}
+            color={COLORS.primary}
+          />
+          <Text style={styles.listeningText}>
+            Listening... say a product name
+          </Text>
+        </View>
+      ) : null}
 
       {normalizedQuery ? (
         <View style={styles.resultsContainer}>
@@ -688,7 +869,9 @@ export default function SearchScreen() {
                       )
                     }
                   >
-                    <View style={styles.suggestionIconWrap}>
+                    <View
+                      style={styles.suggestionIconWrap}
+                    >
                       <Ionicons
                         name={
                           suggestion.id.startsWith(
@@ -754,7 +937,7 @@ export default function SearchScreen() {
             <View style={styles.emptyWrap}>
               <EmptyState
                 icon="search-outline"
-                title={`No results for “${query}”`}
+                title={`No results for "${query}"`}
                 description="Try a different keyword or explore popular searches."
               />
 
@@ -796,7 +979,7 @@ export default function SearchScreen() {
                 </Text>
 
                 <Text style={styles.resultSubtitle}>
-                  for “{correctedQuery ?? query.trim()}”
+                  for "{correctedQuery ?? query.trim()}"
                 </Text>
               </View>
 
@@ -813,7 +996,9 @@ export default function SearchScreen() {
                 }
                 contentContainerStyle={styles.grid}
                 ItemSeparatorComponent={() => (
-                  <View style={styles.productSeparator} />
+                  <View
+                    style={styles.productSeparator}
+                  />
                 )}
                 renderItem={renderProduct}
                 showsVerticalScrollIndicator={false}
@@ -861,10 +1046,14 @@ export default function SearchScreen() {
                           <Ionicons
                             name="time-outline"
                             size={14}
-                            color={COLORS.textSecondary}
+                            color={
+                              COLORS.textSecondary
+                            }
                           />
 
-                          <Text style={styles.chipText}>
+                          <Text
+                            style={styles.chipText}
+                          >
                             {recentQuery}
                           </Text>
                         </TouchableOpacity>
@@ -973,11 +1162,47 @@ const styles = StyleSheet.create({
     borderColor: COLORS.borderLight,
   },
 
+  searchBoxListening: {
+    borderColor: COLORS.primary,
+  },
+
   input: {
     flex: 1,
     fontSize: FONT.size.base,
     color: COLORS.textPrimary,
     padding: 0,
+  },
+
+  voiceButton: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: COLORS.primaryLight,
+  },
+
+  voiceButtonListening: {
+    backgroundColor: COLORS.primary,
+  },
+
+  listeningBanner: {
+    marginHorizontal: SPACING.md,
+    marginTop: SPACING.sm,
+    paddingHorizontal: SPACING.md,
+    paddingVertical: SPACING.sm,
+    borderRadius: RADIUS.md,
+    backgroundColor: COLORS.primaryLight,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: SPACING.sm,
+  },
+
+  listeningText: {
+    color: COLORS.primary,
+    fontSize: FONT.size.sm,
+    fontWeight: FONT.weight.semibold,
   },
 
   resultsContainer: {
@@ -1152,7 +1377,6 @@ const styles = StyleSheet.create({
   suggestionProduct: {
     width: "48%",
   },
-
 
   loadingWrap: {
     flex: 1,

@@ -1437,7 +1437,7 @@ export const AppProvider: React.FC<{
           title: "Order placed successfully",
           message: `Your order ${order.id} has been placed successfully. Order total: ₹${order.total}.`,
           orderId: order.id,
-          actionRoute: `/orders/${order.id}`,
+          actionRoute: `/order/${order.id}`,
         });
 
         continue;
@@ -1452,7 +1452,7 @@ export const AppProvider: React.FC<{
           title: "Order cancelled",
           message: `Your order ${order.id} has been cancelled successfully.`,
           orderId: order.id,
-          actionRoute: `/orders/${order.id}`,
+          actionRoute: `/order/${order.id}`,
         });
 
         continue;
@@ -1467,7 +1467,7 @@ export const AppProvider: React.FC<{
           title: "Order confirmed",
           message: `Your order ${order.id} has been confirmed by Raha Supermarket.`,
           orderId: order.id,
-          actionRoute: `/orders/${order.id}`,
+          actionRoute: `/order/${order.id}`,
         });
 
         continue;
@@ -1482,7 +1482,7 @@ export const AppProvider: React.FC<{
           title: "Order delivered",
           message: `Your order ${order.id} has been delivered successfully. Thank you for shopping with Raha Supermarket.`,
           orderId: order.id,
-          actionRoute: `/orders/${order.id}`,
+          actionRoute: `/order/${order.id}`,
         });
       }
     }
