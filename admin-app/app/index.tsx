@@ -1,21 +1,41 @@
 import { useRouter } from "expo-router";
 import React, { useEffect } from "react";
-import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
+import {
+  ActivityIndicator,
+  Platform,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 
 import { BRAND } from "@/src/config/brand";
 import { COLORS, FONT, SPACING } from "@/src/config/theme";
 import { useApp } from "@/src/context/AppContext";
 
-// Splash / bootstrap route. The default app entry is ALWAYS the
-// customer experience. Admin (/admin/login) and delivery
-// (/delivery/login) portals remain directly reachable by URL or
-// via the links inside the customer profile screen.
 export default function Index() {
   const router = useRouter();
   const { hydrated, hasSeenOnboarding, user } = useApp();
 
   useEffect(() => {
     if (!hydrated) return;
+
+    // Web-only: route custom subdomains directly to their portals.
+    // This block does NOT run inside the Android/iOS app.
+    if (Platform.OS === "web" && typeof window !== "undefined") {
+      const hostname = window.location.hostname.toLowerCase();
+
+      if (hostname === "admin.rahasupermarket.in") {
+        router.replace("/admin/login");
+        return;
+      }
+
+      if (hostname === "delivery.rahasupermarket.in") {
+        router.replace("/delivery/login");
+        return;
+      }
+    }
+
+    // Normal customer flow
     const t = setTimeout(() => {
       if (!hasSeenOnboarding) {
         router.replace("/onboarding");
@@ -25,6 +45,7 @@ export default function Index() {
         router.replace("/(tabs)");
       }
     }, 900);
+
     return () => clearTimeout(t);
   }, [hydrated, hasSeenOnboarding, user, router]);
 
@@ -33,8 +54,10 @@ export default function Index() {
       <View style={styles.logoWrap}>
         <Text style={styles.logoLetter}>{BRAND.logoLetter}</Text>
       </View>
+
       <Text style={styles.brand}>{BRAND.name}</Text>
       <Text style={styles.tagline}>{BRAND.tagline}</Text>
+
       <ActivityIndicator
         style={{ marginTop: SPACING.xxl }}
         color={COLORS.primary}
