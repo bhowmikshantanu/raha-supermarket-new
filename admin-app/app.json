@@ -1,81 +1,79 @@
 {
-  "expo": {
-    "name": "Raha Supermarket",
-    "slug": "rahasupermarket",
-    "version": "1.0.10",
-    "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
-    "scheme": "rahasupermarket",
-    "userInterfaceStyle": "light",
-    "newArchEnabled": true,
-    "ios": {
-      "supportsTablet": true,
-      "bundleIdentifier": "in.rahasupermarket.app",
-      "infoPlist": {
-        "NSCameraUsageDescription": "Take product photos for the catalog",
-        "NSPhotoLibraryUsageDescription": "Choose product photos from your gallery"
-      }
-    },
-    "android": {
-      "adaptiveIcon": {
-        "foregroundImage": "./assets/images/adaptive-icon.png",
-        "backgroundColor": "#7A1F3D"
-      },
-      "edgeToEdgeEnabled": true,
-      "package": "in.rahasupermarket.app",
-      "versionCode": 11,
-      "googleServicesFile": "./google-services.json",
-      "permissions": [
-        "android.permission.CAMERA"
-      ]
-    },
-    "web": {
-      "bundler": "metro",
-      "output": "single",
-      "favicon": "./assets/images/favicon.png"
-    },
-    "plugins": [
-      "expo-router",
-      [
-        "expo-notifications",
-        {
-          "color": "#F28C28",
-          "defaultChannel": "orders"
-        }
-      ],
-      [
-        "expo-splash-screen",
-        {
-          "image": "./assets/images/splash-icon.png",
-          "imageWidth": 240,
-          "resizeMode": "contain",
-          "backgroundColor": "#FFFFFF"
-        }
-      ],
-      [
-        "expo-image-picker",
-        {
-          "photosPermission": "Choose product photos from your gallery",
-          "cameraPermission": "Take product photos for the catalog"
-        }
-      ],
-      "@react-native-firebase/app",
-      "@react-native-firebase/auth",
-      "expo-speech-recognition"
-    ],
-    "experiments": {
-      "typedRoutes": true,
-      "baseUrl": "/proxy/8081"
-    },
-    "extra": {
-      "eas": {
-        "projectId": "a05e8ce6-60d4-411b-8af9-0203a50665a3"
-      }
-    },
-    "androidNavigationBar": {
-      "backgroundColor": "#FFF9F2",
-      "barStyle": "dark-content",
-      "enforceContrast": false
-    }
-  }
+    "expo":  {
+                 "name":  "Raha Supermarket",
+                 "slug":  "rahasupermarket",
+                 "version":  "1.0.9",
+                 "orientation":  "portrait",
+                 "icon":  "./assets/images/icon.png",
+                 "scheme":  "rahasupermarket",
+                 "userInterfaceStyle":  "light",
+                 "newArchEnabled":  true,
+                 "ios":  {
+                             "supportsTablet":  true,
+                             "bundleIdentifier":  "in.rahasupermarket.app",
+                             "infoPlist":  {
+                                               "NSCameraUsageDescription":  "Take product photos for the catalog",
+                                               "NSPhotoLibraryUsageDescription":  "Choose product photos from your gallery"
+                                           }
+                         },
+                 "android":  {
+                                 "adaptiveIcon":  {
+                                                      "foregroundImage":  "./assets/images/adaptive-icon.png",
+                                                      "backgroundColor":  "#7A1F3D"
+                                                  },
+                                 "edgeToEdgeEnabled":  true,
+                                 "package":  "in.rahasupermarket.app",
+                                 "versionCode":  10,
+                                 "googleServicesFile":  "./google-services.json",
+                                 "permissions":  [
+                                                     "android.permission.CAMERA"
+                                                 ]
+                             },
+                 "web":  {
+                             "bundler":  "metro",
+                             "output":  "single",
+                             "favicon":  "./assets/images/favicon.png"
+                         },
+                 "plugins":  [
+                                 "expo-router",
+                                 [
+                                     "expo-notifications",
+                                     {
+                                         "color":  "#F28C28",
+                                         "defaultChannel":  "orders"
+                                     }
+                                 ],
+                                 [
+                                     "expo-splash-screen",
+                                     {
+                                         "image":  "./assets/images/splash-icon.png",
+                                         "imageWidth":  240,
+                                         "resizeMode":  "contain",
+                                         "backgroundColor":  "#FFFFFF"
+                                     }
+                                 ],
+                                 [
+                                     "expo-image-picker",
+                                     {
+                                         "photosPermission":  "Choose product photos from your gallery",
+                                         "cameraPermission":  "Take product photos for the catalog"
+                                     }
+                                 ],
+                                 "@react-native-firebase/app",
+                                 "@react-native-firebase/auth"
+                             ],
+                 "experiments":  {
+                                     "typedRoutes":  true
+                                 },
+                 "extra":  {
+                               "eas":  {
+                                           "projectId":  "a05e8ce6-60d4-411b-8af9-0203a50665a3"
+                                       }
+                           },
+                 "androidNavigationBar":  {
+                                              "backgroundColor":  "#FFF9F2",
+                                              "barStyle":  "dark-content",
+                                              "enforceContrast":  false
+                                          }
+             }
 }
