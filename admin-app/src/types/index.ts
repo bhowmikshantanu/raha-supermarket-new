@@ -1,4 +1,4 @@
-// Central type definitions for the app.
+﻿// Central type definitions for the app.
 
 export type CategoryId =
   | "grocery-staples"
@@ -78,17 +78,23 @@ export interface Order {
   paymentMethod: "cod" | "online";
   estimatedDeliveryMinutes: number;
 
-  // Coupon applied at checkout (optional — older orders have none).
+  // Customer identity captured with the order.
+  // Optional so older orders remain compatible.
+  customerUid?: string;
+  customerName?: string;
+  customerMobile?: string;
+
+  // Coupon applied at checkout (optional â€” older orders have none).
   couponCode?: string;
   couponDiscount?: number;
 
-  // Online payment metadata (optional — COD/older orders have none).
+  // Online payment metadata (optional â€” COD/older orders have none).
   paymentStatus?: "paid" | "pending";
   razorpayOrderId?: string;
   razorpayPaymentId?: string;
   paidAt?: number; // epoch ms
 
-  // Delivery rider assignment (all optional — older orders remain valid).
+  // Delivery rider assignment (all optional â€” older orders remain valid).
   deliveryBoyId?: string;
   deliveryBoyUid?: string;
   deliveryBoyName?: string;
@@ -108,7 +114,7 @@ export interface User {
 export type UserRole = "customer" | "admin" | "delivery";
 
 /**
- * Delivery rider ("Delivery Boy") — persisted in the `deliveryBoys`
+ * Delivery rider ("Delivery Boy") â€” persisted in the `deliveryBoys`
  * Firestore collection. Backward-compatible: no existing document
  * requires this shape, and every optional field can be missing.
  */
@@ -145,3 +151,4 @@ export interface AppNotification {
   orderId?: string;
   productId?: string;
 }
+

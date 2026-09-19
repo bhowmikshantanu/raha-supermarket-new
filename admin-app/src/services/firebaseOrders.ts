@@ -1,4 +1,4 @@
-import {
+﻿import {
   collection,
   doc,
   onSnapshot,
@@ -31,6 +31,10 @@ import type {
 
 const ORDERS_COLLECTION = "orders";
 const PRODUCTS_COLLECTION = "products";
+
+const BACKEND_URL = (
+  process.env.EXPO_PUBLIC_BACKEND_URL || ""
+).replace(/\/+$/, "");
 
 function removeUndefinedDeep(
   value: unknown,
@@ -86,7 +90,7 @@ async function ensureFirebaseUser(): Promise<string> {
   /*
    * IMPORTANT: wait for the persisted session (admin / delivery /
    * returning customer) to restore before creating an anonymous
-   * user — otherwise a page refresh or app restart clobbers the
+   * user â€” otherwise a page refresh or app restart clobbers the
    * signed-in admin/rider session with a fresh anonymous account.
    */
   const restoredUser = await waitForInitialAuthState();
@@ -167,6 +171,22 @@ function documentToOrder(
         data.estimatedDeliveryMinutes,
         30,
       ),
+
+    // Customer identity for admin reporting.
+    customerUid:
+      typeof data.customerUid === "string"
+        ? data.customerUid
+        : undefined,
+
+    customerName:
+      typeof data.customerName === "string"
+        ? data.customerName
+        : undefined,
+
+    customerMobile:
+      typeof data.customerMobile === "string"
+        ? data.customerMobile
+        : undefined,
 
     // Delivery rider assignment (optional, backward-compatible).
     deliveryBoyId:
@@ -314,6 +334,39 @@ export async function createFirebaseOrder(
       "[Orders] Firestore order saved successfully:",
       order.id,
     );
+
+    // Best-effort admin push notification.
+    // A notification failure must never fail a successfully placed order.
+    if (BACKEND_URL && customerAuth.currentUser) {
+      try {
+        const idToken =
+          await customerAuth.currentUser.getIdToken();
+
+        const response = await fetch(
+          `${BACKEND_URL}/api/orders/${encodeURIComponent(order.id)}/admin-notify`,
+          {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${idToken}`,
+              "Content-Type": "application/json",
+            },
+          },
+        );
+
+        if (!response.ok) {
+          console.warn(
+            "[Orders] Admin notification request failed:",
+            response.status,
+            await response.text(),
+          );
+        }
+      } catch (notificationError) {
+        console.warn(
+          "[Orders] Order saved but admin notification could not be requested:",
+          notificationError,
+        );
+      }
+    }
 
     return order;
   } catch (error) {
@@ -1009,3 +1062,4 @@ export async function cancelFirebaseOrder(
     },
   );
 }
+

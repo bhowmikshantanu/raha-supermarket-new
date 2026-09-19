@@ -1,4 +1,4 @@
-from fastapi import (
+﻿from fastapi import (
     APIRouter,
     Depends,
     FastAPI,
@@ -641,7 +641,9 @@ def is_expo_push_token(
     )
 
 
-def get_active_customer_push_tokens() -> list[str]:
+def get_active_push_tokens_for_role(
+    role: str,
+) -> list[str]:
 
     tokens: list[str] = []
 
@@ -666,7 +668,7 @@ def get_active_customer_push_tokens() -> list[str]:
                 data.get("active")
                 is True
                 and data.get("role")
-                == "customer"
+                == role
                 and isinstance(
                     token,
                     str,
@@ -681,12 +683,13 @@ def get_active_customer_push_tokens() -> list[str]:
 
     except Exception as exc:
         logger.exception(
-            "Unable to load customer push tokens."
+            "Unable to load %s push tokens.",
+            role,
         )
 
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Unable to read customer push tokens.",
+            detail=f"Unable to read {role} push tokens.",
         ) from exc
 
     # remove duplicates but preserve order
@@ -694,6 +697,18 @@ def get_active_customer_push_tokens() -> list[str]:
         dict.fromkeys(
             tokens
         )
+    )
+
+
+def get_active_customer_push_tokens() -> list[str]:
+    return get_active_push_tokens_for_role(
+        "customer"
+    )
+
+
+def get_active_admin_push_tokens() -> list[str]:
+    return get_active_push_tokens_for_role(
+        "admin"
     )
 
 
@@ -1575,7 +1590,7 @@ async def verify_razorpay_payment(payload: VerifyRazorpayPaymentRequest):
         payload.razorpay_order_id
     )
 
-    # 0. The order MUST have been created by this backend — otherwise there is
+    # 0. The order MUST have been created by this backend â€” otherwise there is
     #    no trusted amount to reconcile against.
     try:
         snapshot = order_ref.get()
@@ -1601,7 +1616,7 @@ async def verify_razorpay_payment(payload: VerifyRazorpayPaymentRequest):
             detail="Payment order has no valid expected amount.",
         )
 
-    # 1. HMAC signature check FIRST — no idempotent success may be returned
+    # 1. HMAC signature check FIRST â€” no idempotent success may be returned
     #    for a request whose signature has not been validated.
     message = f"{payload.razorpay_order_id}|{payload.razorpay_payment_id}"
     expected_signature = hmac.new(
@@ -1670,8 +1685,8 @@ async def verify_razorpay_payment(payload: VerifyRazorpayPaymentRequest):
         and payment_amount == expected_amount
     )
     order_ok = payment_order_id == payload.razorpay_order_id
-    # Require a CAPTURED payment. "authorized" is not final — the funds are not
-    # yet captured — so it must not be treated as a successful paid order.
+    # Require a CAPTURED payment. "authorized" is not final â€” the funds are not
+    # yet captured â€” so it must not be treated as a successful paid order.
     status_ok = payment_status == "captured"
 
     if not (amount_ok and order_ok and status_ok):
@@ -1710,6 +1725,347 @@ async def verify_razorpay_payment(payload: VerifyRazorpayPaymentRequest):
     return {"verified": True, "order_id": payload.razorpay_order_id}
 
 
+
+
+# =========================================================
+# NEW ORDER -> ADMIN DEVICE NOTIFICATIONS
+# =========================================================
+
+async def require_firebase_user(
+    authorization: Optional[str] = Header(default=None),
+) -> dict:
+    """Verify any signed-in Firebase user, including anonymous customers."""
+
+    if not authorization:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Missing Authorization header.",
+        )
+
+    scheme, separator, token = authorization.partition(" ")
+
+    if (
+        separator != " "
+        or scheme.lower() != "bearer"
+        or not token.strip()
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid Authorization header.",
+        )
+
+    try:
+        decoded = firebase_auth.verify_id_token(token.strip())
+    except Exception as exc:
+        logger.warning(
+            "Customer Firebase token verification failed."
+        )
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid Firebase authentication token.",
+        ) from exc
+
+    uid = decoded.get("uid")
+
+    if not uid or not isinstance(uid, str):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Firebase token has no valid uid.",
+        )
+
+    return {
+        "uid": uid,
+        "email": decoded.get("email"),
+    }
+
+
+def get_active_admin_push_devices() -> list[dict]:
+    """
+    Return active registered admin devices.
+
+    adminPushDevices is intentionally separate from pushTokens so
+    existing customer/delivery notification behavior remains unchanged.
+    """
+
+    devices: list[dict] = []
+    seen_tokens: set[str] = set()
+
+    try:
+        documents = (
+            firestore_db
+            .collection("adminPushDevices")
+            .stream()
+        )
+
+        for document in documents:
+            data = document.to_dict() or {}
+
+            token = data.get("expoPushToken")
+
+            if (
+                data.get("active") is True
+                and data.get("pushEnabled", True) is True
+                and isinstance(token, str)
+                and is_expo_push_token(token.strip())
+            ):
+                clean_token = token.strip()
+
+                if clean_token in seen_tokens:
+                    continue
+
+                seen_tokens.add(clean_token)
+
+                devices.append(
+                    {
+                        "id": document.id,
+                        "token": clean_token,
+                        "voiceEnabled": (
+                            data.get("voiceEnabled", True) is True
+                        ),
+                        "uid": data.get("uid"),
+                        "deviceName": data.get("deviceName"),
+                    }
+                )
+
+    except Exception as exc:
+        logger.exception(
+            "Unable to read active admin push devices."
+        )
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Unable to read admin notification devices.",
+        ) from exc
+
+    return devices
+
+
+@api_router.post(
+    "/orders/{order_id}/admin-notify"
+)
+async def admin_notify_for_new_order(
+    order_id: str,
+    customer: dict = Depends(require_firebase_user),
+):
+    """
+    Notify all active admin devices after a customer creates an order.
+    """
+
+    try:
+        order_snapshot = (
+            firestore_db
+            .collection("orders")
+            .document(order_id)
+            .get()
+        )
+    except Exception as exc:
+        logger.exception(
+            "New-order admin notification order lookup failed."
+        )
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Unable to read order.",
+        ) from exc
+
+    if not order_snapshot.exists:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Order not found.",
+        )
+
+    order_data = order_snapshot.to_dict() or {}
+
+    customer_uid = order_data.get("customerUid")
+
+    if (
+        not isinstance(customer_uid, str)
+        or customer_uid != customer["uid"]
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You cannot trigger alerts for this order.",
+        )
+
+    alert_ref = (
+        firestore_db
+        .collection("adminOrderAlerts")
+        .document(order_id)
+    )
+
+    try:
+        existing_alert = alert_ref.get()
+
+        if existing_alert.exists:
+            existing_data = existing_alert.to_dict() or {}
+
+            if existing_data.get("status") == "sent":
+                return {
+                    "ok": True,
+                    "duplicate": True,
+                    "orderId": order_id,
+                    "accepted": existing_data.get("accepted", 0),
+                    "failed": existing_data.get("failed", 0),
+                }
+
+    except Exception as exc:
+        logger.exception(
+            "Unable to check new-order alert idempotency."
+        )
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Unable to check order alert state.",
+        ) from exc
+
+    try:
+        alert_ref.set(
+            {
+                "orderId": order_id,
+                "customerUid": customer["uid"],
+                "status": "processing",
+                "startedAt": firestore.SERVER_TIMESTAMP,
+            },
+            merge=True,
+        )
+    except Exception as exc:
+        logger.exception(
+            "Unable to create order alert marker."
+        )
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Unable to create order alert.",
+        ) from exc
+
+    tokens = get_active_admin_push_tokens()
+
+    accepted = 0
+    failed = 0
+
+    # Admin devices are registered in pushTokens with role="admin".
+    # Notification carries the order ID so the app can preserve the
+    # intended order through the admin-login flow.
+    for token in tokens:
+
+        push_message = {
+            "to": token,
+            "sound": "default",
+            "title": "New Order Received",
+            "body": (
+                f"New customer order received - Order #{order_id}"
+            ),
+            "channelId": "orders",
+            "priority": "high",
+            "data": {
+                "type": "admin_new_order",
+                "orderId": order_id,
+                "status": "placed",
+                "route": (
+                    f"/admin/orders?orderId={order_id}"
+                ),
+            },
+        }
+
+        try:
+            async with httpx.AsyncClient(
+                timeout=30.0
+            ) as http_client:
+
+                response = await http_client.post(
+                    EXPO_PUSH_ENDPOINT,
+                    headers={
+                        "Accept": "application/json",
+                        "Content-Type": "application/json",
+                    },
+                    json=[push_message],
+                )
+
+            if response.is_success:
+
+                try:
+                    response_json = response.json()
+                except Exception:
+                    response_json = {}
+
+                tickets = response_json.get("data") or []
+
+                if isinstance(tickets, dict):
+                    tickets = [tickets]
+
+                if (
+                    tickets
+                    and tickets[0].get("status") == "ok"
+                ):
+                    accepted += 1
+                else:
+                    failed += 1
+
+                    logger.warning(
+                        "Admin new-order Expo ticket failed "
+                        "order=%s device=%s response=%s",
+                        order_id,
+                        token,
+                        response.text,
+                    )
+
+            else:
+                failed += 1
+
+                logger.warning(
+                    "Admin new-order Expo request failed "
+                    "order=%s device=%s status=%s response=%s",
+                    order_id,
+                    token,
+                    response.status_code,
+                    response.text,
+                )
+
+        except httpx.RequestError:
+
+            failed += 1
+
+            logger.exception(
+                "Admin new-order Expo request error "
+                "order=%s device=%s",
+                order_id,
+                token,
+            )
+
+    final_status = "sent"
+
+    if tokens and accepted == 0 and failed > 0:
+        final_status = "failed"
+
+    try:
+        alert_ref.set(
+            {
+                "status": final_status,
+                "accepted": accepted,
+                "failed": failed,
+                "deviceCount": len(tokens),
+                "completedAt": firestore.SERVER_TIMESTAMP,
+            },
+            merge=True,
+        )
+    except Exception:
+        logger.exception(
+            "Unable to finalize admin order alert marker."
+        )
+
+    logger.info(
+        "New-order admin alert completed "
+        "order=%s devices=%s accepted=%s failed=%s",
+        order_id,
+        len(devices),
+        accepted,
+        failed,
+    )
+
+    return {
+        "ok": True,
+        "duplicate": False,
+        "orderId": order_id,
+        "devices": len(devices),
+        "accepted": accepted,
+        "failed": failed,
+    }
 
 app.include_router(
     api_router
@@ -1759,3 +2115,5 @@ async def shutdown_db_client():
         logger.info(
             "Application shutdown complete."
         )
+
+

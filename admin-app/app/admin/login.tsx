@@ -1,4 +1,4 @@
-import { Ionicons } from "@expo/vector-icons";
+﻿import { Ionicons } from "@expo/vector-icons";
 import { FirebaseError } from "firebase/app";
 import {
   signInWithEmailAndPassword,
@@ -8,7 +8,7 @@ import {
   doc,
   getDoc,
 } from "firebase/firestore";
-import { useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useState } from "react";
 import {
   KeyboardAvoidingView,
@@ -67,6 +67,10 @@ function getLoginErrorMessage(
 
 export default function AdminLoginScreen() {
   const router = useRouter();
+
+  const { orderId } = useLocalSearchParams<{
+    orderId?: string;
+  }>();
 
   const [email, setEmail] = useState(
     "admin@rahasupermarket.in",
@@ -151,7 +155,14 @@ export default function AdminLoginScreen() {
         return;
       }
 
-      router.replace("/admin");
+      if (orderId) {
+        router.replace({
+          pathname: "/admin/orders",
+          params: { orderId },
+        });
+      } else {
+        router.replace("/admin");
+      }
     } catch (error) {
       console.error(
         "Admin login failed:",
@@ -333,7 +344,7 @@ export default function AdminLoginScreen() {
             <Button
               label={
                 loading
-                  ? "Verifying Admin…"
+                  ? "Verifying Adminâ€¦"
                   : "Login to Admin Panel"
               }
               onPress={handleLogin}

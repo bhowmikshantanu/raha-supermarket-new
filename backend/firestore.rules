@@ -1,4 +1,4 @@
-rules_version = '2';
+﻿rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
@@ -113,6 +113,14 @@ service cloud.firestore {
           && resource.data.status == "placed"
           && request.resource.data.status
             == "cancelled"
+
+          // Customer cancellation may change ONLY status + updatedAt.
+          && request.resource.data.diff(resource.data)
+            .affectedKeys()
+            .hasOnly([
+              "status",
+              "updatedAt"
+            ])
         )
 
         // Assigned active delivery boy may perform

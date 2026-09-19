@@ -1,5 +1,5 @@
-import { Ionicons } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
+﻿import { Ionicons } from "@expo/vector-icons";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
@@ -26,8 +26,9 @@ import {
   subscribeToAllOrders,
 } from "@/src/services/firebaseOrders";
 import { onAuthStateChanged } from "firebase/auth";
+import { doc, getDoc } from "firebase/firestore";
 
-import { auth } from "@/src/config/firebase";
+import { auth, db } from "@/src/config/firebase";
 import { isOrderEligibleForAssignment } from "@/src/services/firebaseDeliveryOrders";
 import { subscribeToDeliveryBoys } from "@/src/services/firebaseDeliveryBoys";
 import type {
@@ -71,6 +72,10 @@ const NEXT_STATUS_LABEL: Partial<Record<OrderStatus, string>> = {
 export default function AdminOrdersScreen() {
   const router = useRouter();
 
+  const { orderId } = useLocalSearchParams<{
+    orderId?: string;
+  }>();
+
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -84,14 +89,68 @@ export default function AdminOrdersScreen() {
   const [authReady, setAuthReady] = useState(false);
 
   useEffect(() => {
-    // Wait for the persisted Firebase admin session to restore before
-    // opening Firestore listeners — otherwise a page refresh races the
-    // auth restore and security rules reject the read.
-    const unsubscribe = onAuthStateChanged(auth, () => {
-      setAuthReady(true);
-    });
-    return unsubscribe;
-  }, []);
+    let active = true;
+
+    const unsubscribe = onAuthStateChanged(
+      auth,
+      async (user) => {
+        if (!active) return;
+
+        setAuthReady(false);
+
+        if (!user) {
+          router.replace({
+            pathname: "/admin/login",
+            params: orderId ? { orderId } : {},
+          } as never);
+          return;
+        }
+
+        try {
+          const adminSnapshot = await getDoc(
+            doc(db, "admins", user.uid),
+          );
+
+          if (!active) return;
+
+          const adminData = adminSnapshot.exists()
+            ? adminSnapshot.data()
+            : null;
+
+          const isAuthorizedAdmin =
+            adminData?.role === "admin" &&
+            adminData?.active === true;
+
+          if (!isAuthorizedAdmin) {
+            router.replace({
+              pathname: "/admin/login",
+              params: orderId ? { orderId } : {},
+            } as never);
+            return;
+          }
+
+          setAuthReady(true);
+        } catch (error) {
+          console.error(
+            "Admin authorization check failed:",
+            error,
+          );
+
+          if (!active) return;
+
+          router.replace({
+            pathname: "/admin/login",
+            params: orderId ? { orderId } : {},
+          } as never);
+        }
+      },
+    );
+
+    return () => {
+      active = false;
+      unsubscribe();
+    };
+  }, [router, orderId]);
 
   useEffect(() => {
     if (!authReady) return;
@@ -117,15 +176,36 @@ export default function AdminOrdersScreen() {
   useEffect(() => {
     if (!authReady) return;
 
-    // Rider directory — used to enrich orders with vehicle numbers.
+    // Rider directory â€” used to enrich orders with vehicle numbers.
     const unsubscribe = subscribeToDeliveryBoys(
       (items) => setRiders(items),
       () => {
-        /* non-fatal — vehicle info simply stays hidden */
+        /* non-fatal â€” vehicle info simply stays hidden */
       },
     );
     return unsubscribe;
   }, [authReady]);
+
+  useEffect(() => {
+    if (
+      !orderId ||
+      orders.length === 0
+    ) {
+      return;
+    }
+
+    const targetOrder = orders.find(
+      (order) => order.id === orderId,
+    );
+
+    if (!targetOrder) {
+      return;
+    }
+
+    setFilter("all");
+    setSearch(orderId);
+    setExpandedId(orderId);
+  }, [orderId, orders]);
 
   const riderVehicleById = useMemo(() => {
     const map = new Map<string, string>();
@@ -215,7 +295,7 @@ export default function AdminOrdersScreen() {
         minute: "2-digit",
       });
     } catch {
-      return "—";
+      return "â€”";
     }
   };
 
@@ -224,7 +304,7 @@ export default function AdminOrdersScreen() {
       <SafeAreaView style={styles.container}>
         <View style={styles.loadingWrap}>
           <ActivityIndicator size="large" color={COLORS.primary} />
-          <Text style={styles.loadingTitle}>Loading live orders…</Text>
+          <Text style={styles.loadingTitle}>Loading live ordersâ€¦</Text>
           <Text style={styles.loadingText}>
             Connecting to Firestore order stream.
           </Text>
@@ -319,7 +399,7 @@ export default function AdminOrdersScreen() {
               <TextInput
                 value={search}
                 onChangeText={setSearch}
-                placeholder="Search order, customer, mobile…"
+                placeholder="Search order, customer, mobileâ€¦"
                 placeholderTextColor={COLORS.textMuted}
                 style={styles.searchInput}
               />
@@ -521,7 +601,7 @@ export default function AdminOrdersScreen() {
                       {item.status === "delivered"
                         ? `Delivered by ${item.deliveryBoyName}`
                         : item.status === "out-for-delivery"
-                          ? `Out for delivery · ${item.deliveryBoyName}`
+                          ? `Out for delivery Â· ${item.deliveryBoyName}`
                           : `Assigned to ${item.deliveryBoyName}`}
                     </Text>
                   </View>
@@ -582,7 +662,7 @@ export default function AdminOrdersScreen() {
                       >
                         <View style={styles.itemQuantity}>
                           <Text style={styles.itemQuantityText}>
-                            {product.quantity}×
+                            {product.quantity}Ã—
                           </Text>
                         </View>
 
@@ -1533,3 +1613,4 @@ const styles = StyleSheet.create({
     color: "#15803D",
   },
 });
+

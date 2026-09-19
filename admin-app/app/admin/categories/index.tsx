@@ -1,4 +1,4 @@
-import { Ionicons } from "@expo/vector-icons";
+﻿import { Ionicons } from "@expo/vector-icons";
 import {
   Alert,
   FlatList,
@@ -18,7 +18,7 @@ import React, {
   useState,
 } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 
 import {
   COLORS,
@@ -58,6 +58,10 @@ const EMPTY_FORM: FormState = {
 
 export default function AdminCategoriesScreen() {
   const router = useRouter();
+
+  const { action } = useLocalSearchParams<{
+    action?: string;
+  }>();
 
   const [categories, setCategories] = useState<
     FirebaseCategory[]
@@ -177,6 +181,17 @@ export default function AdminCategoriesScreen() {
 
     setModalVisible(true);
   };
+
+  useEffect(() => {
+    if (
+      action !== "add" ||
+      loading
+    ) {
+      return;
+    }
+
+    openCreateModal();
+  }, [action, loading]);
 
   const openEditModal = (
     category: FirebaseCategory,
@@ -660,7 +675,7 @@ export default function AdminCategoriesScreen() {
               styles.loadingText
             }
           >
-            Loading categories…
+            Loading categoriesâ€¦
           </Text>
         </View>
       ) : (
@@ -1075,7 +1090,7 @@ function CategoryCard({
             styles.categoryMeta
           }
         >
-          ID: {category.id} · Order {category.sortOrder}
+          ID: {category.id} Â· Order {category.sortOrder}
         </Text>
 
         <Text

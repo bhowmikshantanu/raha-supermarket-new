@@ -1,4 +1,4 @@
-import { Stack, useRouter } from "expo-router";
+﻿import { Stack, useRouter } from "expo-router";
 import * as Notifications from "expo-notifications";
 import * as SplashScreen from "expo-splash-screen";
 import React, { useCallback, useEffect } from "react";
@@ -9,6 +9,9 @@ import {
 } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
+import { doc, getDoc } from "firebase/firestore";
+
+import { auth, db } from "@/src/config/firebase";
 
 import { ToastProvider } from "@/src/components/Toast";
 import { COLORS } from "@/src/config/theme";
@@ -35,7 +38,18 @@ function getSafeNotificationRoute(
       ? data.orderId.trim()
       : "";
 
-  // Order notifications always go to the real order-detail route.
+  // Admin new-order notifications must stay inside the protected
+  // admin flow instead of opening the customer order route.
+  if (
+    data?.type === "admin_new_order" &&
+    orderId
+  ) {
+    return (
+      `/admin/orders?orderId=${encodeURIComponent(orderId)}`
+    );
+  }
+
+  // Customer order notifications open the customer order-detail route.
   if (orderId) {
     return `/order/${encodeURIComponent(orderId)}`;
   }
@@ -96,13 +110,74 @@ export default function RootLayout() {
   const router = useRouter();
 
   const handleNotificationResponse = useCallback(
-    (
+    async (
       response: Notifications.NotificationResponse,
     ) => {
       const data =
         response.notification.request.content.data as
           | Record<string, any>
           | undefined;
+
+      const orderId =
+        typeof data?.orderId === "string"
+          ? data.orderId.trim()
+          : "";
+
+      // Admin order alerts require a currently authenticated,
+      // active administrator before the order screen can open.
+      if (
+        data?.type === "admin_new_order" &&
+        orderId
+      ) {
+        const user = auth.currentUser;
+
+        if (!user) {
+          router.push({
+            pathname: "/admin/login",
+            params: { orderId },
+          } as never);
+          return;
+        }
+
+        try {
+          const adminSnapshot = await getDoc(
+            doc(db, "admins", user.uid),
+          );
+
+          const adminData = adminSnapshot.exists()
+            ? adminSnapshot.data()
+            : null;
+
+          const isAuthorizedAdmin =
+            adminData?.role === "admin" &&
+            adminData?.active === true;
+
+          if (!isAuthorizedAdmin) {
+            router.push({
+              pathname: "/admin/login",
+              params: { orderId },
+            } as never);
+            return;
+          }
+
+          router.push({
+            pathname: "/admin/orders",
+            params: { orderId },
+          } as never);
+          return;
+        } catch (adminCheckError) {
+          console.error(
+            "[Push] Admin authorization check failed:",
+            adminCheckError,
+          );
+
+          router.push({
+            pathname: "/admin/login",
+            params: { orderId },
+          } as never);
+          return;
+        }
+      }
 
       const destination =
         getSafeNotificationRoute(data);
@@ -217,3 +292,4 @@ export default function RootLayout() {
     </GestureHandlerRootView>
   );
 }
+
