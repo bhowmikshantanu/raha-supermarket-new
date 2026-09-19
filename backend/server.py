@@ -1,4 +1,4 @@
-﻿from fastapi import (
+from fastapi import (
     APIRouter,
     Depends,
     FastAPI,
@@ -2053,7 +2053,7 @@ async def admin_notify_for_new_order(
         "New-order admin alert completed "
         "order=%s devices=%s accepted=%s failed=%s",
         order_id,
-        len(devices),
+        len(tokens),
         accepted,
         failed,
     )
@@ -2062,7 +2062,7 @@ async def admin_notify_for_new_order(
         "ok": True,
         "duplicate": False,
         "orderId": order_id,
-        "devices": len(devices),
+        "devices": len(tokens),
         "accepted": accepted,
         "failed": failed,
     }
