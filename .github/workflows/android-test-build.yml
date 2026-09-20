@@ -9,6 +9,8 @@ permissions:
 jobs:
   build-android:
     runs-on: ubuntu-latest
+    env:
+      EXPO_PUBLIC_BACKEND_URL: https://raha-supermarket-backend-production.up.railway.app
     timeout-minutes: 60
 
     defaults:
@@ -201,12 +203,12 @@ jobs:
 
           echo "Production signing certificate verified successfully."
 
-          cp "$APK" Raha-Supermarket-v1.0.10-production.apk
+          cp "$APK" Raha-Supermarket-v1.0.11-production.apk
 
       - name: Upload production APK
         uses: actions/upload-artifact@v4
         with:
-          name: Raha-Supermarket-v1.0.10-production
-          path: admin-app/Raha-Supermarket-v1.0.10-production.apk
+          name: Raha-Supermarket-v1.0.11-production
+          path: admin-app/Raha-Supermarket-v1.0.11-production.apk
           if-no-files-found: error
           retention-days: 7

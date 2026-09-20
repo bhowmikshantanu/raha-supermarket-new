@@ -1,4 +1,4 @@
-import Constants from "expo-constants";
+﻿import Constants from "expo-constants";
 import * as Device from "expo-device";
 import * as Notifications from "expo-notifications";
 import {
@@ -90,7 +90,7 @@ async function ensureFirebaseUser(): Promise<User> {
   }
 
   // Wait for the persisted session to restore before falling back to
-  // anonymous auth — prevents clobbering an admin/rider login on app
+  // anonymous auth â€” prevents clobbering an admin/rider login on app
   // restart.
   const restoredUser = await new Promise<User | null>((resolve) => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -125,7 +125,7 @@ async function resolveRole(user: User): Promise<PushRole> {
   }
 
   // Delivery boys sign in with real Firebase Auth (not anonymous).
-  // Skip the lookup for anonymous customer sessions — that's the vast
+  // Skip the lookup for anonymous customer sessions â€” that's the vast
   // majority of Firestore reads on this collection today.
   if (!user.isAnonymous) {
     try {
@@ -181,7 +181,7 @@ async function savePushTokenForUser(
   );
 }
 
-async function getOrCreateExpoPushToken(): Promise<string | null> {
+export async function getOrCreateExpoPushToken(): Promise<string | null> {
   if (cachedExpoPushToken) {
     return cachedExpoPushToken;
   }
@@ -274,7 +274,7 @@ export async function registerForPushNotifications(): Promise<
 }
 
 export function startPushTokenRegistrationLifecycle(): () => void {
-  // No remote push on web — skip entirely so the browser preview
+  // No remote push on web â€” skip entirely so the browser preview
   // never touches expo-notifications native APIs.
   if (Platform.OS === "web") {
     return () => {};

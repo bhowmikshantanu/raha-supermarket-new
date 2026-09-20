@@ -1590,7 +1590,7 @@ async def verify_razorpay_payment(payload: VerifyRazorpayPaymentRequest):
         payload.razorpay_order_id
     )
 
-    # 0. The order MUST have been created by this backend â€” otherwise there is
+    # 0. The order MUST have been created by this backend Ã¢â‚¬â€ otherwise there is
     #    no trusted amount to reconcile against.
     try:
         snapshot = order_ref.get()
@@ -1616,7 +1616,7 @@ async def verify_razorpay_payment(payload: VerifyRazorpayPaymentRequest):
             detail="Payment order has no valid expected amount.",
         )
 
-    # 1. HMAC signature check FIRST â€” no idempotent success may be returned
+    # 1. HMAC signature check FIRST Ã¢â‚¬â€ no idempotent success may be returned
     #    for a request whose signature has not been validated.
     message = f"{payload.razorpay_order_id}|{payload.razorpay_payment_id}"
     expected_signature = hmac.new(
@@ -1685,8 +1685,8 @@ async def verify_razorpay_payment(payload: VerifyRazorpayPaymentRequest):
         and payment_amount == expected_amount
     )
     order_ok = payment_order_id == payload.razorpay_order_id
-    # Require a CAPTURED payment. "authorized" is not final â€” the funds are not
-    # yet captured â€” so it must not be treated as a successful paid order.
+    # Require a CAPTURED payment. "authorized" is not final Ã¢â‚¬â€ the funds are not
+    # yet captured Ã¢â‚¬â€ so it must not be treated as a successful paid order.
     status_ok = payment_status == "captured"
 
     if not (amount_ok and order_ok and status_ok):
@@ -1779,32 +1779,305 @@ async def require_firebase_user(
     }
 
 
+
+class AdminOrderAlertRecipientRequest(BaseModel):
+    phone: str = Field(min_length=10, max_length=20)
+
+
+class AdminOrderAlertDeviceRequest(BaseModel):
+    phone: str = Field(min_length=10, max_length=20)
+    expoPushToken: str = Field(min_length=10, max_length=500)
+    platform: Optional[str] = None
+    deviceName: Optional[str] = None
+
+
+def normalize_indian_mobile(value: str) -> str:
+    digits = "".join(
+        character
+        for character in str(value)
+        if character.isdigit()
+    )
+
+    if len(digits) == 10:
+        normalized = "+91" + digits
+    elif len(digits) == 12 and digits.startswith("91"):
+        normalized = "+" + digits
+    else:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Enter a valid 10-digit Indian mobile number.",
+        )
+
+    if normalized[3] not in "6789":
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Enter a valid Indian mobile number.",
+        )
+
+    return normalized
+
+
+def admin_alert_phone_id(phone: str) -> str:
+    return phone.replace("+", "")
+
+
+@api_router.get("/admin/order-alert-recipients")
+async def list_admin_order_alert_recipients(
+    admin: dict = Depends(require_admin),
+):
+    recipients = []
+    device_counts = {}
+
+    try:
+        for document in (
+            firestore_db
+            .collection("adminPushDevices")
+            .stream()
+        ):
+            data = document.to_dict() or {}
+            phone = data.get("phone")
+
+            if (
+                data.get("active") is True
+                and data.get("pushEnabled", True) is True
+                and isinstance(phone, str)
+            ):
+                device_counts[phone] = (
+                    device_counts.get(phone, 0) + 1
+                )
+
+        for document in (
+            firestore_db
+            .collection("adminNotificationRecipients")
+            .stream()
+        ):
+            data = document.to_dict() or {}
+            phone = data.get("phone")
+
+            if not isinstance(phone, str):
+                continue
+
+            recipients.append({
+                "id": document.id,
+                "phone": phone,
+                "active": data.get("active") is True,
+                "registeredDevices": device_counts.get(phone, 0),
+            })
+
+    except Exception as exc:
+        logger.exception(
+            "Unable to list order alert recipients."
+        )
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Unable to load order alert recipients.",
+        ) from exc
+
+    recipients.sort(key=lambda item: item["phone"])
+
+    return {"recipients": recipients}
+
+
+@api_router.post("/admin/order-alert-recipients")
+async def create_admin_order_alert_recipient(
+    payload: AdminOrderAlertRecipientRequest,
+    admin: dict = Depends(require_admin),
+):
+    phone = normalize_indian_mobile(payload.phone)
+    document_id = admin_alert_phone_id(phone)
+
+    try:
+        (
+            firestore_db
+            .collection("adminNotificationRecipients")
+            .document(document_id)
+            .set(
+                {
+                    "phone": phone,
+                    "active": True,
+                    "createdByUid": admin.get("uid"),
+                    "updatedAt": firestore.SERVER_TIMESTAMP,
+                },
+                merge=True,
+            )
+        )
+    except Exception as exc:
+        logger.exception(
+            "Unable to save order alert recipient."
+        )
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Unable to save order alert recipient.",
+        ) from exc
+
+    return {
+        "ok": True,
+        "id": document_id,
+        "phone": phone,
+    }
+
+
+@api_router.delete(
+    "/admin/order-alert-recipients/{recipient_id}"
+)
+async def delete_admin_order_alert_recipient(
+    recipient_id: str,
+    admin: dict = Depends(require_admin),
+):
+    safe_id = "".join(
+        character
+        for character in recipient_id
+        if character.isdigit()
+    )
+
+    if len(safe_id) != 12 or not safe_id.startswith("91"):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid recipient.",
+        )
+
+    try:
+        (
+            firestore_db
+            .collection("adminNotificationRecipients")
+            .document(safe_id)
+            .delete()
+        )
+    except Exception as exc:
+        logger.exception(
+            "Unable to remove order alert recipient."
+        )
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Unable to remove order alert recipient.",
+        ) from exc
+
+    return {"ok": True}
+
+
+@api_router.post("/admin/order-alert-devices/register")
+async def register_admin_order_alert_device(
+    payload: AdminOrderAlertDeviceRequest,
+    admin: dict = Depends(require_admin),
+):
+    phone = normalize_indian_mobile(payload.phone)
+    recipient_id = admin_alert_phone_id(phone)
+
+    try:
+        recipient = (
+            firestore_db
+            .collection("adminNotificationRecipients")
+            .document(recipient_id)
+            .get()
+        )
+
+        if (
+            not recipient.exists
+            or (recipient.to_dict() or {}).get("active") is not True
+        ):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Add this mobile number to Order Alerts first.",
+            )
+
+        token = payload.expoPushToken.strip()
+
+        if not is_expo_push_token(token):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Invalid Expo push token.",
+            )
+
+        import hashlib
+
+        device_id = hashlib.sha256(
+            token.encode("utf-8")
+        ).hexdigest()
+
+        (
+            firestore_db
+            .collection("adminPushDevices")
+            .document(device_id)
+            .set(
+                {
+                    "phone": phone,
+                    "expoPushToken": token,
+                    "uid": admin.get("uid"),
+                    "deviceName": payload.deviceName,
+                    "platform": payload.platform,
+                    "active": True,
+                    "pushEnabled": True,
+                    "updatedAt": firestore.SERVER_TIMESTAMP,
+                },
+                merge=True,
+            )
+        )
+
+    except HTTPException:
+        raise
+
+    except Exception as exc:
+        logger.exception(
+            "Unable to register admin alert device."
+        )
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Unable to register this device.",
+        ) from exc
+
+    return {
+        "ok": True,
+        "phone": phone,
+        "deviceId": device_id,
+    }
+
 def get_active_admin_push_devices() -> list[dict]:
     """
-    Return active registered admin devices.
-
-    adminPushDevices is intentionally separate from pushTokens so
-    existing customer/delivery notification behavior remains unchanged.
+    Return active devices whose mobile numbers are selected
+    for customer-order notifications.
     """
 
     devices: list[dict] = []
     seen_tokens: set[str] = set()
 
     try:
-        documents = (
+        active_phones: set[str] = set()
+
+        for recipient_document in (
+            firestore_db
+            .collection("adminNotificationRecipients")
+            .stream()
+        ):
+            recipient_data = (
+                recipient_document.to_dict()
+                or {}
+            )
+
+            phone = recipient_data.get("phone")
+
+            if (
+                recipient_data.get("active") is True
+                and isinstance(phone, str)
+            ):
+                active_phones.add(phone)
+
+        if not active_phones:
+            return []
+
+        for document in (
             firestore_db
             .collection("adminPushDevices")
             .stream()
-        )
-
-        for document in documents:
+        ):
             data = document.to_dict() or {}
 
             token = data.get("expoPushToken")
+            phone = data.get("phone")
 
             if (
                 data.get("active") is True
                 and data.get("pushEnabled", True) is True
+                and phone in active_phones
                 and isinstance(token, str)
                 and is_expo_push_token(token.strip())
             ):
@@ -1819,9 +2092,7 @@ def get_active_admin_push_devices() -> list[dict]:
                     {
                         "id": document.id,
                         "token": clean_token,
-                        "voiceEnabled": (
-                            data.get("voiceEnabled", True) is True
-                        ),
+                        "phone": phone,
                         "uid": data.get("uid"),
                         "deviceName": data.get("deviceName"),
                     }
@@ -1829,15 +2100,15 @@ def get_active_admin_push_devices() -> list[dict]:
 
     except Exception as exc:
         logger.exception(
-            "Unable to read active admin push devices."
+            "Unable to read selected admin push devices."
         )
+
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Unable to read admin notification devices.",
         ) from exc
 
     return devices
-
 
 @api_router.post(
     "/orders/{order_id}/admin-notify"
@@ -1934,15 +2205,15 @@ async def admin_notify_for_new_order(
             detail="Unable to create order alert.",
         ) from exc
 
-    tokens = get_active_admin_push_tokens()
+    devices = get_active_admin_push_devices()
 
     accepted = 0
     failed = 0
 
-    # Admin devices are registered in pushTokens with role="admin".
-    # Notification carries the order ID so the app can preserve the
-    # intended order through the admin-login flow.
-    for token in tokens:
+    # Only devices paired with selected recipient mobile numbers
+    # receive new-order alerts. Device remains registered after logout.
+    for device in devices:
+        token = device["token"]
 
         push_message = {
             "to": token,
@@ -2115,5 +2386,3 @@ async def shutdown_db_client():
         logger.info(
             "Application shutdown complete."
         )
-
-
