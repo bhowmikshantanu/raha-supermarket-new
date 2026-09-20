@@ -991,7 +991,7 @@ function getStatusStyle(status: OrderStatus) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.background,
+    backgroundColor: "#F4F7FB",
   },
 
   loadingWrap: {
@@ -999,270 +999,340 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     padding: SPACING.xl,
+    backgroundColor: "#F4F7FB",
   },
 
   loadingTitle: {
     marginTop: SPACING.md,
-    fontSize: FONT.size.md,
-    fontWeight: FONT.weight.bold,
-    color: COLORS.textPrimary,
+    fontSize: 18,
+    fontWeight: "900",
+    color: "#0F172A",
   },
 
   loadingText: {
-    marginTop: 5,
-    fontSize: FONT.size.sm,
-    color: COLORS.textSecondary,
+    marginTop: 6,
+    fontSize: 12,
+    color: "#64748B",
   },
+
+  /* ---------- HEADER ---------- */
 
   header: {
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: SPACING.md,
-    paddingVertical: SPACING.md,
+    paddingHorizontal: 20,
+    paddingVertical: 16,
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.borderLight,
-    backgroundColor: COLORS.background,
+    borderBottomColor: "#E2E8F0",
+    backgroundColor: "#FFFFFF",
+    shadowColor: "#0F172A",
+    shadowOpacity: 0.05,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 2,
   },
 
   backButton: {
-    width: 42,
-    height: 42,
-    borderRadius: 21,
+    width: 44,
+    height: 44,
+    borderRadius: 14,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: COLORS.surface,
+    backgroundColor: "#F1F5F9",
+    borderWidth: 1,
+    borderColor: "#E2E8F0",
   },
 
   headerTextWrap: {
     flex: 1,
-    marginLeft: SPACING.sm,
+    marginLeft: 12,
   },
 
   title: {
-    fontSize: FONT.size.xl,
-    fontWeight: FONT.weight.bold,
-    color: COLORS.textPrimary,
+    fontSize: 22,
+    fontWeight: "900",
+    color: "#0F172A",
+    letterSpacing: -0.4,
   },
 
   subtitle: {
-    marginTop: 2,
-    fontSize: FONT.size.xs,
-    color: COLORS.textSecondary,
+    marginTop: 3,
+    fontSize: 12,
+    fontWeight: "500",
+    color: "#64748B",
   },
 
   liveBadge: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 5,
-    paddingHorizontal: 9,
-    paddingVertical: 6,
-    borderRadius: RADIUS.pill,
-    backgroundColor: COLORS.primaryLight,
+    gap: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 12,
+    backgroundColor: "#E7F8F1",
+    borderWidth: 1,
+    borderColor: "#CDEDE1",
   },
 
   liveDot: {
-    width: 7,
-    height: 7,
+    width: 8,
+    height: 8,
     borderRadius: 4,
-    backgroundColor: COLORS.primary,
+    backgroundColor: "#0F9F75",
   },
 
   liveText: {
     fontSize: 10,
-    fontWeight: FONT.weight.bold,
-    color: COLORS.primary,
+    fontWeight: "900",
+    color: "#087A5A",
+    letterSpacing: 0.3,
   },
 
+  /* ---------- MAIN CONTENT ---------- */
+
   listContent: {
-    padding: SPACING.md,
-    paddingBottom: SPACING.xxxl,
+    padding: 20,
+    paddingBottom: 60,
   },
+
+  /* ---------- KPI CARDS ---------- */
 
   statsGrid: {
     flexDirection: "row",
     flexWrap: "wrap",
-    gap: SPACING.sm,
+    gap: 12,
   },
 
   statCard: {
-    width: "48.5%",
-    padding: SPACING.md,
-    borderRadius: RADIUS.lg,
+    flexGrow: 1,
+    flexBasis: 190,
+    minWidth: 170,
+    minHeight: 105,
+    padding: 15,
+    borderRadius: 18,
     borderWidth: 1,
-    borderColor: COLORS.borderLight,
-    backgroundColor: COLORS.background,
-    ...SHADOW.card,
+    borderColor: "#E2E8F0",
+    backgroundColor: "#FFFFFF",
+    shadowColor: "#0F172A",
+    shadowOpacity: 0.055,
+    shadowRadius: 14,
+    shadowOffset: { width: 0, height: 5 },
+    elevation: 2,
   },
 
   statIcon: {
     width: 36,
     height: 36,
-    borderRadius: 18,
+    borderRadius: 11,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: COLORS.primaryLight,
+    backgroundColor: "#E8F7F3",
   },
 
   statValue: {
-    marginTop: 8,
-    fontSize: FONT.size.xl,
-    fontWeight: FONT.weight.bold,
-    color: COLORS.textPrimary,
+    marginTop: 9,
+    fontSize: 23,
+    fontWeight: "900",
+    color: "#102A43",
+    letterSpacing: -0.5,
   },
 
   statLabel: {
     marginTop: 2,
-    fontSize: FONT.size.xs,
-    color: COLORS.textSecondary,
+    fontSize: 10,
+    fontWeight: "700",
+    color: "#64748B",
+    textTransform: "uppercase",
+    letterSpacing: 0.4,
   },
 
+  /* ---------- ERROR ---------- */
+
   errorBanner: {
-    marginTop: SPACING.md,
+    marginTop: 14,
     flexDirection: "row",
     alignItems: "center",
-    gap: SPACING.sm,
-    padding: SPACING.md,
-    borderRadius: RADIUS.md,
-    backgroundColor: "#FEF2F2",
+    gap: 10,
+    padding: 14,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: "#FECDD3",
+    backgroundColor: "#FFF1F2",
   },
 
   errorText: {
     flex: 1,
-    fontSize: FONT.size.sm,
-    color: COLORS.danger,
+    fontSize: 12,
+    fontWeight: "600",
+    color: "#BE123C",
   },
 
+  /* ---------- SEARCH ---------- */
+
   searchBox: {
-    marginTop: SPACING.md,
-    height: 48,
+    marginTop: 16,
+    minHeight: 52,
     flexDirection: "row",
     alignItems: "center",
-    gap: SPACING.sm,
-    paddingHorizontal: SPACING.md,
-    borderRadius: RADIUS.lg,
+    gap: 10,
+    paddingHorizontal: 16,
+    borderRadius: 16,
     borderWidth: 1,
-    borderColor: COLORS.borderLight,
-    backgroundColor: COLORS.background,
+    borderColor: "#DDE5EF",
+    backgroundColor: "#FFFFFF",
+    shadowColor: "#0F172A",
+    shadowOpacity: 0.035,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 3 },
+    elevation: 1,
   },
 
   searchInput: {
     flex: 1,
-    fontSize: FONT.size.sm,
-    color: COLORS.textPrimary,
+    fontSize: 14,
+    fontWeight: "500",
+    color: "#0F172A",
   },
 
+  /* ---------- FILTERS ---------- */
+
   filterRow: {
-    gap: SPACING.sm,
-    paddingVertical: SPACING.md,
+    gap: 8,
+    paddingVertical: 14,
   },
 
   filterChip: {
-    paddingHorizontal: SPACING.md,
-    paddingVertical: 9,
-    borderRadius: RADIUS.pill,
+    minHeight: 38,
+    justifyContent: "center",
+    paddingHorizontal: 16,
+    borderRadius: 12,
     borderWidth: 1,
-    borderColor: COLORS.borderLight,
-    backgroundColor: COLORS.background,
+    borderColor: "#DDE5EF",
+    backgroundColor: "#FFFFFF",
   },
 
   filterChipActive: {
-    backgroundColor: COLORS.primary,
-    borderColor: COLORS.primary,
+    backgroundColor: "#102A43",
+    borderColor: "#102A43",
+    shadowColor: "#102A43",
+    shadowOpacity: 0.12,
+    shadowRadius: 5,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 1,
   },
 
   filterText: {
-    fontSize: FONT.size.xs,
-    fontWeight: FONT.weight.semibold,
-    color: COLORS.textSecondary,
+    fontSize: 11,
+    fontWeight: "700",
+    color: "#475569",
   },
 
   filterTextActive: {
-    color: COLORS.textOnPrimary,
+    color: "#FFFFFF",
   },
+
+  /* ---------- RESULT HEADER ---------- */
 
   resultsHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: SPACING.md,
+    marginTop: 2,
+    marginBottom: 12,
+    paddingHorizontal: 2,
   },
 
   resultsTitle: {
-    fontSize: FONT.size.md,
-    fontWeight: FONT.weight.bold,
-    color: COLORS.textPrimary,
+    fontSize: 14,
+    fontWeight: "900",
+    color: "#0F172A",
   },
 
   resultsHint: {
-    fontSize: FONT.size.xs,
-    color: COLORS.textMuted,
+    fontSize: 10,
+    fontWeight: "600",
+    color: "#94A3B8",
   },
+
+  /* ---------- EMPTY ---------- */
 
   emptyState: {
     alignItems: "center",
-    paddingVertical: SPACING.xxxl,
+    paddingVertical: 70,
   },
 
   emptyIcon: {
-    width: 72,
-    height: 72,
-    borderRadius: 36,
+    width: 76,
+    height: 76,
+    borderRadius: 24,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: COLORS.primaryLight,
+    backgroundColor: "#E8F7F3",
+    borderWidth: 1,
+    borderColor: "#CBE9E1",
   },
 
   emptyTitle: {
-    marginTop: SPACING.md,
-    fontSize: FONT.size.md,
-    fontWeight: FONT.weight.bold,
-    color: COLORS.textPrimary,
+    marginTop: 16,
+    fontSize: 18,
+    fontWeight: "900",
+    color: "#0F172A",
   },
 
   emptyText: {
-    marginTop: 5,
-    maxWidth: 280,
+    marginTop: 6,
+    maxWidth: 300,
     textAlign: "center",
-    fontSize: FONT.size.sm,
-    lineHeight: 20,
-    color: COLORS.textSecondary,
+    fontSize: 12,
+    lineHeight: 19,
+    color: "#64748B",
   },
 
+  /* ---------- ORDER CARD ---------- */
+
   orderCard: {
-    padding: SPACING.md,
-    borderRadius: RADIUS.xl,
+    padding: 17,
+    borderRadius: 18,
     borderWidth: 1,
-    borderColor: COLORS.borderLight,
-    backgroundColor: COLORS.background,
-    ...SHADOW.card,
+    borderColor: "#E1E8F0",
+    backgroundColor: "#FFFFFF",
+    shadowColor: "#0F172A",
+    shadowOpacity: 0.06,
+    shadowRadius: 15,
+    shadowOffset: { width: 0, height: 5 },
+    elevation: 2,
   },
 
   orderTopRow: {
     flexDirection: "row",
     alignItems: "flex-start",
     justifyContent: "space-between",
-    gap: SPACING.sm,
+    gap: 12,
   },
 
   orderId: {
-    fontSize: FONT.size.md,
-    fontWeight: FONT.weight.bold,
-    color: COLORS.textPrimary,
+    fontSize: 15,
+    fontWeight: "900",
+    color: "#102A43",
+    letterSpacing: -0.2,
   },
 
   orderTime: {
-    marginTop: 3,
-    fontSize: FONT.size.xs,
-    color: COLORS.textMuted,
+    marginTop: 4,
+    fontSize: 10,
+    fontWeight: "500",
+    color: "#94A3B8",
   },
+
+  /* ---------- STATUS ---------- */
 
   statusBadge: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 5,
-    paddingHorizontal: 9,
-    paddingVertical: 6,
-    borderRadius: RADIUS.pill,
+    gap: 6,
+    minHeight: 30,
+    paddingHorizontal: 11,
+    borderRadius: 10,
   },
 
   statusDot: {
@@ -1273,156 +1343,186 @@ const styles = StyleSheet.create({
 
   statusText: {
     fontSize: 10,
-    fontWeight: FONT.weight.bold,
+    fontWeight: "900",
   },
 
+  /* ---------- CUSTOMER ---------- */
+
   customerRow: {
-    marginTop: SPACING.md,
+    marginTop: 15,
     flexDirection: "row",
     alignItems: "center",
+    paddingTop: 14,
+    borderTopWidth: 1,
+    borderTopColor: "#EEF2F6",
   },
 
   customerIcon: {
-    width: 38,
-    height: 38,
-    borderRadius: 19,
+    width: 42,
+    height: 42,
+    borderRadius: 13,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: COLORS.primaryLight,
+    backgroundColor: "#E8F7F3",
+    borderWidth: 1,
+    borderColor: "#D4EEE7",
   },
 
   customerContent: {
     flex: 1,
-    marginLeft: SPACING.sm,
+    marginLeft: 11,
   },
 
   customerName: {
-    fontSize: FONT.size.sm,
-    fontWeight: FONT.weight.semibold,
-    color: COLORS.textPrimary,
+    fontSize: 13,
+    fontWeight: "800",
+    color: "#0F172A",
   },
 
   customerMeta: {
-    marginTop: 2,
-    fontSize: FONT.size.xs,
-    color: COLORS.textSecondary,
+    marginTop: 3,
+    fontSize: 10,
+    color: "#64748B",
   },
 
   totalWrap: {
     alignItems: "flex-end",
+    paddingLeft: 12,
   },
 
   totalLabel: {
-    fontSize: 10,
-    color: COLORS.textMuted,
+    fontSize: 9,
+    fontWeight: "700",
+    color: "#94A3B8",
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
   },
 
   totalValue: {
-    marginTop: 2,
-    fontSize: FONT.size.md,
-    fontWeight: FONT.weight.bold,
-    color: COLORS.textPrimary,
+    marginTop: 3,
+    fontSize: 17,
+    fontWeight: "900",
+    color: "#102A43",
   },
 
+  /* ---------- SUMMARY ---------- */
+
   summaryRow: {
-    marginTop: SPACING.md,
+    marginTop: 13,
     flexDirection: "row",
     alignItems: "center",
-    gap: SPACING.sm,
+    flexWrap: "wrap",
+    gap: 7,
   },
 
   summaryPill: {
+    minHeight: 30,
     flexDirection: "row",
     alignItems: "center",
     gap: 5,
-    paddingHorizontal: 9,
-    paddingVertical: 6,
-    borderRadius: RADIUS.pill,
-    backgroundColor: COLORS.surface,
+    paddingHorizontal: 10,
+    borderRadius: 9,
+    borderWidth: 1,
+    borderColor: "#E2E8F0",
+    backgroundColor: "#F8FAFC",
   },
 
   summaryText: {
     fontSize: 10,
-    color: COLORS.textSecondary,
+    fontWeight: "600",
+    color: "#475569",
   },
 
+  /* ---------- EXPANDED ORDER ---------- */
+
   expandedContent: {
-    marginTop: SPACING.sm,
+    marginTop: 12,
   },
 
   divider: {
     height: 1,
-    backgroundColor: COLORS.borderLight,
-    marginVertical: SPACING.md,
+    backgroundColor: "#E8EDF3",
+    marginVertical: 16,
   },
 
   detailSectionTitle: {
-    marginBottom: SPACING.sm,
-    fontSize: FONT.size.sm,
-    fontWeight: FONT.weight.bold,
-    color: COLORS.textPrimary,
+    marginBottom: 10,
+    fontSize: 12,
+    fontWeight: "900",
+    color: "#102A43",
+    textTransform: "uppercase",
+    letterSpacing: 0.4,
   },
+
+  /* ---------- ADDRESS ---------- */
 
   addressBox: {
     flexDirection: "row",
     alignItems: "flex-start",
-    gap: SPACING.sm,
-    padding: SPACING.md,
-    borderRadius: RADIUS.md,
-    backgroundColor: COLORS.surface,
+    gap: 10,
+    padding: 14,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: "#E2E8F0",
+    backgroundColor: "#F8FAFC",
   },
 
   addressText: {
     flex: 1,
-    fontSize: FONT.size.sm,
-    lineHeight: 20,
-    color: COLORS.textSecondary,
+    fontSize: 12,
+    lineHeight: 19,
+    color: "#475569",
   },
 
   instructionsBox: {
-    marginTop: SPACING.sm,
+    marginTop: 9,
     flexDirection: "row",
     alignItems: "flex-start",
-    gap: SPACING.sm,
-    padding: SPACING.sm,
-    borderRadius: RADIUS.md,
-    backgroundColor: COLORS.surface,
+    gap: 9,
+    padding: 12,
+    borderRadius: 12,
+    backgroundColor: "#FFF7DF",
+    borderWidth: 1,
+    borderColor: "#F4D98B",
   },
 
   instructionsText: {
     flex: 1,
-    fontSize: FONT.size.xs,
-    lineHeight: 18,
-    color: COLORS.textSecondary,
+    fontSize: 11,
+    lineHeight: 17,
+    color: "#7C5A0A",
   },
 
+  /* ---------- ITEMS ---------- */
+
   itemsBox: {
-    borderRadius: RADIUS.md,
+    borderRadius: 14,
     borderWidth: 1,
-    borderColor: COLORS.borderLight,
+    borderColor: "#E2E8F0",
     overflow: "hidden",
+    backgroundColor: "#FFFFFF",
   },
 
   itemRow: {
     flexDirection: "row",
     alignItems: "center",
-    padding: SPACING.md,
-    backgroundColor: COLORS.background,
+    padding: 14,
+    backgroundColor: "#FFFFFF",
   },
 
   itemRowBorder: {
     borderTopWidth: 1,
-    borderTopColor: COLORS.borderLight,
+    borderTopColor: "#EEF2F6",
   },
 
   itemQuantity: {
-    minWidth: 34,
+    minWidth: 40,
   },
 
   itemQuantityText: {
-    fontSize: FONT.size.sm,
-    fontWeight: FONT.weight.bold,
-    color: COLORS.primary,
+    fontSize: 12,
+    fontWeight: "900",
+    color: "#0F766E",
   },
 
   itemContent: {
@@ -1430,187 +1530,216 @@ const styles = StyleSheet.create({
   },
 
   itemName: {
-    fontSize: FONT.size.sm,
-    fontWeight: FONT.weight.semibold,
-    color: COLORS.textPrimary,
+    fontSize: 12,
+    fontWeight: "800",
+    color: "#0F172A",
   },
 
   itemSize: {
-    marginTop: 2,
-    fontSize: FONT.size.xs,
-    color: COLORS.textMuted,
+    marginTop: 3,
+    fontSize: 10,
+    color: "#94A3B8",
   },
 
   itemPrice: {
-    fontSize: FONT.size.sm,
-    fontWeight: FONT.weight.semibold,
-    color: COLORS.textPrimary,
+    fontSize: 12,
+    fontWeight: "900",
+    color: "#102A43",
   },
 
+  /* ---------- BILL ---------- */
+
   billBox: {
-    marginTop: SPACING.md,
-    padding: SPACING.md,
-    borderRadius: RADIUS.md,
-    backgroundColor: COLORS.surface,
+    marginTop: 14,
+    padding: 15,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: "#DDE5EF",
+    backgroundColor: "#F8FAFC",
   },
 
   billRow: {
     flexDirection: "row",
     justifyContent: "space-between",
-    marginVertical: 4,
+    marginVertical: 5,
   },
 
   billLabel: {
-    fontSize: FONT.size.sm,
-    color: COLORS.textSecondary,
+    fontSize: 12,
+    color: "#64748B",
   },
 
   billValue: {
-    fontSize: FONT.size.sm,
-    color: COLORS.textPrimary,
+    fontSize: 12,
+    fontWeight: "600",
+    color: "#334155",
   },
 
   billStrong: {
-    fontWeight: FONT.weight.bold,
-    color: COLORS.textPrimary,
+    fontWeight: "900",
+    color: "#102A43",
   },
 
   billDivider: {
     height: 1,
-    backgroundColor: COLORS.borderLight,
-    marginVertical: SPACING.sm,
+    backgroundColor: "#DDE5EF",
+    marginVertical: 10,
   },
 
+  /* ---------- ACTIONS ---------- */
+
   actionRow: {
-    marginTop: SPACING.md,
+    marginTop: 16,
     flexDirection: "row",
-    gap: SPACING.sm,
+    flexWrap: "wrap",
+    gap: 9,
   },
 
   primaryAction: {
     flex: 1,
-    minHeight: 46,
+    minWidth: 150,
+    minHeight: 47,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
     gap: 7,
-    paddingHorizontal: SPACING.md,
-    borderRadius: RADIUS.md,
-    backgroundColor: COLORS.primary,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    backgroundColor: "#102A43",
+    shadowColor: "#102A43",
+    shadowOpacity: 0.15,
+    shadowRadius: 7,
+    shadowOffset: { width: 0, height: 3 },
+    elevation: 2,
   },
 
   primaryActionText: {
-    fontSize: FONT.size.sm,
-    fontWeight: FONT.weight.bold,
-    color: COLORS.textOnPrimary,
+    fontSize: 12,
+    fontWeight: "900",
+    color: "#FFFFFF",
   },
 
   cancelAction: {
-    minHeight: 46,
+    minHeight: 47,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
     gap: 6,
-    paddingHorizontal: SPACING.md,
-    borderRadius: RADIUS.md,
+    paddingHorizontal: 16,
+    borderRadius: 12,
     borderWidth: 1,
-    borderColor: COLORS.danger,
-    backgroundColor: COLORS.background,
+    borderColor: "#F1B8B8",
+    backgroundColor: "#FDECEC",
   },
 
   cancelActionText: {
-    fontSize: FONT.size.sm,
-    fontWeight: FONT.weight.bold,
-    color: COLORS.danger,
+    fontSize: 12,
+    fontWeight: "900",
+    color: "#C53030",
   },
 
   actionDisabled: {
-    opacity: 0.6,
+    opacity: 0.48,
   },
 
   assignAction: {
-    minHeight: 46,
+    minHeight: 47,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    gap: 6,
-    paddingHorizontal: SPACING.md,
-    borderRadius: RADIUS.md,
+    gap: 7,
+    paddingHorizontal: 16,
+    borderRadius: 12,
     borderWidth: 1,
-    borderColor: COLORS.primary,
-    backgroundColor: COLORS.primaryLight,
-  },
-  assignActionText: {
-    fontSize: FONT.size.sm,
-    fontWeight: FONT.weight.bold,
-    color: COLORS.primary,
+    borderColor: "#CDE7E2",
+    backgroundColor: "#E7F8F1",
   },
 
+  assignActionText: {
+    fontSize: 12,
+    fontWeight: "900",
+    color: "#087A5A",
+  },
+
+  /* ---------- RIDER ---------- */
+
   riderInfoBox: {
-    marginTop: SPACING.md,
+    marginTop: 14,
     flexDirection: "row",
     alignItems: "center",
-    gap: SPACING.sm,
-    padding: SPACING.md,
-    borderRadius: RADIUS.md,
-    backgroundColor: COLORS.primarySoft,
+    gap: 11,
+    padding: 14,
+    borderRadius: 14,
+    backgroundColor: "#EEF6FF",
     borderWidth: 1,
-    borderColor: COLORS.primaryLight,
+    borderColor: "#D4E6F8",
   },
+
   riderInfoIcon: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 40,
+    height: 40,
+    borderRadius: 12,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: COLORS.background,
+    backgroundColor: "#FFFFFF",
+    borderWidth: 1,
+    borderColor: "#DDE8F3",
   },
+
   riderInfoLabel: {
-    fontSize: 10,
-    fontWeight: FONT.weight.bold,
-    color: COLORS.textMuted,
-    letterSpacing: 0.5,
+    fontSize: 9,
+    fontWeight: "900",
+    color: "#64748B",
+    letterSpacing: 0.6,
     textTransform: "uppercase",
   },
+
   riderInfoName: {
-    marginTop: 2,
-    fontSize: FONT.size.sm,
-    fontWeight: FONT.weight.bold,
-    color: COLORS.textPrimary,
+    marginTop: 3,
+    fontSize: 13,
+    fontWeight: "900",
+    color: "#102A43",
   },
+
   riderInfoMeta: {
-    marginTop: 2,
-    fontSize: FONT.size.xs,
-    color: COLORS.textSecondary,
+    marginTop: 3,
+    fontSize: 10,
+    color: "#64748B",
   },
+
   riderInfoDelivered: {
-    marginTop: 2,
-    fontSize: FONT.size.xs,
-    fontWeight: FONT.weight.semibold,
+    marginTop: 3,
+    fontSize: 10,
+    fontWeight: "800",
     color: "#15803D",
   },
 
   riderStrip: {
-    marginTop: SPACING.sm,
+    marginTop: 10,
     flexDirection: "row",
     alignItems: "center",
-    gap: 6,
-    paddingHorizontal: SPACING.sm,
-    paddingVertical: 7,
-    borderRadius: RADIUS.md,
-    backgroundColor: COLORS.surface,
+    gap: 7,
+    paddingHorizontal: 11,
+    paddingVertical: 9,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: "#E2E8F0",
+    backgroundColor: "#F8FAFC",
   },
+
   riderStripActive: {
     backgroundColor: "#E0F2FE",
+    borderColor: "#BAE6FD",
   },
+
   riderStripText: {
     flex: 1,
-    fontSize: FONT.size.xs,
-    fontWeight: FONT.weight.semibold,
-    color: COLORS.textSecondary,
+    fontSize: 10,
+    fontWeight: "700",
+    color: "#64748B",
   },
+
   riderStripDelivered: {
     color: "#15803D",
   },
 });
-
