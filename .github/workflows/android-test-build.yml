@@ -38,7 +38,7 @@ jobs:
           distribution: temurin
           java-version: "17"
 
-- name: Install Android packages
+      - name: Install Android packages
         run: |
           yes | sdkmanager --licenses >/dev/null || true
           sdkmanager \
