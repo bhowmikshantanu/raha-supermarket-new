@@ -1281,41 +1281,39 @@ function showMessage(
 }
 
 const styles =
+  const styles =
   StyleSheet.create({
     container: {
       flex: 1,
-      backgroundColor:
-        COLORS.background,
+      backgroundColor: "#F4F7FB",
     },
 
+    /* ---------- PREMIUM HEADER ---------- */
     header: {
-      flexDirection:
-        "row",
-      alignItems:
-        "center",
-      paddingHorizontal:
-        SPACING.lg,
-      paddingVertical:
-        SPACING.md,
-      gap:
-        SPACING.md,
-      backgroundColor:
-        COLORS.surface,
+      flexDirection: "row",
+      alignItems: "center",
+      paddingHorizontal: 20,
+      paddingVertical: 16,
+      gap: 12,
+      backgroundColor: "#FFFFFF",
       borderBottomWidth: 1,
-      borderBottomColor:
-        COLORS.border,
+      borderBottomColor: "#E2E8F0",
+      shadowColor: "#0F172A",
+      shadowOpacity: 0.05,
+      shadowRadius: 12,
+      shadowOffset: { width: 0, height: 4 },
+      elevation: 2,
     },
 
     backButton: {
-      width: 42,
-      height: 42,
-      borderRadius: 21,
-      alignItems:
-        "center",
-      justifyContent:
-        "center",
-      backgroundColor:
-        COLORS.background,
+      width: 44,
+      height: 44,
+      borderRadius: 14,
+      alignItems: "center",
+      justifyContent: "center",
+      backgroundColor: "#F1F5F9",
+      borderWidth: 1,
+      borderColor: "#E2E8F0",
     },
 
     headerTextWrap: {
@@ -1324,450 +1322,442 @@ const styles =
 
     heading: {
       fontSize: 22,
-      fontWeight:
-        "700",
-      color:
-        COLORS.textPrimary,
+      fontWeight: "900",
+      color: "#0F172A",
+      letterSpacing: -0.4,
     },
 
     subheading: {
-      marginTop: 2,
-      fontSize: 13,
-      color:
-        COLORS.textSecondary,
+      marginTop: 3,
+      fontSize: 12,
+      fontWeight: "500",
+      color: "#64748B",
     },
 
     addButton: {
-      width: 44,
-      height: 44,
-      borderRadius: 22,
-      alignItems:
-        "center",
-      justifyContent:
-        "center",
-      backgroundColor:
-        COLORS.primary,
+      width: 46,
+      height: 46,
+      borderRadius: 14,
+      alignItems: "center",
+      justifyContent: "center",
+      backgroundColor: "#D69E2E",
+      shadowColor: "#D69E2E",
+      shadowOpacity: 0.25,
+      shadowRadius: 9,
+      shadowOffset: {
+        width: 0,
+        height: 4,
+      },
+      elevation: 3,
     },
 
+    /* ---------- STATS ---------- */
     statsRow: {
-      flexDirection:
-        "row",
-      gap:
-        SPACING.sm,
-      paddingHorizontal:
-        SPACING.lg,
-      paddingTop:
-        SPACING.lg,
+      flexDirection: "row",
+      gap: 12,
+      paddingHorizontal: 20,
+      paddingTop: 18,
     },
 
     statCard: {
       flex: 1,
-      backgroundColor:
-        COLORS.surface,
-      borderRadius:
-        RADIUS.md,
-      padding:
-        SPACING.md,
-      alignItems:
-        "center",
-      ...SHADOW.card,
+      minHeight: 96,
+      backgroundColor: "#FFFFFF",
+      borderRadius: 18,
+      padding: 16,
+      alignItems: "flex-start",
+      justifyContent: "center",
+      borderWidth: 1,
+      borderColor: "#E2E8F0",
+      shadowColor: "#0F172A",
+      shadowOpacity: 0.055,
+      shadowRadius: 14,
+      shadowOffset: {
+        width: 0,
+        height: 5,
+      },
+      elevation: 2,
     },
 
     statValue: {
-      fontSize: 22,
-      fontWeight:
-        "700",
-      color:
-        COLORS.primary,
+      fontSize: 25,
+      fontWeight: "900",
+      color: "#102A43",
+      letterSpacing: -0.7,
     },
 
     statLabel: {
-      marginTop: 4,
-      fontSize: 12,
-      color:
-        COLORS.textSecondary,
+      marginTop: 5,
+      fontSize: 11,
+      fontWeight: "700",
+      color: "#64748B",
+      textTransform: "uppercase",
+      letterSpacing: 0.5,
     },
 
+    /* ---------- SEARCH ---------- */
     searchWrap: {
-      flexDirection:
-        "row",
-      alignItems:
-        "center",
-      marginHorizontal:
-        SPACING.lg,
-      marginVertical:
-        SPACING.md,
+      flexDirection: "row",
+      alignItems: "center",
+      marginHorizontal: 20,
+      marginVertical: 16,
       borderWidth: 1,
-      borderColor:
-        COLORS.border,
-      backgroundColor:
-        COLORS.surface,
-      borderRadius:
-        RADIUS.md,
-      paddingHorizontal:
-        SPACING.md,
-      minHeight: 48,
-      gap:
-        SPACING.sm,
+      borderColor: "#DDE5EF",
+      backgroundColor: "#FFFFFF",
+      borderRadius: 16,
+      paddingHorizontal: 16,
+      minHeight: 52,
+      gap: 10,
+      shadowColor: "#0F172A",
+      shadowOpacity: 0.035,
+      shadowRadius: 10,
+      shadowOffset: {
+        width: 0,
+        height: 3,
+      },
+      elevation: 1,
     },
 
     searchInput: {
       flex: 1,
-      color:
-        COLORS.textPrimary,
-      fontSize: 15,
+      color: "#0F172A",
+      fontSize: 14,
+      fontWeight: "500",
     },
 
+    /* ---------- ERROR ---------- */
     errorCard: {
-      flexDirection:
-        "row",
-      alignItems:
-        "center",
-      gap:
-        SPACING.sm,
-      marginHorizontal:
-        SPACING.lg,
-      marginBottom:
-        SPACING.md,
-      padding:
-        SPACING.md,
-      backgroundColor:
-        COLORS.surface,
-      borderRadius:
-        RADIUS.md,
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 10,
+      marginHorizontal: 20,
+      marginBottom: 14,
+      padding: 14,
+      backgroundColor: "#FFF1F2",
+      borderRadius: 14,
       borderWidth: 1,
-      borderColor:
-        COLORS.danger,
+      borderColor: "#FECDD3",
     },
 
     errorText: {
       flex: 1,
-      color:
-        COLORS.danger,
+      color: "#BE123C",
       fontSize: 13,
+      fontWeight: "600",
     },
 
     center: {
       flex: 1,
-      alignItems:
-        "center",
-      justifyContent:
-        "center",
+      alignItems: "center",
+      justifyContent: "center",
     },
 
     loadingText: {
-      color:
-        COLORS.textSecondary,
+      color: "#64748B",
+      fontWeight: "600",
     },
 
+    /* ---------- CATEGORY LIST ---------- */
     list: {
-      paddingHorizontal:
-        SPACING.lg,
-      paddingBottom: 40,
+      paddingHorizontal: 20,
+      paddingBottom: 50,
     },
 
     categoryCard: {
-      flexDirection:
-        "row",
-      alignItems:
-        "center",
-      backgroundColor:
-        COLORS.surface,
-      borderRadius:
-        RADIUS.lg,
-      padding:
-        SPACING.md,
-      marginBottom:
-        SPACING.md,
-      ...SHADOW.card,
+      flexDirection: "row",
+      alignItems: "center",
+      backgroundColor: "#FFFFFF",
+      borderRadius: 18,
+      padding: 16,
+      marginBottom: 12,
+      borderWidth: 1,
+      borderColor: "#E1E8F0",
+      shadowColor: "#0F172A",
+      shadowOpacity: 0.06,
+      shadowRadius: 15,
+      shadowOffset: {
+        width: 0,
+        height: 5,
+      },
+      elevation: 2,
     },
 
     categoryIconWrap: {
-      width: 48,
-      height: 48,
-      borderRadius: 24,
-      alignItems:
-        "center",
-      justifyContent:
-        "center",
-      backgroundColor:
-        COLORS.background,
+      width: 54,
+      height: 54,
+      borderRadius: 16,
+      alignItems: "center",
+      justifyContent: "center",
+      backgroundColor: "#E8F7F3",
+      borderWidth: 1,
+      borderColor: "#CBE9E1",
     },
 
     categoryInfo: {
       flex: 1,
-      marginLeft:
-        SPACING.md,
+      marginLeft: 15,
     },
 
     categoryName: {
       fontSize: 16,
-      fontWeight:
-        "700",
-      color:
-        COLORS.textPrimary,
+      fontWeight: "900",
+      color: "#0F172A",
     },
 
     categoryMeta: {
-      marginTop: 4,
-      fontSize: 12,
-      color:
-        COLORS.textSecondary,
+      marginTop: 5,
+      fontSize: 11,
+      fontWeight: "500",
+      color: "#64748B",
     },
 
     statusText: {
-      marginTop: 5,
-      fontSize: 12,
-      fontWeight:
-        "600",
-      color:
-        COLORS.primary,
+      alignSelf: "flex-start",
+      marginTop: 8,
+      fontSize: 10,
+      fontWeight: "800",
+      color: "#087A5A",
+      backgroundColor: "#E7F8F1",
+      paddingHorizontal: 9,
+      paddingVertical: 5,
+      borderRadius: 8,
+      overflow: "hidden",
     },
 
     inactiveText: {
-      color:
-        COLORS.textMuted,
+      color: "#64748B",
+      backgroundColor: "#EEF2F6",
     },
 
     categoryActions: {
-      flexDirection:
-        "row",
-      alignItems:
-        "center",
+      flexDirection: "row",
+      alignItems: "center",
       gap: 8,
     },
 
     iconButton: {
-      width: 36,
-      height: 36,
-      borderRadius: 18,
-      alignItems:
-        "center",
-      justifyContent:
-        "center",
-      backgroundColor:
-        COLORS.background,
+      width: 39,
+      height: 39,
+      borderRadius: 12,
+      alignItems: "center",
+      justifyContent: "center",
+      backgroundColor: "#F8FAFC",
+      borderWidth: 1,
+      borderColor: "#E2E8F0",
     },
 
+    /* ---------- EMPTY STATE ---------- */
     emptyWrap: {
-      alignItems:
-        "center",
+      alignItems: "center",
+      justifyContent: "center",
       paddingTop: 80,
+      paddingHorizontal: 24,
     },
 
     emptyTitle: {
-      marginTop:
-        SPACING.md,
-      fontSize: 17,
-      fontWeight:
-        "700",
-      color:
-        COLORS.textPrimary,
+      marginTop: 16,
+      fontSize: 18,
+      fontWeight: "900",
+      color: "#0F172A",
     },
 
     emptyText: {
-      marginTop: 5,
-      color:
-        COLORS.textSecondary,
+      marginTop: 6,
+      fontSize: 13,
+      color: "#64748B",
+      textAlign: "center",
     },
+
     initializeButton: {
-      marginTop: SPACING.lg,
+      marginTop: 20,
       minHeight: 48,
-      paddingHorizontal: SPACING.lg,
-      borderRadius: RADIUS.md,
-      backgroundColor: COLORS.primary,
+      paddingHorizontal: 20,
+      borderRadius: 13,
+      backgroundColor: "#102A43",
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "center",
-      gap: SPACING.sm,
+      gap: 8,
+      shadowColor: "#102A43",
+      shadowOpacity: 0.16,
+      shadowRadius: 9,
+      shadowOffset: {
+        width: 0,
+        height: 4,
+      },
+      elevation: 2,
     },
 
     initializeButtonText: {
-      color: COLORS.textOnPrimary,
-      fontSize: 14,
-      fontWeight: "700",
+      color: "#FFFFFF",
+      fontSize: 13,
+      fontWeight: "800",
     },
 
+    /* ---------- MODAL ---------- */
     modalBackdrop: {
       flex: 1,
-      backgroundColor:
-        "rgba(0,0,0,0.45)",
-      alignItems:
-        "center",
-      justifyContent:
-        "center",
+      backgroundColor: "rgba(15,23,42,0.64)",
+      alignItems: "center",
+      justifyContent: "center",
       padding: 20,
     },
 
     modalCard: {
       width: "100%",
-      maxWidth: 560,
+      maxWidth: 580,
       maxHeight: "90%",
-      backgroundColor:
-        COLORS.surface,
-      borderRadius:
-        RADIUS.lg,
-      overflow:
-        "hidden",
+      backgroundColor: "#FFFFFF",
+      borderRadius: 22,
+      overflow: "hidden",
+      borderWidth: 1,
+      borderColor: "#E2E8F0",
+      shadowColor: "#000000",
+      shadowOpacity: 0.18,
+      shadowRadius: 28,
+      shadowOffset: {
+        width: 0,
+        height: 12,
+      },
+      elevation: 8,
     },
 
     modalContent: {
-      padding:
-        SPACING.lg,
+      padding: 24,
     },
 
     modalHeader: {
-      flexDirection:
-        "row",
-      justifyContent:
-        "space-between",
-      alignItems:
-        "flex-start",
-      marginBottom:
-        SPACING.lg,
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "flex-start",
+      marginBottom: 22,
+      paddingBottom: 18,
+      borderBottomWidth: 1,
+      borderBottomColor: "#E8EDF3",
     },
 
     modalTitle: {
-      fontSize: 20,
-      fontWeight:
-        "700",
-      color:
-        COLORS.textPrimary,
+      fontSize: 21,
+      fontWeight: "900",
+      color: "#0F172A",
+      letterSpacing: -0.3,
     },
 
     modalSubtitle: {
-      marginTop: 4,
-      fontSize: 12,
-      color:
-        COLORS.textSecondary,
+      marginTop: 5,
+      fontSize: 11,
+      color: "#64748B",
     },
 
+    /* ---------- FORM ---------- */
     fieldWrap: {
-      marginBottom:
-        SPACING.md,
+      marginBottom: 16,
     },
 
     fieldLabel: {
-      marginBottom: 6,
-      fontSize: 13,
-      fontWeight:
-        "600",
-      color:
-        COLORS.textPrimary,
+      marginBottom: 7,
+      fontSize: 12,
+      fontWeight: "800",
+      color: "#334155",
     },
 
     fieldInput: {
       borderWidth: 1,
-      borderColor:
-        COLORS.border,
-      borderRadius:
-        RADIUS.md,
-      backgroundColor:
-        COLORS.background,
-      minHeight: 48,
-      paddingHorizontal:
-        SPACING.md,
-      color:
-        COLORS.textPrimary,
+      borderColor: "#DDE5EF",
+      borderRadius: 13,
+      backgroundColor: "#F8FAFC",
+      minHeight: 50,
+      paddingHorizontal: 15,
+      color: "#0F172A",
+      fontSize: 14,
     },
 
     fieldDisabled: {
-      opacity: 0.6,
+      opacity: 0.58,
+      backgroundColor: "#EEF2F6",
     },
 
     helperText: {
-      marginTop: -6,
-      marginBottom:
-        SPACING.md,
-      fontSize: 12,
-      color:
-        COLORS.textSecondary,
+      marginTop: -7,
+      marginBottom: 16,
+      fontSize: 11,
+      lineHeight: 16,
+      color: "#64748B",
     },
 
+    /* ---------- ACTIVE SWITCH ---------- */
     switchRow: {
-      flexDirection:
-        "row",
-      alignItems:
-        "center",
-      justifyContent:
-        "space-between",
-      marginTop:
-        SPACING.sm,
-      paddingVertical:
-        SPACING.md,
-      borderTopWidth: 1,
-      borderBottomWidth: 1,
-      borderColor:
-        COLORS.border,
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      marginTop: 5,
+      padding: 15,
+      borderWidth: 1,
+      borderColor: "#DDE5EF",
+      borderRadius: 14,
+      backgroundColor: "#F8FAFC",
     },
 
     switchTitle: {
       fontSize: 14,
-      fontWeight:
-        "600",
-      color:
-        COLORS.textPrimary,
+      fontWeight: "800",
+      color: "#0F172A",
     },
 
     switchSubtitle: {
-      marginTop: 3,
+      marginTop: 4,
       maxWidth: 360,
-      fontSize: 12,
-      color:
-        COLORS.textSecondary,
+      fontSize: 11,
+      lineHeight: 16,
+      color: "#64748B",
     },
 
+    /* ---------- MODAL ACTIONS ---------- */
     modalActions: {
-      flexDirection:
-        "row",
-      gap:
-        SPACING.md,
-      marginTop:
-        SPACING.lg,
+      flexDirection: "row",
+      gap: 12,
+      marginTop: 22,
     },
 
     cancelButton: {
       flex: 1,
-      minHeight: 48,
-      alignItems:
-        "center",
-      justifyContent:
-        "center",
-      borderRadius:
-        RADIUS.md,
+      minHeight: 50,
+      alignItems: "center",
+      justifyContent: "center",
+      borderRadius: 13,
       borderWidth: 1,
-      borderColor:
-        COLORS.border,
+      borderColor: "#CBD5E1",
+      backgroundColor: "#FFFFFF",
     },
 
     cancelButtonText: {
-      color:
-        COLORS.textPrimary,
-      fontWeight:
-        "600",
+      color: "#475569",
+      fontWeight: "800",
     },
 
     saveButton: {
       flex: 1,
-      minHeight: 48,
-      alignItems:
-        "center",
-      justifyContent:
-        "center",
-      borderRadius:
-        RADIUS.md,
-      backgroundColor:
-        COLORS.primary,
+      minHeight: 50,
+      alignItems: "center",
+      justifyContent: "center",
+      borderRadius: 13,
+      backgroundColor: "#102A43",
+      shadowColor: "#102A43",
+      shadowOpacity: 0.17,
+      shadowRadius: 8,
+      shadowOffset: {
+        width: 0,
+        height: 4,
+      },
+      elevation: 2,
     },
 
     saveButtonText: {
-      color:
-        COLORS.textOnPrimary,
-      fontWeight:
-        "700",
+      color: "#FFFFFF",
+      fontWeight: "900",
     },
 
     disabledButton: {
-      opacity: 0.55,
+      opacity: 0.5,
     },
   });
