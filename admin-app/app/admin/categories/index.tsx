@@ -1281,8 +1281,7 @@ function showMessage(
 }
 
 const styles =
-  const styles =
-  StyleSheet.create({
+   StyleSheet.create({
     container: {
       flex: 1,
       backgroundColor: "#F4F7FB",
