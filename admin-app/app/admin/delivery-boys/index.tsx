@@ -266,191 +266,293 @@ export default function AdminDeliveryBoysScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: COLORS.background },
+  container: {
+    flex: 1,
+    backgroundColor: "#F4F7FB",
+  },
+
+  /* ---------- HEADER ---------- */
   header: {
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: SPACING.md,
-    paddingVertical: SPACING.md,
+    paddingHorizontal: 20,
+    paddingVertical: 16,
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.borderLight,
-    backgroundColor: COLORS.background,
+    borderBottomColor: "#E2E8F0",
+    backgroundColor: "#FFFFFF",
+    shadowColor: "#0F172A",
+    shadowOpacity: 0.05,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 2,
   },
+
   backButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 44,
+    height: 44,
+    borderRadius: 14,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: COLORS.surface,
+    backgroundColor: "#F1F5F9",
+    borderWidth: 1,
+    borderColor: "#E2E8F0",
   },
-  headerText: { flex: 1, marginLeft: SPACING.sm },
+
+  headerText: {
+    flex: 1,
+    marginLeft: 12,
+  },
+
   title: {
-    fontSize: FONT.size.xl,
-    fontWeight: FONT.weight.bold,
-    color: COLORS.textPrimary,
+    fontSize: 22,
+    fontWeight: "900",
+    color: "#0F172A",
+    letterSpacing: -0.4,
   },
+
   subtitle: {
-    marginTop: 2,
-    fontSize: FONT.size.xs,
-    color: COLORS.textSecondary,
+    marginTop: 3,
+    fontSize: 12,
+    fontWeight: "500",
+    color: "#64748B",
   },
+
   addButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 46,
+    height: 46,
+    borderRadius: 14,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: COLORS.primary,
-    ...SHADOW.fab,
+    backgroundColor: "#D69E2E",
+    shadowColor: "#D69E2E",
+    shadowOpacity: 0.25,
+    shadowRadius: 9,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 3,
   },
+
+  /* ---------- SEARCH ---------- */
   searchBox: {
-    margin: SPACING.md,
-    height: 46,
+    marginHorizontal: 20,
+    marginTop: 18,
+    marginBottom: 16,
+    minHeight: 52,
     flexDirection: "row",
     alignItems: "center",
-    gap: SPACING.sm,
-    paddingHorizontal: SPACING.md,
-    borderRadius: RADIUS.lg,
+    gap: 10,
+    paddingHorizontal: 16,
+    borderRadius: 16,
     borderWidth: 1,
-    borderColor: COLORS.borderLight,
-    backgroundColor: COLORS.background,
+    borderColor: "#DDE5EF",
+    backgroundColor: "#FFFFFF",
+    shadowColor: "#0F172A",
+    shadowOpacity: 0.035,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 3 },
+    elevation: 1,
   },
+
   searchInput: {
     flex: 1,
-    fontSize: FONT.size.sm,
-    color: COLORS.textPrimary,
+    fontSize: 14,
+    fontWeight: "500",
+    color: "#0F172A",
   },
+
+  /* ---------- LOADING ---------- */
   loadingWrap: {
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
-    padding: SPACING.xl,
+    padding: 30,
   },
+
   loadingText: {
-    marginTop: SPACING.sm,
-    color: COLORS.textSecondary,
-    fontSize: FONT.size.sm,
+    marginTop: 10,
+    color: "#64748B",
+    fontSize: 12,
+    fontWeight: "600",
   },
+
+  /* ---------- LIST ---------- */
   listContent: {
-    paddingHorizontal: SPACING.md,
-    paddingBottom: SPACING.xxxl,
+    paddingHorizontal: 20,
+    paddingBottom: 60,
   },
+
+  /* ---------- ERROR ---------- */
   errorBanner: {
-    marginBottom: SPACING.md,
+    marginBottom: 14,
     flexDirection: "row",
     alignItems: "center",
-    gap: SPACING.sm,
-    padding: SPACING.md,
-    borderRadius: RADIUS.md,
-    backgroundColor: COLORS.dangerLight,
+    gap: 10,
+    padding: 14,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: "#FECDD3",
+    backgroundColor: "#FFF1F2",
   },
-  errorText: { flex: 1, fontSize: FONT.size.sm, color: COLORS.danger },
+
+  errorText: {
+    flex: 1,
+    fontSize: 12,
+    fontWeight: "600",
+    color: "#BE123C",
+  },
+
+  /* ---------- EMPTY STATE ---------- */
   emptyState: {
     alignItems: "center",
-    paddingTop: SPACING.xxxl,
-    paddingHorizontal: SPACING.md,
+    paddingTop: 70,
+    paddingHorizontal: 24,
   },
+
   emptyIcon: {
-    width: 72,
-    height: 72,
-    borderRadius: 36,
+    width: 76,
+    height: 76,
+    borderRadius: 24,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: COLORS.primaryLight,
+    backgroundColor: "#E8F7F3",
+    borderWidth: 1,
+    borderColor: "#CBE9E1",
   },
+
   emptyTitle: {
-    marginTop: SPACING.md,
-    fontSize: FONT.size.md,
-    fontWeight: FONT.weight.bold,
-    color: COLORS.textPrimary,
+    marginTop: 16,
+    fontSize: 18,
+    fontWeight: "900",
+    color: "#0F172A",
   },
+
   emptyText: {
     marginTop: 6,
     textAlign: "center",
-    fontSize: FONT.size.sm,
-    color: COLORS.textSecondary,
-    maxWidth: 280,
-    lineHeight: 20,
+    fontSize: 12,
+    color: "#64748B",
+    maxWidth: 300,
+    lineHeight: 19,
   },
+
   emptyCta: {
-    marginTop: SPACING.lg,
-    paddingHorizontal: SPACING.lg,
-    paddingVertical: SPACING.sm + 2,
-    borderRadius: RADIUS.md,
-    backgroundColor: COLORS.primary,
+    marginTop: 20,
+    minHeight: 46,
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderRadius: 12,
+    backgroundColor: "#102A43",
+    shadowColor: "#102A43",
+    shadowOpacity: 0.15,
+    shadowRadius: 7,
+    shadowOffset: { width: 0, height: 3 },
+    elevation: 2,
   },
+
   emptyCtaText: {
-    color: COLORS.textOnPrimary,
-    fontWeight: FONT.weight.bold,
-    fontSize: FONT.size.sm,
+    color: "#FFFFFF",
+    fontWeight: "900",
+    fontSize: 12,
   },
+
+  /* ---------- RIDER CARD ---------- */
   riderCard: {
     flexDirection: "row",
     alignItems: "center",
-    gap: SPACING.md,
-    padding: SPACING.md,
-    borderRadius: RADIUS.lg,
+    gap: 14,
+    padding: 17,
+    borderRadius: 18,
     borderWidth: 1,
-    borderColor: COLORS.borderLight,
-    backgroundColor: COLORS.background,
-    ...SHADOW.card,
+    borderColor: "#E1E8F0",
+    backgroundColor: "#FFFFFF",
+    shadowColor: "#0F172A",
+    shadowOpacity: 0.06,
+    shadowRadius: 15,
+    shadowOffset: { width: 0, height: 5 },
+    elevation: 2,
   },
+
   avatar: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+    width: 50,
+    height: 50,
+    borderRadius: 15,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: COLORS.primaryLight,
+    backgroundColor: "#E8F7F3",
+    borderWidth: 1,
+    borderColor: "#CBE9E1",
   },
-  riderContent: { flex: 1 },
+
+  riderContent: {
+    flex: 1,
+  },
+
   riderTopRow: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    gap: SPACING.sm,
+    gap: 10,
   },
+
   riderName: {
     flex: 1,
-    fontSize: FONT.size.md,
-    fontWeight: FONT.weight.bold,
-    color: COLORS.textPrimary,
+    fontSize: 15,
+    fontWeight: "900",
+    color: "#0F172A",
   },
+
+  /* ---------- STATUS ---------- */
   statusPill: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 4,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: RADIUS.pill,
+    gap: 5,
+    minHeight: 28,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 9,
   },
-  statusDot: { width: 6, height: 6, borderRadius: 3 },
-  statusText: { fontSize: 10, fontWeight: FONT.weight.bold },
+
+  statusDot: {
+    width: 7,
+    height: 7,
+    borderRadius: 4,
+  },
+
+  statusText: {
+    fontSize: 9,
+    fontWeight: "900",
+    letterSpacing: 0.2,
+  },
+
   riderMeta: {
-    marginTop: 4,
-    fontSize: FONT.size.xs,
-    color: COLORS.textSecondary,
+    marginTop: 6,
+    fontSize: 11,
+    fontWeight: "600",
+    color: "#475569",
   },
+
   riderMetaMuted: {
-    marginTop: 2,
-    fontSize: FONT.size.xs,
-    color: COLORS.textMuted,
+    marginTop: 3,
+    fontSize: 10,
+    color: "#94A3B8",
   },
+
+  /* ---------- ACTIVE / INACTIVE BUTTON ---------- */
   toggleButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 42,
+    height: 42,
+    borderRadius: 12,
     borderWidth: 1,
     alignItems: "center",
     justifyContent: "center",
   },
+
   toggleButtonOff: {
-    borderColor: COLORS.danger,
-    backgroundColor: COLORS.dangerLight,
+    borderColor: "#F1B8B8",
+    backgroundColor: "#FDECEC",
   },
+
   toggleButtonOn: {
-    borderColor: COLORS.primary,
-    backgroundColor: COLORS.primaryLight,
+    borderColor: "#CDE7E2",
+    backgroundColor: "#E7F8F1",
   },
 });
