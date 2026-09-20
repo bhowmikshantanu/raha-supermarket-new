@@ -276,50 +276,54 @@ export default function AdminDashboard() {
   );
 
   const salesDays = useMemo(() => {
-    const now = new Date();
+  const now = new Date();
 
-    return Array.from(
-      { length: 7 },
-      (_, index) => {
-        const date = new Date(now);
+  return Array.from({ length: 7 }, (_, index) => {
+    const date = new Date(now);
 
-        date.setHours(0, 0, 0, 0);
-        date.setDate(
-          now.getDate() - (6 - index),
-        );
+    date.setHours(0, 0, 0, 0);
+    date.setDate(now.getDate() - (6 - index));
 
-        const nextDate = new Date(date);
-        nextDate.setDate(
-          nextDate.getDate() + 1,
-        );
+    const nextDate = new Date(date);
+    nextDate.setDate(nextDate.getDate() + 1);
 
-        const total = orders
-          .filter(
-            (order) =>
-              order.status === "delivered" &&
-              Number(order.createdAt) >=
-                date.getTime() &&
-              Number(order.createdAt) <
-                nextDate.getTime(),
-          )
-          .reduce(
-            (sum, order) =>
-              sum +
-              Number(order.total || 0),
-            0,
-          );
+    const dayOrders = orders.filter((order) => {
+      if (order.status !== "delivered") {
+        return false;
+      }
 
-        return {
-          label: date.toLocaleDateString(
-            "en-IN",
-            { weekday: "short" },
-          ),
-          total,
-        };
-      },
+      const timestamp = Number(
+        order.deliveredAt ||
+          order.updatedAt ||
+          order.createdAt ||
+          0,
+      );
+
+      return (
+        timestamp >= date.getTime() &&
+        timestamp < nextDate.getTime()
+      );
+    });
+
+    const total = dayOrders.reduce(
+      (sum, order) =>
+        sum + Number(order.total || 0),
+      0,
     );
-  }, [orders]);
 
+    return {
+      label: date.toLocaleDateString("en-IN", {
+        weekday: "short",
+      }),
+      dateLabel: date.toLocaleDateString("en-IN", {
+        day: "2-digit",
+        month: "short",
+      }),
+      total,
+      orders: dayOrders.length,
+    };
+  });
+}, [orders]);
   const maxSales = Math.max(
     1,
     ...salesDays.map(
@@ -639,42 +643,52 @@ export default function AdminDashboard() {
               </View>
 
               <View style={styles.chart}>
-                {salesDays.map((day) => {
-                  const height =
-                    day.total > 0
-                      ? Math.max(
-                          12,
-                          (day.total /
-                            maxSales) *
-                            150,
-                        )
-                      : 5;
+  {salesDays.map((day) => {
+    const height =
+      day.total > 0
+        ? Math.max(
+            28,
+            (day.total / maxSales) * 150,
+          )
+        : 6;
 
-                  return (
-                    <View
-                      key={day.label}
-                      style={styles.barColumn}
-                    >
-                      <View
-                        style={[
-                          styles.bar,
-                          { height },
-                        ]}
-                      />
+    return (
+      <View
+        key={`${day.label}-${day.dateLabel}`}
+        style={styles.barColumn}
+      >
+        <View style={styles.barValueArea}>
+          {day.total > 0 ? (
+            <Text style={styles.barValue}>
+              {formatCurrency(day.total)}
+            </Text>
+          ) : (
+            <Text style={styles.zeroValue}>
+              ₹0
+            </Text>
+          )}
 
-                      <Text
-                        style={styles.barDay}
-                      >
-                        {day.label}
-                      </Text>
-                    </View>
-                  );
-                })}
-              </View>
-            </View>
+          <View
+            style={[
+              styles.bar,
+              { height },
+              day.total === 0 &&
+                styles.zeroBar,
+            ]}
+          />
+        </View>
 
-            <View style={styles.statusCard}>
-              <Text style={styles.cardTitle}>
+        <Text style={styles.barDay}>
+          {day.label}
+        </Text>
+
+        <Text style={styles.barDate}>
+          {day.dateLabel}
+        </Text>
+      </View>
+    );
+  })}
+</View>              <Text style={styles.cardTitle}>
                 Order Status
               </Text>
 
@@ -1504,27 +1518,73 @@ const styles = StyleSheet.create({
     paddingTop: 32,
   },
 
-  barColumn: {
+    barColumn: {
     flex: 1,
+    minWidth: 52,
     alignItems: "center",
     justifyContent: "flex-end",
   },
 
+  barValueArea: {
+    height: 190,
+    width: "100%",
+    alignItems: "center",
+    justifyContent: "flex-end",
+  },
+
+  barValue: {
+    marginBottom: 7,
+    color: NAVY_DARK,
+    fontSize: 10,
+    fontWeight: "900",
+  },
+
+  zeroValue: {
+    marginBottom: 7,
+    color: "#A0AEC0",
+    fontSize: 9,
+    fontWeight: "700",
+  },
+
   bar: {
     width: "52%",
-    maxWidth: 36,
-    minWidth: 12,
-    borderRadius: 7,
+    maxWidth: 38,
+    minWidth: 16,
+    borderTopLeftRadius: 9,
+    borderTopRightRadius: 9,
+    borderBottomLeftRadius: 4,
+    borderBottomRightRadius: 4,
     backgroundColor: TEAL,
+    shadowColor: TEAL,
+    shadowOpacity: 0.18,
+    shadowRadius: 5,
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    elevation: 2,
+  },
+
+  zeroBar: {
+    height: 6,
+    backgroundColor: "#DCE5ED",
+    shadowOpacity: 0,
+    elevation: 0,
   },
 
   barDay: {
     marginTop: 9,
-    color: MUTED,
+    color: NAVY_DARK,
     fontSize: 10,
-    fontWeight: "700",
+    fontWeight: "900",
   },
 
+  barDate: {
+    marginTop: 3,
+    color: MUTED,
+    fontSize: 8,
+    fontWeight: "600",
+  },
   orderCircle: {
     width: 105,
     height: 105,
