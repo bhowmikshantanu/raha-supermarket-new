@@ -1454,477 +1454,484 @@ function StatCard({
   );
 }
 
-const styles =
-  StyleSheet.create({
-    container: {
-      flex: 1,
-      backgroundColor:
-        COLORS.background,
-    },
-    header: {
-      minHeight: 76,
-      flexDirection:
-        "row",
-      alignItems:
-        "center",
-      paddingHorizontal:
-        SPACING.md,
-      borderBottomWidth: 1,
-      borderBottomColor:
-        COLORS.border,
-      gap: SPACING.sm,
-    },
-    headerButton: {
-      width: 44,
-      height: 44,
-      borderRadius: 22,
-      alignItems:
-        "center",
-      justifyContent:
-        "center",
-      backgroundColor:
-        COLORS.surface,
-    },
-    headerText: {
-      flex: 1,
-    },
-    title: {
-      fontSize:
-        FONT.size.xl,
-      fontWeight:
-        "800",
-      color:
-        COLORS.textPrimary,
-    },
-    subtitle: {
-      marginTop: 2,
-      color:
-        COLORS.textSecondary,
-    },
-    addButton: {
-      width: 46,
-      height: 46,
-      borderRadius: 23,
-      alignItems:
-        "center",
-      justifyContent:
-        "center",
-      backgroundColor:
-        COLORS.primary,
-    },
-    statsRow: {
-      flexDirection:
-        "row",
-      padding:
-        SPACING.md,
-      gap:
-        SPACING.sm,
-    },
-    statCard: {
-      flex: 1,
-      minHeight: 74,
-      alignItems:
-        "center",
-      justifyContent:
-        "center",
-      borderRadius:
-        RADIUS.lg,
-      backgroundColor:
-        COLORS.surface,
-      ...SHADOW.card,
-    },
-    statValue: {
-      fontSize:
-        FONT.size.xl,
-      fontWeight:
-        "800",
-      color:
-        COLORS.primary,
-    },
-    statLabel: {
-      marginTop: 4,
-      color:
-        COLORS.textSecondary,
-    },
-    searchWrap: {
-      marginHorizontal:
-        SPACING.md,
-      minHeight: 48,
-      borderRadius:
-        RADIUS.md,
-      backgroundColor:
-        COLORS.surface,
-      borderWidth: 1,
-      borderColor:
-        COLORS.border,
-      flexDirection:
-        "row",
-      alignItems:
-        "center",
-      paddingHorizontal:
-        SPACING.md,
-      gap:
-        SPACING.sm,
-    },
-    searchInput: {
-      flex: 1,
-      color:
-        COLORS.textPrimary,
-    },
-    list: {
-      padding:
-        SPACING.md,
-      gap:
-        SPACING.sm,
-      paddingBottom: 40,
-    },
-    center: {
-      flex: 1,
-      alignItems:
-        "center",
-      justifyContent:
-        "center",
-    },
-    muted: {
-      color:
-        COLORS.textSecondary,
-    },
-    empty: {
-      minHeight: 330,
-      alignItems:
-        "center",
-      justifyContent:
-        "center",
-      padding:
-        SPACING.xl,
-    },
-    emptyTitle: {
-      marginTop:
-        SPACING.md,
-      fontSize:
-        FONT.size.lg,
-      fontWeight:
-        "800",
-      color:
-        COLORS.textPrimary,
-    },
-    initializeButton: {
-      marginTop:
-        SPACING.lg,
-      minHeight: 48,
-      borderRadius:
-        RADIUS.md,
-      backgroundColor:
-        COLORS.primary,
-      flexDirection:
-        "row",
-      alignItems:
-        "center",
-      justifyContent:
-        "center",
-      paddingHorizontal:
-        SPACING.lg,
-      gap:
-        SPACING.sm,
-    },
-    initializeText: {
-      color:
-        COLORS.textOnPrimary,
-      fontWeight:
-        "800",
-    },
-    disabled: {
-      opacity: 0.55,
-    },
-    couponCard: {
-      flexDirection:
-        "row",
-      alignItems:
-        "center",
-      borderRadius:
-        RADIUS.lg,
-      backgroundColor:
-        COLORS.surface,
-      padding:
-        SPACING.md,
-      gap:
-        SPACING.md,
-      ...SHADOW.card,
-    },
-    couponIcon: {
-      width: 48,
-      height: 48,
-      borderRadius: 24,
-      alignItems:
-        "center",
-      justifyContent:
-        "center",
-      backgroundColor:
-        COLORS.primarySoft,
-    },
-    couponContent: {
-      flex: 1,
-    },
-    codeRow: {
-      flexDirection:
-        "row",
-      alignItems:
-        "center",
-      gap:
-        SPACING.sm,
-    },
-    couponCode: {
-      fontSize:
-        FONT.size.md,
-      fontWeight:
-        "900",
-      color:
-        COLORS.primary,
-    },
-    statusPill: {
-      borderRadius: 99,
-      paddingHorizontal: 8,
-      paddingVertical: 3,
-    },
-    activePill: {
-      backgroundColor:
-        "#dcfce7",
-    },
-    inactivePill: {
-      backgroundColor:
-        "#e5e7eb",
-    },
-    expiredPill: {
-      backgroundColor:
-        "#fee2e2",
-    },
-    statusText: {
-      fontSize: 11,
-      fontWeight:
-        "700",
-      color:
-        COLORS.textPrimary,
-    },
-    couponTitle: {
-      marginTop: 4,
-      fontWeight:
-        "800",
-      color:
-        COLORS.textPrimary,
-    },
-    couponDescription: {
-      marginTop: 3,
-      color:
-        COLORS.textSecondary,
-    },
-    couponMeta: {
-      marginTop: 6,
-      fontSize: 12,
-      color:
-        COLORS.textMuted,
-    },
-    actions: {
-      flexDirection:
-        "row",
-      alignItems:
-        "center",
-      gap:
-        SPACING.xs,
-    },
-    actionButton: {
-      width: 40,
-      height: 40,
-      borderRadius: 20,
-      alignItems:
-        "center",
-      justifyContent:
-        "center",
-      backgroundColor:
-        COLORS.background,
-    },
-    modalBackdrop: {
-      flex: 1,
-      backgroundColor:
-        "rgba(15, 23, 42, 0.48)",
-      alignItems:
-        "center",
-      justifyContent:
-        "center",
-      padding:
-        SPACING.md,
-    },
-    modalCard: {
-      width: "100%",
-      maxWidth: 620,
-      maxHeight: "92%",
-      borderRadius:
-        RADIUS.xl,
-      backgroundColor:
-        COLORS.surface,
-      ...SHADOW.card,
-    },
-    modalContent: {
-      padding:
-        SPACING.lg,
-      gap:
-        SPACING.md,
-    },
-    modalHeader: {
-      flexDirection:
-        "row",
-      alignItems:
-        "flex-start",
-      justifyContent:
-        "space-between",
-    },
-    modalTitle: {
-      fontSize:
-        FONT.size.xl,
-      fontWeight:
-        "900",
-      color:
-        COLORS.textPrimary,
-    },
-    modalSubtitle: {
-      marginTop: 3,
-      color:
-        COLORS.textSecondary,
-    },
-    fieldWrap: {
-      gap: 7,
-    },
-    fieldLabel: {
-      fontWeight:
-        "700",
-      color:
-        COLORS.textPrimary,
-    },
-    input: {
-      minHeight: 48,
-      borderWidth: 1,
-      borderColor:
-        COLORS.border,
-      borderRadius:
-        RADIUS.md,
-      paddingHorizontal:
-        SPACING.md,
-      color:
-        COLORS.textPrimary,
-      backgroundColor:
-        COLORS.background,
-    },
-    multilineInput: {
-      minHeight: 90,
-      paddingTop:
-        SPACING.md,
-    },
-    disabledInput: {
-      opacity: 0.62,
-    },
-    typeRow: {
-      flexDirection:
-        "row",
-      flexWrap:
-        "wrap",
-      gap:
-        SPACING.sm,
-    },
-    typeChip: {
-      minHeight: 40,
-      paddingHorizontal:
-        SPACING.md,
-      borderRadius: 20,
-      borderWidth: 1,
-      borderColor:
-        COLORS.border,
-      alignItems:
-        "center",
-      justifyContent:
-        "center",
-      backgroundColor:
-        COLORS.background,
-    },
-    typeChipActive: {
-      backgroundColor:
-        COLORS.primary,
-      borderColor:
-        COLORS.primary,
-    },
-    typeChipText: {
-      color:
-        COLORS.textPrimary,
-      fontWeight:
-        "700",
-    },
-    typeChipTextActive: {
-      color:
-        COLORS.textOnPrimary,
-    },
-    activeRow: {
-      flexDirection:
-        "row",
-      alignItems:
-        "center",
-      justifyContent:
-        "space-between",
-      gap:
-        SPACING.lg,
-      padding:
-        SPACING.md,
-      borderRadius:
-        RADIUS.md,
-      backgroundColor:
-        COLORS.background,
-    },
-    activeTitle: {
-      fontWeight:
-        "800",
-      color:
-        COLORS.textPrimary,
-    },
-    modalActions: {
-      flexDirection:
-        "row",
-      gap:
-        SPACING.sm,
-      paddingTop:
-        SPACING.sm,
-    },
-    secondaryButton: {
-      flex: 1,
-      minHeight: 48,
-      borderWidth: 1,
-      borderColor:
-        COLORS.border,
-      borderRadius:
-        RADIUS.md,
-      alignItems:
-        "center",
-      justifyContent:
-        "center",
-    },
-    secondaryText: {
-      fontWeight:
-        "800",
-      color:
-        COLORS.textPrimary,
-    },
-    primaryButton: {
-      flex: 1,
-      minHeight: 48,
-      borderRadius:
-        RADIUS.md,
-      alignItems:
-        "center",
-      justifyContent:
-        "center",
-      backgroundColor:
-        COLORS.primary,
-    },
-    primaryText: {
-      color:
-        COLORS.textOnPrimary,
-      fontWeight:
-        "900",
-    },
-  });
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "#F4F7FB",
+  },
+
+  /* ---------- HEADER ---------- */
+  header: {
+    minHeight: 80,
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: "#E2E8F0",
+    backgroundColor: "#FFFFFF",
+    gap: 12,
+    shadowColor: "#0F172A",
+    shadowOpacity: 0.05,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 2,
+  },
+
+  headerButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 14,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#F1F5F9",
+    borderWidth: 1,
+    borderColor: "#E2E8F0",
+  },
+
+  headerText: {
+    flex: 1,
+  },
+
+  title: {
+    fontSize: 22,
+    fontWeight: "900",
+    color: "#0F172A",
+    letterSpacing: -0.4,
+  },
+
+  subtitle: {
+    marginTop: 3,
+    fontSize: 12,
+    fontWeight: "500",
+    color: "#64748B",
+  },
+
+  addButton: {
+    width: 46,
+    height: 46,
+    borderRadius: 14,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#D69E2E",
+    shadowColor: "#D69E2E",
+    shadowOpacity: 0.25,
+    shadowRadius: 9,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 3,
+  },
+
+  /* ---------- STATS ---------- */
+  statsRow: {
+    flexDirection: "row",
+    paddingHorizontal: 20,
+    paddingTop: 18,
+    paddingBottom: 4,
+    gap: 12,
+  },
+
+  statCard: {
+    flex: 1,
+    minHeight: 100,
+    alignItems: "flex-start",
+    justifyContent: "center",
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: "#E2E8F0",
+    backgroundColor: "#FFFFFF",
+    paddingHorizontal: 16,
+    shadowColor: "#0F172A",
+    shadowOpacity: 0.055,
+    shadowRadius: 14,
+    shadowOffset: { width: 0, height: 5 },
+    elevation: 2,
+  },
+
+  statValue: {
+    fontSize: 24,
+    fontWeight: "900",
+    color: "#102A43",
+    letterSpacing: -0.5,
+  },
+
+  statLabel: {
+    marginTop: 5,
+    fontSize: 10,
+    fontWeight: "700",
+    color: "#64748B",
+    textTransform: "uppercase",
+    letterSpacing: 0.4,
+  },
+
+  /* ---------- SEARCH ---------- */
+  searchWrap: {
+    marginHorizontal: 20,
+    marginTop: 14,
+    minHeight: 52,
+    borderRadius: 16,
+    backgroundColor: "#FFFFFF",
+    borderWidth: 1,
+    borderColor: "#DDE5EF",
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 16,
+    gap: 10,
+    shadowColor: "#0F172A",
+    shadowOpacity: 0.035,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 3 },
+    elevation: 1,
+  },
+
+  searchInput: {
+    flex: 1,
+    color: "#0F172A",
+    fontSize: 14,
+    fontWeight: "500",
+  },
+
+  /* ---------- LIST ---------- */
+  list: {
+    padding: 20,
+    gap: 12,
+    paddingBottom: 60,
+  },
+
+  center: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  muted: {
+    color: "#64748B",
+  },
+
+  /* ---------- EMPTY ---------- */
+  empty: {
+    minHeight: 330,
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 30,
+  },
+
+  emptyTitle: {
+    marginTop: 16,
+    fontSize: 18,
+    fontWeight: "900",
+    color: "#0F172A",
+  },
+
+  initializeButton: {
+    marginTop: 20,
+    minHeight: 48,
+    borderRadius: 12,
+    backgroundColor: "#102A43",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: 20,
+    gap: 8,
+    shadowColor: "#102A43",
+    shadowOpacity: 0.15,
+    shadowRadius: 7,
+    shadowOffset: { width: 0, height: 3 },
+    elevation: 2,
+  },
+
+  initializeText: {
+    color: "#FFFFFF",
+    fontWeight: "900",
+    fontSize: 12,
+  },
+
+  disabled: {
+    opacity: 0.5,
+  },
+
+  /* ---------- COUPON CARD ---------- */
+  couponCard: {
+    flexDirection: "row",
+    alignItems: "center",
+    borderRadius: 18,
+    backgroundColor: "#FFFFFF",
+    padding: 17,
+    gap: 14,
+    borderWidth: 1,
+    borderColor: "#E1E8F0",
+    shadowColor: "#0F172A",
+    shadowOpacity: 0.06,
+    shadowRadius: 15,
+    shadowOffset: { width: 0, height: 5 },
+    elevation: 2,
+  },
+
+  couponIcon: {
+    width: 52,
+    height: 52,
+    borderRadius: 15,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#FFF7DF",
+    borderWidth: 1,
+    borderColor: "#F4D98B",
+  },
+
+  couponContent: {
+    flex: 1,
+  },
+
+  codeRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    flexWrap: "wrap",
+    gap: 8,
+  },
+
+  couponCode: {
+    fontSize: 15,
+    fontWeight: "900",
+    color: "#102A43",
+    letterSpacing: 0.5,
+  },
+
+  /* ---------- STATUS ---------- */
+  statusPill: {
+    borderRadius: 8,
+    paddingHorizontal: 9,
+    paddingVertical: 5,
+  },
+
+  activePill: {
+    backgroundColor: "#E7F8F1",
+  },
+
+  inactivePill: {
+    backgroundColor: "#EEF2F6",
+  },
+
+  expiredPill: {
+    backgroundColor: "#FDECEC",
+  },
+
+  statusText: {
+    fontSize: 9,
+    fontWeight: "900",
+    color: "#334155",
+  },
+
+  couponTitle: {
+    marginTop: 6,
+    fontSize: 13,
+    fontWeight: "800",
+    color: "#0F172A",
+  },
+
+  couponDescription: {
+    marginTop: 4,
+    fontSize: 11,
+    lineHeight: 17,
+    color: "#64748B",
+  },
+
+  couponMeta: {
+    marginTop: 8,
+    fontSize: 10,
+    fontWeight: "600",
+    color: "#94A3B8",
+  },
+
+  /* ---------- CARD ACTIONS ---------- */
+  actions: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 7,
+  },
+
+  actionButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#F8FAFC",
+    borderWidth: 1,
+    borderColor: "#E2E8F0",
+  },
+
+  /* ---------- MODAL ---------- */
+  modalBackdrop: {
+    flex: 1,
+    backgroundColor: "rgba(15, 23, 42, 0.64)",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 20,
+  },
+
+  modalCard: {
+    width: "100%",
+    maxWidth: 620,
+    maxHeight: "92%",
+    borderRadius: 22,
+    backgroundColor: "#FFFFFF",
+    borderWidth: 1,
+    borderColor: "#E2E8F0",
+    shadowColor: "#000000",
+    shadowOpacity: 0.18,
+    shadowRadius: 28,
+    shadowOffset: { width: 0, height: 12 },
+    elevation: 8,
+  },
+
+  modalContent: {
+    padding: 24,
+    gap: 16,
+  },
+
+  modalHeader: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    justifyContent: "space-between",
+    paddingBottom: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: "#E8EDF3",
+  },
+
+  modalTitle: {
+    fontSize: 21,
+    fontWeight: "900",
+    color: "#0F172A",
+    letterSpacing: -0.3,
+  },
+
+  modalSubtitle: {
+    marginTop: 4,
+    fontSize: 11,
+    color: "#64748B",
+  },
+
+  /* ---------- FORM ---------- */
+  fieldWrap: {
+    gap: 7,
+  },
+
+  fieldLabel: {
+    fontSize: 12,
+    fontWeight: "800",
+    color: "#334155",
+  },
+
+  input: {
+    minHeight: 50,
+    borderWidth: 1,
+    borderColor: "#DDE5EF",
+    borderRadius: 13,
+    paddingHorizontal: 15,
+    color: "#0F172A",
+    backgroundColor: "#F8FAFC",
+    fontSize: 13,
+  },
+
+  multilineInput: {
+    minHeight: 90,
+    paddingTop: 14,
+  },
+
+  disabledInput: {
+    opacity: 0.58,
+    backgroundColor: "#EEF2F6",
+  },
+
+  /* ---------- DISCOUNT TYPE ---------- */
+  typeRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
+  },
+
+  typeChip: {
+    minHeight: 40,
+    paddingHorizontal: 15,
+    borderRadius: 11,
+    borderWidth: 1,
+    borderColor: "#DDE5EF",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#F8FAFC",
+  },
+
+  typeChipActive: {
+    backgroundColor: "#102A43",
+    borderColor: "#102A43",
+  },
+
+  typeChipText: {
+    color: "#475569",
+    fontSize: 11,
+    fontWeight: "800",
+  },
+
+  typeChipTextActive: {
+    color: "#FFFFFF",
+  },
+
+  /* ---------- ACTIVE TOGGLE ---------- */
+  activeRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 20,
+    padding: 15,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: "#DDE5EF",
+    backgroundColor: "#F8FAFC",
+  },
+
+  activeTitle: {
+    fontSize: 13,
+    fontWeight: "900",
+    color: "#0F172A",
+  },
+
+  /* ---------- MODAL ACTIONS ---------- */
+  modalActions: {
+    flexDirection: "row",
+    gap: 12,
+    paddingTop: 8,
+  },
+
+  secondaryButton: {
+    flex: 1,
+    minHeight: 50,
+    borderWidth: 1,
+    borderColor: "#CBD5E1",
+    borderRadius: 13,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#FFFFFF",
+  },
+
+  secondaryText: {
+    fontWeight: "800",
+    color: "#475569",
+  },
+
+  primaryButton: {
+    flex: 1,
+    minHeight: 50,
+    borderRadius: 13,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#102A43",
+    shadowColor: "#102A43",
+    shadowOpacity: 0.17,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 2,
+  },
+
+  primaryText: {
+    color: "#FFFFFF",
+    fontWeight: "900",
+  },
+});
