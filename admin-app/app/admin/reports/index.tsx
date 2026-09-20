@@ -1766,107 +1766,107 @@ function formatDateTime(
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: BG,
-  },
+  container: { flex: 1, backgroundColor: "#F4F7FB" },
 
   loadingPage: {
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: BG,
+    backgroundColor: "#F4F7FB",
   },
-
   loadingText: {
     marginTop: 12,
-    color: MUTED,
+    color: "#64748B",
     fontWeight: "700",
   },
 
+  /* ---------- HEADER ---------- */
   header: {
     minHeight: 82,
     paddingHorizontal: 20,
     borderBottomWidth: 1,
-    borderBottomColor: BORDER,
-    backgroundColor: WHITE,
+    borderBottomColor: "#E2E8F0",
+    backgroundColor: "#FFFFFF",
     flexDirection: "row",
     alignItems: "center",
     gap: 11,
+    shadowColor: "#0F172A",
+    shadowOpacity: 0.045,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 2,
   },
-
   backButton: {
-    width: 42,
-    height: 42,
-    borderRadius: 12,
-    backgroundColor: NAVY_SOFT,
+    width: 44,
+    height: 44,
+    borderRadius: 14,
+    backgroundColor: "#F1F5F9",
+    borderWidth: 1,
+    borderColor: "#E2E8F0",
     alignItems: "center",
     justifyContent: "center",
   },
-
   headerIcon: {
-    width: 43,
-    height: 43,
-    borderRadius: 13,
-    backgroundColor: NAVY,
+    width: 44,
+    height: 44,
+    borderRadius: 14,
+    backgroundColor: "#102A43",
     alignItems: "center",
     justifyContent: "center",
   },
-
-  headerText: {
-    flex: 1,
-  },
-
+  headerText: { flex: 1 },
   heading: {
     fontSize: 22,
     fontWeight: "900",
-    color: NAVY_DARK,
+    color: "#0F172A",
     letterSpacing: -0.4,
   },
-
   subheading: {
     marginTop: 3,
-    color: MUTED,
+    color: "#64748B",
     fontSize: 12,
+    fontWeight: "500",
   },
-
   liveBadge: {
-    paddingHorizontal: 11,
-    paddingVertical: 7,
-    borderRadius: 15,
-    backgroundColor: "#E4F8EF",
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 12,
+    backgroundColor: "#E7F8F1",
+    borderWidth: 1,
+    borderColor: "#CDEDE1",
     flexDirection: "row",
     alignItems: "center",
     gap: 6,
   },
-
   liveDot: {
     width: 7,
     height: 7,
     borderRadius: 4,
-    backgroundColor: GREEN,
+    backgroundColor: "#0F9F75",
   },
-
   liveText: {
-    color: GREEN,
+    color: "#087A5A",
     fontSize: 9,
     fontWeight: "900",
+    letterSpacing: 0.4,
   },
 
-  content: {
-    padding: 20,
-    paddingBottom: 55,
-  },
+  content: { padding: 20, paddingBottom: 60 },
 
+  /* ---------- DATE FILTER ---------- */
   filterCard: {
-    borderRadius: 16,
+    borderRadius: 18,
     borderWidth: 1,
-    borderColor: BORDER,
-    backgroundColor: WHITE,
-    padding: 16,
+    borderColor: "#E2E8F0",
+    backgroundColor: "#FFFFFF",
+    padding: 17,
     marginBottom: 4,
+    shadowColor: "#0F172A",
+    shadowOpacity: 0.05,
+    shadowRadius: 14,
+    shadowOffset: { width: 0, height: 5 },
+    elevation: 2,
   },
-
   filterHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -1874,141 +1874,127 @@ const styles = StyleSheet.create({
     gap: 12,
     marginBottom: 14,
   },
-
   filterTitle: {
-    color: NAVY_DARK,
+    color: "#0F172A",
     fontSize: 15,
     fontWeight: "900",
   },
-
   filterSubtitle: {
     marginTop: 3,
-    color: MUTED,
+    color: "#64748B",
     fontSize: 11,
   },
-
   filterCountBadge: {
     paddingHorizontal: 11,
     paddingVertical: 7,
-    borderRadius: 14,
-    backgroundColor: NAVY_SOFT,
+    borderRadius: 10,
+    backgroundColor: "#E8F7F3",
+    borderWidth: 1,
+    borderColor: "#CDE7E2",
   },
-
   filterCountText: {
-    color: NAVY,
+    color: "#087A5A",
     fontSize: 10,
     fontWeight: "900",
   },
-
   filterButtons: {
     flexDirection: "row",
     flexWrap: "wrap",
     gap: 8,
   },
-
   filterButton: {
-    paddingHorizontal: 14,
-    minHeight: 38,
+    paddingHorizontal: 15,
+    minHeight: 39,
     borderRadius: 11,
     borderWidth: 1,
-    borderColor: BORDER,
-    backgroundColor: BG,
+    borderColor: "#DDE5EF",
+    backgroundColor: "#F8FAFC",
     alignItems: "center",
     justifyContent: "center",
   },
-
   filterButtonActive: {
-    backgroundColor: NAVY,
-    borderColor: NAVY,
+    backgroundColor: "#102A43",
+    borderColor: "#102A43",
   },
-
   filterButtonText: {
-    color: NAVY,
+    color: "#475569",
     fontSize: 11,
     fontWeight: "800",
   },
-
-  filterButtonTextActive: {
-    color: WHITE,
-  },
-
+  filterButtonTextActive: { color: "#FFFFFF" },
   customDateRow: {
-    marginTop: 13,
+    marginTop: 14,
     flexDirection: "row",
     flexWrap: "wrap",
     gap: 10,
   },
-
-  dateField: {
-    flex: 1,
-    minWidth: 170,
-  },
-
+  dateField: { flex: 1, minWidth: 170 },
   dateLabel: {
-    marginBottom: 5,
-    color: MUTED,
+    marginBottom: 6,
+    color: "#64748B",
     fontSize: 10,
     fontWeight: "800",
   },
-
   dateInput: {
-    height: 42,
+    height: 44,
     borderWidth: 1,
-    borderColor: BORDER,
-    borderRadius: 10,
-    paddingHorizontal: 11,
-    backgroundColor: BG,
-    color: TEXT,
+    borderColor: "#DDE5EF",
+    borderRadius: 11,
+    paddingHorizontal: 12,
+    backgroundColor: "#F8FAFC",
+    color: "#0F172A",
     fontSize: 12,
   },
 
+  /* ---------- SECTION HEADERS ---------- */
   sectionHeading: {
-    marginTop: 27,
+    marginTop: 28,
     marginBottom: 12,
     flexDirection: "row",
     alignItems: "center",
-    gap: 10,
+    gap: 11,
   },
-
   sectionIcon: {
-    width: 38,
-    height: 38,
-    borderRadius: 11,
-    backgroundColor: NAVY,
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    backgroundColor: "#102A43",
     alignItems: "center",
     justifyContent: "center",
   },
-
   sectionTitle: {
     fontSize: 16,
     fontWeight: "900",
-    color: NAVY_DARK,
+    color: "#0F172A",
   },
-
   sectionSubtitle: {
     marginTop: 2,
-    color: MUTED,
+    color: "#64748B",
     fontSize: 11,
   },
 
+  /* ---------- METRICS ---------- */
   metricGrid: {
     flexDirection: "row",
     flexWrap: "wrap",
     gap: 12,
   },
-
   metricCard: {
     flexGrow: 1,
     flexBasis: 190,
     minWidth: 165,
-    minHeight: 145,
-    borderRadius: 16,
-    backgroundColor: WHITE,
+    minHeight: 138,
+    borderRadius: 18,
+    backgroundColor: "#FFFFFF",
     borderWidth: 1,
-    borderColor: BORDER,
+    borderColor: "#E2E8F0",
     padding: 16,
+    shadowColor: "#0F172A",
+    shadowOpacity: 0.055,
+    shadowRadius: 14,
+    shadowOffset: { width: 0, height: 5 },
+    elevation: 2,
   },
-
   metricIcon: {
     width: 42,
     height: 42,
@@ -2016,24 +2002,22 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-
   metricValue: {
     marginTop: 12,
-    fontSize: 22,
+    fontSize: 23,
     fontWeight: "900",
-    color: NAVY_DARK,
+    color: "#102A43",
+    letterSpacing: -0.4,
   },
-
   metricLabel: {
     marginTop: 3,
-    color: TEXT,
+    color: "#0F172A",
     fontWeight: "800",
   },
-
   metricNote: {
     marginTop: 5,
-    fontSize: 11,
-    color: MUTED,
+    fontSize: 10,
+    color: "#64748B",
   },
 
   customerSummary: {
@@ -2042,209 +2026,190 @@ const styles = StyleSheet.create({
     gap: 10,
     marginBottom: 12,
   },
-
   smallMetricCard: {
     flex: 1,
     minWidth: 150,
     minHeight: 100,
-    borderRadius: 15,
+    borderRadius: 16,
     borderWidth: 1,
-    borderColor: BORDER,
-    backgroundColor: WHITE,
+    borderColor: "#E2E8F0",
+    backgroundColor: "#FFFFFF",
     padding: 13,
     alignItems: "center",
     justifyContent: "center",
+    shadowColor: "#0F172A",
+    shadowOpacity: 0.04,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 3 },
+    elevation: 1,
   },
-
   smallMetricValue: {
     marginTop: 6,
-    color: NAVY_DARK,
-    fontSize: 19,
+    color: "#102A43",
+    fontSize: 20,
     fontWeight: "900",
   },
-
   smallMetricLabel: {
     marginTop: 3,
-    color: MUTED,
-    fontSize: 11,
+    color: "#64748B",
+    fontSize: 10,
+    fontWeight: "600",
     textAlign: "center",
   },
 
+  /* ---------- CUSTOMER REPORT ---------- */
   customerCard: {
-    borderRadius: 16,
+    borderRadius: 18,
     borderWidth: 1,
-    borderColor: BORDER,
-    backgroundColor: WHITE,
+    borderColor: "#E2E8F0",
+    backgroundColor: "#FFFFFF",
     overflow: "hidden",
+    shadowColor: "#0F172A",
+    shadowOpacity: 0.045,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 1,
   },
-
   customerCardHeader: {
     padding: 16,
     borderBottomWidth: 1,
-    borderBottomColor: BORDER,
+    borderBottomColor: "#E8EDF3",
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
     gap: 15,
+    backgroundColor: "#FBFCFE",
   },
-
   customerCardHeaderMobile: {
     alignItems: "stretch",
     flexDirection: "column",
   },
-
   cardTitle: {
-    color: NAVY_DARK,
+    color: "#0F172A",
     fontSize: 15,
     fontWeight: "900",
   },
-
   cardSubtitle: {
     marginTop: 3,
-    color: MUTED,
+    color: "#64748B",
     fontSize: 11,
   },
-
   searchBox: {
     width: 270,
     maxWidth: "100%",
-    height: 42,
-    borderRadius: 11,
+    height: 43,
+    borderRadius: 12,
     borderWidth: 1,
-    borderColor: BORDER,
-    backgroundColor: BG,
+    borderColor: "#DDE5EF",
+    backgroundColor: "#FFFFFF",
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: 11,
+    paddingHorizontal: 12,
     gap: 8,
   },
-
   searchInput: {
     flex: 1,
-    color: TEXT,
+    color: "#0F172A",
     fontSize: 12,
     outlineStyle: "none",
   } as any,
-
   customerRow: {
-    minHeight: 78,
-    paddingHorizontal: 15,
+    minHeight: 80,
+    paddingHorizontal: 16,
     flexDirection: "row",
     alignItems: "center",
     gap: 12,
   },
-
   customerAvatar: {
     width: 42,
     height: 42,
-    borderRadius: 21,
-    backgroundColor: NAVY,
+    borderRadius: 13,
+    backgroundColor: "#102A43",
     alignItems: "center",
     justifyContent: "center",
   },
-
   customerAvatarText: {
-    color: GOLD,
+    color: "#D69E2E",
     fontSize: 16,
     fontWeight: "900",
   },
-
-  customerIdentity: {
-    flex: 1.3,
-    minWidth: 110,
-  },
-
+  customerIdentity: { flex: 1.3, minWidth: 110 },
   customerName: {
-    color: NAVY_DARK,
+    color: "#0F172A",
     fontSize: 13,
     fontWeight: "900",
   },
-
   customerMobile: {
     marginTop: 4,
-    color: MUTED,
-    fontSize: 11,
+    color: "#64748B",
+    fontSize: 10,
   },
-
-  customerColumn: {
-    flex: 0.8,
-    minWidth: 85,
-  },
-
+  customerColumn: { flex: 0.8, minWidth: 85 },
   customerColumnLabel: {
-    color: MUTED,
+    color: "#94A3B8",
     fontSize: 9,
     fontWeight: "700",
+    textTransform: "uppercase",
   },
-
   customerColumnValue: {
     marginTop: 4,
-    color: TEXT,
+    color: "#334155",
     fontSize: 11,
     fontWeight: "800",
   },
-
   customerColumnStrong: {
-    color: GREEN,
+    color: "#087A5A",
     fontWeight: "900",
   },
-
-  mobileCustomerStats: {
-    alignItems: "flex-end",
-  },
-
+  mobileCustomerStats: { alignItems: "flex-end" },
   mobileCustomerPurchase: {
-    color: GREEN,
+    color: "#087A5A",
     fontSize: 12,
     fontWeight: "900",
   },
-
   mobileCustomerOrders: {
     marginTop: 3,
-    color: MUTED,
+    color: "#64748B",
     fontSize: 10,
   },
 
+  /* ---------- STATUS REPORT ---------- */
   statusCard: {
-    borderRadius: 16,
+    borderRadius: 18,
     borderWidth: 1,
-    borderColor: BORDER,
-    backgroundColor: WHITE,
+    borderColor: "#E2E8F0",
+    backgroundColor: "#FFFFFF",
     paddingHorizontal: 16,
+    shadowColor: "#0F172A",
+    shadowOpacity: 0.04,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 3 },
+    elevation: 1,
   },
-
   statusRow: {
-    minHeight: 55,
+    minHeight: 58,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
   },
-
   statusLeft: {
     flexDirection: "row",
     alignItems: "center",
     gap: 10,
   },
-
-  statusDot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-  },
-
+  statusDot: { width: 10, height: 10, borderRadius: 5 },
   statusLabel: {
-    color: TEXT,
+    color: "#334155",
     fontWeight: "700",
   },
-
   statusCount: {
-    color: NAVY,
+    color: "#102A43",
+    fontSize: 13,
     fontWeight: "900",
   },
-
   rowDivider: {
     borderBottomWidth: 1,
-    borderBottomColor: BORDER,
+    borderBottomColor: "#EEF2F6",
   },
 
   secondaryMetricRow: {
@@ -2254,90 +2219,85 @@ const styles = StyleSheet.create({
     marginTop: 12,
   },
 
+  /* ---------- PRODUCT / INVENTORY ---------- */
   standardCard: {
-    borderRadius: 16,
-    backgroundColor: WHITE,
+    borderRadius: 18,
+    backgroundColor: "#FFFFFF",
     borderWidth: 1,
-    borderColor: BORDER,
+    borderColor: "#E2E8F0",
     paddingHorizontal: 16,
+    shadowColor: "#0F172A",
+    shadowOpacity: 0.04,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 3 },
+    elevation: 1,
   },
-
   productRow: {
-    minHeight: 72,
+    minHeight: 74,
     flexDirection: "row",
     alignItems: "center",
     gap: 11,
   },
-
   rankCircle: {
-    width: 34,
-    height: 34,
-    borderRadius: 17,
-    backgroundColor: GOLD_SOFT,
+    width: 36,
+    height: 36,
+    borderRadius: 11,
+    backgroundColor: "#FFF7DF",
+    borderWidth: 1,
+    borderColor: "#F4D98B",
     alignItems: "center",
     justifyContent: "center",
   },
-
   rankText: {
-    color: NAVY,
+    color: "#9A6700",
     fontWeight: "900",
   },
-
-  productInfo: {
-    flex: 1,
-  },
-
+  productInfo: { flex: 1 },
   productName: {
-    color: NAVY_DARK,
+    color: "#0F172A",
     fontWeight: "800",
   },
-
   productMeta: {
     marginTop: 4,
-    color: MUTED,
-    fontSize: 11,
+    color: "#64748B",
+    fontSize: 10,
   },
-
   productRevenue: {
-    color: GREEN,
+    color: "#087A5A",
     fontWeight: "900",
   },
-
   inventoryIcon: {
-    width: 34,
+    width: 36,
     alignItems: "center",
   },
-
   stockText: {
-    color: NAVY_DARK,
+    color: "#102A43",
     fontWeight: "800",
   },
 
+  /* ---------- EMPTY / INFO / ERROR ---------- */
   emptyState: {
-    minHeight: 170,
+    minHeight: 175,
     alignItems: "center",
     justifyContent: "center",
     padding: 24,
   },
-
   emptyTitle: {
     marginTop: 9,
-    color: NAVY_DARK,
+    color: "#0F172A",
     fontWeight: "900",
   },
-
   emptyMessage: {
     marginTop: 5,
     maxWidth: 370,
-    color: MUTED,
+    color: "#64748B",
     textAlign: "center",
     lineHeight: 18,
   },
-
   infoCard: {
     marginTop: 24,
     borderRadius: 14,
-    backgroundColor: NAVY_SOFT,
+    backgroundColor: "#EEF6FF",
     borderWidth: 1,
     borderColor: "#D5E4F3",
     padding: 15,
@@ -2345,257 +2305,233 @@ const styles = StyleSheet.create({
     alignItems: "flex-start",
     gap: 9,
   },
-
   infoText: {
     flex: 1,
-    color: NAVY,
+    color: "#102A43",
     lineHeight: 19,
     fontSize: 12,
   },
-
   errorCard: {
     flexDirection: "row",
     gap: 9,
-    borderRadius: 12,
-    backgroundColor: "#FEE2E2",
+    borderRadius: 13,
+    borderWidth: 1,
+    borderColor: "#FECDD3",
+    backgroundColor: "#FFF1F2",
     padding: 14,
   },
-
   errorText: {
     flex: 1,
-    color: "#991B1B",
+    color: "#BE123C",
   },
 
+  /* ---------- CUSTOMER HISTORY MODAL ---------- */
   modalOverlay: {
     flex: 1,
-    backgroundColor: "rgba(3, 20, 38, 0.58)",
+    backgroundColor: "rgba(15, 23, 42, 0.64)",
     alignItems: "center",
     justifyContent: "center",
     padding: 14,
   },
-
   modalCard: {
     width: "100%",
     maxHeight: "92%",
-    borderRadius: 20,
-    backgroundColor: WHITE,
+    borderRadius: 22,
+    backgroundColor: "#FFFFFF",
     overflow: "hidden",
+    borderWidth: 1,
+    borderColor: "#E2E8F0",
+    shadowColor: "#000000",
+    shadowOpacity: 0.18,
+    shadowRadius: 28,
+    shadowOffset: { width: 0, height: 12 },
+    elevation: 8,
   },
-
-  modalCardDesktop: {
-    maxWidth: 760,
-  },
-
+  modalCardDesktop: { maxWidth: 760 },
   modalHeader: {
-    minHeight: 82,
-    paddingHorizontal: 17,
+    minHeight: 84,
+    paddingHorizontal: 18,
     borderBottomWidth: 1,
-    borderBottomColor: BORDER,
+    borderBottomColor: "#E8EDF3",
     flexDirection: "row",
     alignItems: "center",
     gap: 12,
+    backgroundColor: "#FBFCFE",
   },
-
   modalCustomerAvatar: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: NAVY,
+    width: 50,
+    height: 50,
+    borderRadius: 15,
+    backgroundColor: "#102A43",
     alignItems: "center",
     justifyContent: "center",
   },
-
   modalCustomerAvatarText: {
-    color: GOLD,
+    color: "#D69E2E",
     fontSize: 19,
     fontWeight: "900",
   },
-
   modalTitle: {
-    color: NAVY_DARK,
+    color: "#0F172A",
     fontSize: 17,
     fontWeight: "900",
   },
-
   modalSubtitle: {
     marginTop: 3,
-    color: MUTED,
-    fontSize: 12,
+    color: "#64748B",
+    fontSize: 11,
   },
-
   closeButton: {
-    width: 39,
-    height: 39,
-    borderRadius: 20,
-    backgroundColor: NAVY_SOFT,
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    backgroundColor: "#F1F5F9",
+    borderWidth: 1,
+    borderColor: "#E2E8F0",
     alignItems: "center",
     justifyContent: "center",
   },
 
   customerModalSummary: {
-    padding: 13,
-    backgroundColor: "#FBFCFE",
+    padding: 14,
+    backgroundColor: "#F8FAFC",
     borderBottomWidth: 1,
-    borderBottomColor: BORDER,
+    borderBottomColor: "#E2E8F0",
     flexDirection: "row",
     gap: 8,
   },
-
   modalStat: {
     flex: 1,
-    minHeight: 67,
-    borderRadius: 11,
-    backgroundColor: WHITE,
+    minHeight: 70,
+    borderRadius: 12,
+    backgroundColor: "#FFFFFF",
     borderWidth: 1,
-    borderColor: BORDER,
+    borderColor: "#E2E8F0",
     padding: 9,
     alignItems: "center",
     justifyContent: "center",
   },
-
   modalStatValue: {
-    color: NAVY_DARK,
+    color: "#102A43",
     fontSize: 14,
     fontWeight: "900",
     textAlign: "center",
   },
-
   modalStatLabel: {
     marginTop: 3,
-    color: MUTED,
+    color: "#64748B",
     fontSize: 9,
+    fontWeight: "600",
     textAlign: "center",
   },
 
   historyHeading: {
     paddingHorizontal: 17,
-    paddingTop: 15,
-    paddingBottom: 8,
+    paddingTop: 16,
+    paddingBottom: 9,
     flexDirection: "row",
     alignItems: "center",
     gap: 7,
   },
-
   historyTitle: {
-    color: NAVY_DARK,
+    color: "#0F172A",
     fontSize: 14,
     fontWeight: "900",
   },
-
-  historyScroll: {
-    paddingHorizontal: 15,
-  },
-
+  historyScroll: { paddingHorizontal: 15 },
   historyOrderCard: {
     marginBottom: 13,
     borderWidth: 1,
-    borderColor: BORDER,
-    borderRadius: 14,
-    backgroundColor: WHITE,
+    borderColor: "#E2E8F0",
+    borderRadius: 15,
+    backgroundColor: "#FFFFFF",
     overflow: "hidden",
   },
-
   historyOrderTop: {
     padding: 13,
-    backgroundColor: "#FAFBFD",
+    backgroundColor: "#F8FAFC",
     flexDirection: "row",
     alignItems: "center",
     gap: 10,
   },
-
   historyOrderId: {
-    color: NAVY_DARK,
+    color: "#102A43",
     fontSize: 12,
     fontWeight: "900",
   },
-
   historyOrderDate: {
     marginTop: 4,
-    color: MUTED,
+    color: "#64748B",
     fontSize: 10,
   },
-
   orderStatusBadge: {
     paddingHorizontal: 9,
     paddingVertical: 6,
-    borderRadius: 13,
+    borderRadius: 9,
   },
-
   orderStatusText: {
     fontSize: 9,
     fontWeight: "900",
   },
-
-  historyItems: {
-    paddingHorizontal: 13,
-  },
-
+  historyItems: { paddingHorizontal: 13 },
   historyItemRow: {
-    minHeight: 55,
+    minHeight: 56,
     borderBottomWidth: 1,
-    borderBottomColor: BORDER,
+    borderBottomColor: "#EEF2F6",
     flexDirection: "row",
     alignItems: "center",
     gap: 10,
   },
-
   historyItemName: {
-    color: TEXT,
+    color: "#334155",
     fontSize: 11,
     fontWeight: "800",
   },
-
   historyItemMeta: {
     marginTop: 3,
-    color: MUTED,
+    color: "#64748B",
     fontSize: 9,
   },
-
   historyItemPrice: {
-    color: NAVY_DARK,
+    color: "#102A43",
     fontSize: 11,
     fontWeight: "900",
   },
-
   historyOrderFooter: {
     padding: 13,
     flexDirection: "row",
     justifyContent: "space-between",
     gap: 10,
   },
-
   paymentLabel: {
-    color: MUTED,
+    color: "#94A3B8",
     fontSize: 9,
+    fontWeight: "600",
   },
-
   paymentValue: {
     marginTop: 3,
-    color: TEXT,
+    color: "#334155",
     fontSize: 10,
     fontWeight: "800",
   },
-
   historyTotal: {
     marginTop: 3,
-    color: GREEN,
+    color: "#087A5A",
     fontSize: 13,
     fontWeight: "900",
   },
-
   openOrderButton: {
-    minHeight: 42,
+    minHeight: 44,
     borderTopWidth: 1,
-    borderTopColor: BORDER,
-    backgroundColor: GOLD_SOFT,
+    borderTopColor: "#F4D98B",
+    backgroundColor: "#FFF7DF",
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
     gap: 7,
   },
-
   openOrderText: {
-    color: NAVY,
+    color: "#9A6700",
     fontSize: 11,
     fontWeight: "900",
   },
