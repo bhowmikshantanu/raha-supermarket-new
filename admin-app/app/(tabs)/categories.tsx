@@ -1,5 +1,5 @@
 import { useRouter } from "expo-router";
-import React, { useMemo } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   FlatList,
   StyleSheet,
@@ -15,7 +15,11 @@ import {
   SPACING,
 } from "@/src/config/theme";
 import { useProducts } from "@/src/context/ProductContext";
-import { CATEGORIES } from "@/src/data/categories";
+import {
+  FirebaseCategory,
+  subscribeToFirebaseCategories,
+} from "@/src/services/firebaseCategories";
+import type { Category } from "@/src/types";
 
 export default function CategoriesScreen() {
   const router = useRouter();
@@ -24,6 +28,59 @@ export default function CategoriesScreen() {
     products,
     loading: productsLoading,
   } = useProducts();
+
+  const [firebaseCategories, setFirebaseCategories] = useState<
+    FirebaseCategory[]
+  >([]);
+  const [categoriesLoading, setCategoriesLoading] =
+    useState(true);
+  const [categoriesError, setCategoriesError] =
+    useState<string | null>(null);
+
+  useEffect(() => {
+    const unsubscribe =
+      subscribeToFirebaseCategories(
+        (categories) => {
+          setFirebaseCategories(categories);
+          setCategoriesError(null);
+          setCategoriesLoading(false);
+        },
+        (error) => {
+          console.error(
+            "[Customer Categories] Unable to load categories:",
+            error,
+          );
+
+          setCategoriesError(
+            "Unable to load categories right now.",
+          );
+          setCategoriesLoading(false);
+        },
+      );
+
+    return unsubscribe;
+  }, []);
+
+  const categories = useMemo<Category[]>(
+    () =>
+      firebaseCategories
+        .filter((category) => category.active)
+        .sort(
+          (a, b) =>
+            a.sortOrder - b.sortOrder ||
+            a.name.localeCompare(b.name),
+        )
+        .map((category) => ({
+          id: category.id,
+          name: category.name,
+          image:
+            category.image ??
+            "https://images.pexels.com/photos/264636/pexels-photo-264636.jpeg?auto=compress&cs=tinysrgb&w=400",
+          color: COLORS.surface,
+          icon: category.icon ?? "grid-outline",
+        })),
+    [firebaseCategories],
+  );
 
   const productCountByCategory = useMemo(() => {
     const counts = new Map<string, number>();
@@ -52,12 +109,18 @@ export default function CategoriesScreen() {
           Discover essentials across all categories
         </Text>
 
-        {productsLoading ? (
+        {categoriesLoading || productsLoading ? (
           <Text style={styles.syncText}>
-            Syncing live products…
+            Syncing live categories and products…
+          </Text>
+        ) : categoriesError ? (
+          <Text style={styles.errorText}>
+            {categoriesError}
           </Text>
         ) : (
           <Text style={styles.syncText}>
+            {categories.length} active categor
+            {categories.length === 1 ? "y" : "ies"} •{" "}
             {products.length} live product
             {products.length === 1 ? "" : "s"} available
           </Text>
@@ -65,7 +128,7 @@ export default function CategoriesScreen() {
       </View>
 
       <FlatList
-        data={CATEGORIES}
+        data={categories}
         keyExtractor={(category) => category.id}
         numColumns={2}
         showsVerticalScrollIndicator={false}
@@ -74,6 +137,20 @@ export default function CategoriesScreen() {
         ItemSeparatorComponent={() => (
           <View style={styles.separator} />
         )}
+        ListEmptyComponent={
+          !categoriesLoading ? (
+            <View style={styles.emptyContainer}>
+              <Text style={styles.emptyTitle}>
+                No categories available
+              </Text>
+
+              <Text style={styles.emptyText}>
+                Active categories added from the admin panel
+                will appear here automatically.
+              </Text>
+            </View>
+          ) : null
+        }
         renderItem={({ item }) => {
           const count =
             productCountByCategory.get(item.id) ?? 0;
@@ -137,9 +214,17 @@ const styles = StyleSheet.create({
     fontWeight: FONT.weight.medium,
   },
 
+  errorText: {
+    marginTop: 4,
+    color: COLORS.danger,
+    fontSize: FONT.size.xs,
+    fontWeight: FONT.weight.medium,
+  },
+
   list: {
     paddingHorizontal: SPACING.md,
     paddingBottom: SPACING.xxl,
+    flexGrow: 1,
   },
 
   columnWrapper: {
@@ -160,5 +245,26 @@ const styles = StyleSheet.create({
     color: COLORS.textMuted,
     textAlign: "center",
     fontWeight: FONT.weight.medium,
+  },
+
+  emptyContainer: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    padding: SPACING.xl,
+  },
+
+  emptyTitle: {
+    fontSize: FONT.size.lg,
+    fontWeight: FONT.weight.bold,
+    color: COLORS.textPrimary,
+    textAlign: "center",
+  },
+
+  emptyText: {
+    marginTop: SPACING.sm,
+    fontSize: FONT.size.sm,
+    color: COLORS.textSecondary,
+    textAlign: "center",
   },
 });
