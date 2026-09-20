@@ -1,4 +1,4 @@
-﻿import { Ionicons } from "@expo/vector-icons";
+import { Ionicons } from "@expo/vector-icons";
 import {
   onAuthStateChanged,
   signOut,
@@ -688,7 +688,11 @@ export default function AdminDashboard() {
       </View>
     );
   })}
-</View>              <Text style={styles.cardTitle}>
+</View>
+            </View>
+
+            <View style={styles.statusCard}>
+              <Text style={styles.cardTitle}>
                 Order Status
               </Text>
 
