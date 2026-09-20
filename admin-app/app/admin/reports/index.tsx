@@ -1,4 +1,4 @@
-﻿import { Ionicons } from "@expo/vector-icons";
+import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React, { useEffect, useMemo, useState } from "react";
 import {
@@ -36,6 +36,8 @@ const PURPLE = "#7257D5";
 const ORANGE = "#D98218";
 const TEAL = "#18AFA7";
 
+type DateFilter = "today" | "7days" | "30days" | "custom";
+
 type CustomerReport = {
   key: string;
   uid?: string;
@@ -67,6 +69,11 @@ export default function AdminReportsScreen() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [ordersLoading, setOrdersLoading] = useState(true);
   const [errorText, setErrorText] = useState("");
+  const [dateFilter, setDateFilter] =
+    useState<DateFilter>("30days");
+  const [customFrom, setCustomFrom] = useState("");
+  const [customTo, setCustomTo] = useState("");
+
   const [customerSearch, setCustomerSearch] = useState("");
   const [selectedCustomer, setSelectedCustomer] =
     useState<CustomerReport | null>(null);
@@ -88,16 +95,118 @@ export default function AdminReportsScreen() {
     return unsubscribe;
   }, []);
 
-  const report = useMemo(() => {
-    const deliveredOrders = orders.filter(
+  const filteredOrders = useMemo(() => {
+    const now = new Date();
+    let from = 0;
+    let to = Number.MAX_SAFE_INTEGER;
+
+    if (dateFilter === "today") {
+      const start = new Date(now);
+      start.setHours(0, 0, 0, 0);
+
+      const end = new Date(now);
+      end.setHours(23, 59, 59, 999);
+
+      from = start.getTime();
+      to = end.getTime();
+    }
+
+    if (dateFilter === "7days") {
+      const start = new Date(now);
+      start.setHours(0, 0, 0, 0);
+      start.setDate(start.getDate() - 6);
+
+      from = start.getTime();
+      to = now.getTime();
+    }
+
+    if (dateFilter === "30days") {
+      const start = new Date(now);
+      start.setHours(0, 0, 0, 0);
+      start.setDate(start.getDate() - 29);
+
+      from = start.getTime();
+      to = now.getTime();
+    }
+
+    if (dateFilter === "custom") {
+      if (customFrom) {
+        const start = new Date(`${customFrom}T00:00:00`);
+        if (!Number.isNaN(start.getTime())) {
+          from = start.getTime();
+        }
+      }
+
+      if (customTo) {
+        const end = new Date(`${customTo}T23:59:59.999`);
+        if (!Number.isNaN(end.getTime())) {
+          to = end.getTime();
+        }
+      }
+    }
+
+    return orders.filter((order) => {
+      const createdAt = Number(order.createdAt || 0);
+      return createdAt >= from && createdAt <= to;
+    });
+  }, [
+    orders,
+    dateFilter,
+    customFrom,
+    customTo,
+  ]);
+
+  const paymentReport = useMemo(() => {
+    const codOrders = filteredOrders.filter(
+      (order) => order.paymentMethod === "cod",
+    );
+
+    const onlineOrders = filteredOrders.filter(
+      (order) => order.paymentMethod === "online",
+    );
+
+    const deliveredCod = codOrders.filter(
       (order) => order.status === "delivered",
     );
 
-    const cancelledOrders = orders.filter(
+    const deliveredOnline = onlineOrders.filter(
+      (order) => order.status === "delivered",
+    );
+
+    return {
+      codOrders: codOrders.length,
+      onlineOrders: onlineOrders.length,
+
+      codRevenue: deliveredCod.reduce(
+        (sum, order) => sum + Number(order.total || 0),
+        0,
+      ),
+
+      onlineRevenue: deliveredOnline.reduce(
+        (sum, order) => sum + Number(order.total || 0),
+        0,
+      ),
+
+      paidOnline: onlineOrders.filter(
+        (order) => order.paymentStatus === "paid",
+      ).length,
+
+      pendingOnline: onlineOrders.filter(
+        (order) => order.paymentStatus !== "paid",
+      ).length,
+    };
+  }, [filteredOrders]);
+
+  const report = useMemo(() => {
+    const deliveredOrders = filteredOrders.filter(
+      (order) => order.status === "delivered",
+    );
+
+    const cancelledOrders = filteredOrders.filter(
       (order) => order.status === "cancelled",
     );
 
-    const activeOrders = orders.filter(
+    const activeOrders = filteredOrders.filter(
       (order) =>
         order.status === "placed" ||
         order.status === "confirmed" ||
@@ -170,7 +279,7 @@ export default function AdminReportsScreen() {
     ).map((status) => ({
       status,
       label: STATUS_LABELS[status],
-      count: orders.filter(
+      count: filteredOrders.filter(
         (order) => order.status === status,
       ).length,
     }));
@@ -202,14 +311,14 @@ export default function AdminReportsScreen() {
       deliveredCount: deliveredOrders.length,
       cancelledCount: cancelledOrders.length,
       activeCount: activeOrders.length,
-      totalOrders: orders.length,
+      totalOrders: filteredOrders.length,
       topProducts,
       statusSummary,
       lowStockProducts,
       outOfStockProducts,
       inventoryRetailValue,
     };
-  }, [orders, products]);
+  }, [filteredOrders, products]);
 
   const customers = useMemo(() => {
     const map = new Map<
@@ -222,7 +331,7 @@ export default function AdminReportsScreen() {
       }
     >();
 
-    for (const order of orders) {
+    for (const order of filteredOrders) {
       const name =
         order.customerName?.trim() ||
         order.address?.fullName?.trim() ||
@@ -301,7 +410,7 @@ export default function AdminReportsScreen() {
           b.totalPurchase - a.totalPurchase ||
           b.totalOrders - a.totalOrders,
       );
-  }, [orders]);
+  }, [filteredOrders]);
 
   const filteredCustomers = useMemo(() => {
     const search = customerSearch
@@ -411,6 +520,86 @@ export default function AdminReportsScreen() {
             </Text>
           </View>
         ) : null}
+
+        <View style={styles.filterCard}>
+          <View style={styles.filterHeader}>
+            <View>
+              <Text style={styles.filterTitle}>
+                Report Period
+              </Text>
+              <Text style={styles.filterSubtitle}>
+                All reports below follow the selected period
+              </Text>
+            </View>
+
+            <View style={styles.filterCountBadge}>
+              <Text style={styles.filterCountText}>
+                {filteredOrders.length} orders
+              </Text>
+            </View>
+          </View>
+
+          <View style={styles.filterButtons}>
+            {(
+              [
+                ["today", "Today"],
+                ["7days", "7 Days"],
+                ["30days", "30 Days"],
+                ["custom", "Custom Range"],
+              ] as const
+            ).map(([value, label]) => (
+              <TouchableOpacity
+                key={value}
+                style={[
+                  styles.filterButton,
+                  dateFilter === value &&
+                    styles.filterButtonActive,
+                ]}
+                onPress={() => setDateFilter(value)}
+              >
+                <Text
+                  style={[
+                    styles.filterButtonText,
+                    dateFilter === value &&
+                      styles.filterButtonTextActive,
+                  ]}
+                >
+                  {label}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+
+          {dateFilter === "custom" ? (
+            <View style={styles.customDateRow}>
+              <View style={styles.dateField}>
+                <Text style={styles.dateLabel}>
+                  From
+                </Text>
+                <TextInput
+                  value={customFrom}
+                  onChangeText={setCustomFrom}
+                  placeholder="YYYY-MM-DD"
+                  placeholderTextColor="#98A4B3"
+                  style={styles.dateInput}
+                />
+              </View>
+
+              <View style={styles.dateField}>
+                <Text style={styles.dateLabel}>
+                  To
+                </Text>
+                <TextInput
+                  value={customTo}
+                  onChangeText={setCustomTo}
+                  placeholder="YYYY-MM-DD"
+                  placeholderTextColor="#98A4B3"
+                  style={styles.dateInput}
+                />
+              </View>
+            </View>
+          ) : null}
+        </View>
 
         <SectionHeading
           title="Sales Overview"
@@ -655,10 +844,55 @@ export default function AdminReportsScreen() {
         </View>
 
         <SectionHeading
-          title="Order Status"
-          subtitle="Current distribution across the order lifecycle"
-          icon="pulse-outline"
+          title="Payment Report"
+          subtitle="COD and online payment performance for selected period"
+          icon="card-outline"
         />
+
+        <View style={styles.metricGrid}>
+          <MetricCard
+            icon="cash-outline"
+            label="COD Orders"
+            value={String(paymentReport.codOrders)}
+            note={formatCurrency(paymentReport.codRevenue) + " delivered"}
+            accent={ORANGE}
+            soft="#FFF3E2"
+          />
+
+          <MetricCard
+            icon="card-outline"
+            label="Online Orders"
+            value={String(paymentReport.onlineOrders)}
+            note={formatCurrency(paymentReport.onlineRevenue) + " delivered"}
+            accent={BLUE}
+            soft="#EAF3FF"
+          />
+
+          <MetricCard
+            icon="checkmark-circle-outline"
+            label="Online Paid"
+            value={String(paymentReport.paidOnline)}
+            note="Verified paid orders"
+            accent={GREEN}
+            soft="#E7F8F1"
+          />
+
+          <MetricCard
+            icon="time-outline"
+            label="Online Pending"
+            value={String(paymentReport.pendingOnline)}
+            note="Not marked paid"
+            accent={PURPLE}
+            soft="#F0ECFF"
+          />
+        </View>
+
+        <SectionHeading
+          title="Order Report"
+          subtitle="Order status distribution for selected period"
+          icon="receipt-outline"
+        />
+
 
         <View style={styles.statusCard}>
           {report.statusSummary.map(
@@ -725,8 +959,8 @@ export default function AdminReportsScreen() {
         </View>
 
         <SectionHeading
-          title="Top Selling Products"
-          subtitle="Ranked by delivered quantity and revenue"
+          title="Product Sales Report"
+          subtitle="Products ranked by delivered quantity and revenue for selected period"
           icon="trophy-outline"
         />
 
@@ -1099,7 +1333,7 @@ export default function AdminReportsScreen() {
                                     Qty:{" "}
                                     {item.quantity}
                                     {item.size
-                                      ? ` · ${item.size}`
+                                      ? ` Â· ${item.size}`
                                       : ""}
                                   </Text>
                                 </View>
@@ -1501,7 +1735,7 @@ function statusBackground(
 
 function formatDate(timestamp: number) {
   if (!timestamp) {
-    return "—";
+    return "â€”";
   }
 
   return new Date(
@@ -1622,6 +1856,110 @@ const styles = StyleSheet.create({
   content: {
     padding: 20,
     paddingBottom: 55,
+  },
+
+  filterCard: {
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: BORDER,
+    backgroundColor: WHITE,
+    padding: 16,
+    marginBottom: 4,
+  },
+
+  filterHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    gap: 12,
+    marginBottom: 14,
+  },
+
+  filterTitle: {
+    color: NAVY_DARK,
+    fontSize: 15,
+    fontWeight: "900",
+  },
+
+  filterSubtitle: {
+    marginTop: 3,
+    color: MUTED,
+    fontSize: 11,
+  },
+
+  filterCountBadge: {
+    paddingHorizontal: 11,
+    paddingVertical: 7,
+    borderRadius: 14,
+    backgroundColor: NAVY_SOFT,
+  },
+
+  filterCountText: {
+    color: NAVY,
+    fontSize: 10,
+    fontWeight: "900",
+  },
+
+  filterButtons: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
+  },
+
+  filterButton: {
+    paddingHorizontal: 14,
+    minHeight: 38,
+    borderRadius: 11,
+    borderWidth: 1,
+    borderColor: BORDER,
+    backgroundColor: BG,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  filterButtonActive: {
+    backgroundColor: NAVY,
+    borderColor: NAVY,
+  },
+
+  filterButtonText: {
+    color: NAVY,
+    fontSize: 11,
+    fontWeight: "800",
+  },
+
+  filterButtonTextActive: {
+    color: WHITE,
+  },
+
+  customDateRow: {
+    marginTop: 13,
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 10,
+  },
+
+  dateField: {
+    flex: 1,
+    minWidth: 170,
+  },
+
+  dateLabel: {
+    marginBottom: 5,
+    color: MUTED,
+    fontSize: 10,
+    fontWeight: "800",
+  },
+
+  dateInput: {
+    height: 42,
+    borderWidth: 1,
+    borderColor: BORDER,
+    borderRadius: 10,
+    paddingHorizontal: 11,
+    backgroundColor: BG,
+    color: TEXT,
+    fontSize: 12,
   },
 
   sectionHeading: {
