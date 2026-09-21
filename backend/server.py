@@ -632,17 +632,27 @@ async def lookup_admin_product_barcode(
 ):
     code = barcode.strip()
 
-    if (
-        not code.isdigit()
-        or len(code) < 6
-        or len(code) > 32
-    ):
+    if not code.isdigit() or len(code) < 6 or len(code) > 32:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Enter a valid barcode.",
         )
 
-    lookup_url = (
+    product = {
+        "name": "",
+        "brand": "",
+        "size": "",
+        "image": "",
+        "description": "",
+    }
+
+    found = False
+
+    # -----------------------------------------------------
+    # 1. OPEN FACTS UNIVERSAL LOOKUP
+    # -----------------------------------------------------
+
+    open_facts_url = (
         "https://world.openfoodfacts.org"
         f"/api/v3/product/{code}?product_type=all&cc=in&lc=en"
     )
@@ -653,95 +663,200 @@ async def lookup_admin_product_barcode(
             follow_redirects=True,
         ) as http_client:
             response = await http_client.get(
-                lookup_url,
+                open_facts_url,
                 headers={
                     "Accept": "application/json",
                     "User-Agent": "RahaSupermarket/1.0 barcode-lookup",
                 },
             )
 
-    except httpx.RequestError as exc:
+        if response.is_success:
+            try:
+                data = response.json()
+            except Exception:
+                data = {}
+
+            item = data.get("product")
+
+            if isinstance(item, dict) and item:
+                found = True
+
+                name = (
+                    item.get("product_name_en")
+                    or item.get("product_name")
+                    or item.get("generic_name_en")
+                    or item.get("generic_name")
+                    or ""
+                )
+
+                product["name"] = str(name).strip()
+
+                product["brand"] = str(
+                    item.get("brands") or ""
+                ).strip()
+
+                product["size"] = str(
+                    item.get("quantity") or ""
+                ).strip()
+
+                product["image"] = str(
+                    item.get("image_front_url")
+                    or item.get("image_url")
+                    or ""
+                ).strip()
+
+                product["description"] = str(
+                    item.get("generic_name_en")
+                    or item.get("generic_name")
+                    or ""
+                ).strip()
+
+    except Exception:
         logger.exception(
-            "Barcode provider request failed for %s.",
+            "Open Facts barcode lookup failed for %s.",
             code,
         )
 
-        raise HTTPException(
-            status_code=status.HTTP_502_BAD_GATEWAY,
-            detail="Product database is temporarily unavailable.",
-        ) from exc
+    # -----------------------------------------------------
+    # 2. UPCITEMDB FALLBACK / DETAIL ENRICHMENT
+    #
+    # Call it when Open Facts did not find the product OR
+    # when important product details are incomplete.
+    # -----------------------------------------------------
 
-    if response.status_code == 404:
-        return {
-            "found": False,
-            "barcode": code,
-        }
-
-    if not response.is_success:
-        logger.warning(
-            "Barcode provider returned status=%s for %s.",
-            response.status_code,
-            code,
-        )
-
-        raise HTTPException(
-            status_code=status.HTTP_502_BAD_GATEWAY,
-            detail="Product database lookup failed.",
-        )
-
-    try:
-        data = response.json()
-
-    except Exception as exc:
-        logger.exception(
-            "Barcode provider returned invalid JSON for %s.",
-            code,
-        )
-
-        raise HTTPException(
-            status_code=status.HTTP_502_BAD_GATEWAY,
-            detail="Product database returned an invalid response.",
-        ) from exc
-
-    item = data.get("product")
-
-    if not isinstance(item, dict) or not item:
-        return {
-            "found": False,
-            "barcode": code,
-        }
-
-    name = (
-        item.get("product_name_en")
-        or item.get("product_name")
-        or item.get("generic_name_en")
-        or item.get("generic_name")
-        or ""
+    needs_fallback = (
+        not found
+        or not product["name"]
+        or not product["brand"]
+        or not product["size"]
+        or not product["description"]
     )
+
+    if needs_fallback:
+        upcitemdb_url = (
+            "https://api.upcitemdb.com"
+            f"/prod/trial/lookup?upc={code}"
+        )
+
+        try:
+            async with httpx.AsyncClient(
+                timeout=15.0,
+                follow_redirects=True,
+            ) as http_client:
+                fallback_response = await http_client.get(
+                    upcitemdb_url,
+                    headers={
+                        "Accept": "application/json",
+                        "Content-Type": "application/json",
+                        "User-Agent": "RahaSupermarket/1.0 barcode-lookup",
+                    },
+                )
+
+            if fallback_response.is_success:
+                try:
+                    fallback_data = fallback_response.json()
+                except Exception:
+                    fallback_data = {}
+
+                fallback_items = fallback_data.get("items") or []
+
+                if (
+                    isinstance(fallback_items, list)
+                    and len(fallback_items) > 0
+                    and isinstance(fallback_items[0], dict)
+                ):
+                    fallback_item = fallback_items[0]
+                    found = True
+
+                    fallback_name = str(
+                        fallback_item.get("title") or ""
+                    ).strip()
+
+                    fallback_brand = str(
+                        fallback_item.get("brand") or ""
+                    ).strip()
+
+                    fallback_size = str(
+                        fallback_item.get("size")
+                        or fallback_item.get("weight")
+                        or ""
+                    ).strip()
+
+                    fallback_description = str(
+                        fallback_item.get("description") or ""
+                    ).strip()
+
+                    fallback_images = (
+                        fallback_item.get("images") or []
+                    )
+
+                    fallback_image = ""
+
+                    if (
+                        isinstance(fallback_images, list)
+                        and fallback_images
+                    ):
+                        fallback_image = str(
+                            fallback_images[0] or ""
+                        ).strip()
+
+                    # Open Facts data gets priority.
+                    # UPCitemdb only fills missing fields.
+
+                    if not product["name"]:
+                        product["name"] = fallback_name
+
+                    if not product["brand"]:
+                        product["brand"] = fallback_brand
+
+                    if not product["size"]:
+                        product["size"] = fallback_size
+
+                    if not product["image"]:
+                        product["image"] = fallback_image
+
+                    if not product["description"]:
+                        product["description"] = (
+                            fallback_description
+                        )
+
+            elif fallback_response.status_code == 429:
+                logger.warning(
+                    "UPCitemdb rate limit reached for barcode %s.",
+                    code,
+                )
+
+            elif fallback_response.status_code != 404:
+                logger.warning(
+                    "UPCitemdb returned status=%s for barcode %s.",
+                    fallback_response.status_code,
+                    code,
+                )
+
+        except Exception:
+            # UPCitemdb is only a fallback provider.
+            # Its failure must never break barcode lookup.
+            logger.exception(
+                "UPCitemdb fallback lookup failed for %s.",
+                code,
+            )
+
+    # -----------------------------------------------------
+    # 3. FINAL RESPONSE
+    # -----------------------------------------------------
+
+    if not found:
+        return {
+            "found": False,
+            "barcode": code,
+        }
 
     return {
         "found": True,
         "barcode": code,
-        "product": {
-            "name": str(name).strip(),
-            "brand": str(
-                item.get("brands") or ""
-            ).strip(),
-            "size": str(
-                item.get("quantity") or ""
-            ).strip(),
-            "image": str(
-                item.get("image_front_url")
-                or item.get("image_url")
-                or ""
-            ).strip(),
-            "description": str(
-                item.get("generic_name_en")
-                or item.get("generic_name")
-                or ""
-            ).strip(),
-        },
+        "product": product,
     }
+
 
 # =========================================================
 # EXPO PUSH HELPERS
