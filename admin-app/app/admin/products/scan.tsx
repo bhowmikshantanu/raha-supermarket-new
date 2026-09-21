@@ -97,16 +97,39 @@ export default function ScanProductScreen() {
         return;
       }
 
-      const response = await fetch(
-        `https://world.openfoodfacts.org/api/v2/product/${encodeURIComponent(code)}.json`,
-      );
+      const user = auth.currentUser;
+
+if (!user) {
+  router.replace("/admin/login");
+  return;
+}
+
+const idToken = await user.getIdToken(true);
+
+const backendUrl = (
+  process.env.EXPO_PUBLIC_BACKEND_URL || ""
+).replace(/\/+$/, "");
+
+if (!backendUrl) {
+  throw new Error("BACKEND_URL_NOT_CONFIGURED");
+}
+
+const response = await fetch(
+  `${backendUrl}/api/admin/products/barcode/${encodeURIComponent(code)}`,
+  {
+    headers: {
+      Accept: "application/json",
+      Authorization: `Bearer ${idToken}`,
+    },
+  },
+);
 
       if (!response.ok) {
         throw new Error("LOOKUP_FAILED");
       }
 
       const data = await response.json();
-      if (data?.status !== 1 || !data?.product) {
+      if (!data?.found || !data?.product) {
         setProduct({
           barcode: code,
           name: "",
@@ -121,21 +144,15 @@ export default function ScanProductScreen() {
       }
 
       const item = data.product;
-      const name =
-        item.product_name_en ||
-        item.product_name ||
-        item.generic_name_en ||
-        item.generic_name ||
-        "";
 
-      setProduct({
-        barcode: code,
-        name: String(name).trim(),
-        brand: String(item.brands || "").trim(),
-        size: String(item.quantity || "").trim(),
-        image: String(item.image_front_url || item.image_url || "").trim(),
-        description: String(item.generic_name_en || item.generic_name || "").trim(),
-      });
+setProduct({
+  barcode: code,
+  name: String(item.name || "").trim(),
+  brand: String(item.brand || "").trim(),
+  size: String(item.size || "").trim(),
+  image: String(item.image || "").trim(),
+  description: String(item.description || "").trim(),
+});
 
       stopCamera();
       showToast("Product details found. Verify price and stock.", "success");
