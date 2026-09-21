@@ -1185,6 +1185,15 @@ const styles = StyleSheet.create({
     backgroundColor: NAVY,
     paddingHorizontal: 14,
     paddingTop: 22,
+    overflow: "hidden",
+    position: "relative",
+  },
+
+  sidebarDecor: {
+    ...StyleSheet.absoluteFillObject,
+    justifyContent: "space-around",
+    alignItems: "center",
+    transform: [{ rotate: "-12deg" }],
   },
 
   brand: {
@@ -1231,6 +1240,12 @@ const styles = StyleSheet.create({
 
   sideNav: {
     flex: 1,
+    marginHorizontal: -4,
+    paddingHorizontal: 4,
+  },
+
+  sideNavContent: {
+    paddingBottom: 18,
   },
 
   navItem: {
@@ -1304,7 +1319,19 @@ const styles = StyleSheet.create({
 
   main: {
     flex: 1,
-    backgroundColor: BG,
+    backgroundColor: "rgba(246,248,252,0.96)",
+  },
+
+  mainDecor: {
+    position: "absolute",
+    top: 70,
+    right: 30,
+    bottom: 20,
+    left: 280,
+    zIndex: 0,
+    justifyContent: "space-around",
+    alignItems: "flex-end",
+    transform: [{ rotate: "-8deg" }],
   },
 
   mainContent: {
