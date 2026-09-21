@@ -870,434 +870,406 @@ function StatCard({
   );
 }
 
-const styles =
-  StyleSheet.create({
-    container: {
-      flex: 1,
-      backgroundColor:
-        COLORS.background,
-    },
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "#F4F7FB",
+  },
 
-    header: {
-      minHeight: 76,
-      paddingHorizontal:
-        SPACING.md,
-      borderBottomWidth: 1,
-      borderBottomColor:
-        COLORS.border,
-      flexDirection:
-        "row",
-      alignItems:
-        "center",
-      gap:
-        SPACING.sm,
-      backgroundColor:
-        COLORS.background,
-    },
+  /* ---------- HEADER ---------- */
+  header: {
+    minHeight: 80,
+    paddingHorizontal: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: "#E2E8F0",
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    backgroundColor: "#FFFFFF",
+    shadowColor: "#0F172A",
+    shadowOpacity: 0.05,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 2,
+  },
 
-    backButton: {
-      width: 44,
-      height: 44,
-      borderRadius: 22,
-      alignItems:
-        "center",
-      justifyContent:
-        "center",
-      backgroundColor:
-        COLORS.surface,
-    },
+  backButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 14,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#F1F5F9",
+    borderWidth: 1,
+    borderColor: "#E2E8F0",
+  },
 
-    headerText: {
-      flex: 1,
-    },
+  headerText: {
+    flex: 1,
+  },
 
-    heading: {
-      fontSize:
-        FONT.size.xl,
-      fontWeight:
-        "900",
-      color:
-        COLORS.textPrimary,
-    },
+  heading: {
+    fontSize: 22,
+    fontWeight: "900",
+    color: "#0F172A",
+    letterSpacing: -0.4,
+  },
 
-    subheading: {
-      marginTop: 2,
-      color:
-        COLORS.textSecondary,
-    },
+  subheading: {
+    marginTop: 3,
+    fontSize: 12,
+    fontWeight: "500",
+    color: "#64748B",
+  },
 
-    statsRow: {
-      flexDirection:
-        "row",
-      gap:
-        SPACING.sm,
-      padding:
-        SPACING.md,
-      paddingBottom: 0,
-    },
+  /* ---------- STATS ---------- */
+  statsRow: {
+    flexDirection: "row",
+    gap: 12,
+    paddingHorizontal: 20,
+    paddingTop: 18,
+    paddingBottom: 0,
+  },
 
-    statCard: {
-      flex: 1,
-      minHeight: 76,
-      borderRadius:
-        RADIUS.lg,
-      backgroundColor:
-        COLORS.surface,
-      alignItems:
-        "center",
-      justifyContent:
-        "center",
-      ...SHADOW.card,
-    },
+  statCard: {
+    flex: 1,
+    minHeight: 98,
+    borderRadius: 18,
+    backgroundColor: "#FFFFFF",
+    alignItems: "flex-start",
+    justifyContent: "center",
+    paddingHorizontal: 16,
+    borderWidth: 1,
+    borderColor: "#E2E8F0",
+    shadowColor: "#0F172A",
+    shadowOpacity: 0.055,
+    shadowRadius: 14,
+    shadowOffset: { width: 0, height: 5 },
+    elevation: 2,
+  },
 
-    statValue: {
-      fontSize:
-        FONT.size.lg,
-      fontWeight:
-        "900",
-      color:
-        COLORS.primary,
-    },
+  statValue: {
+    fontSize: 24,
+    fontWeight: "900",
+    color: "#102A43",
+    letterSpacing: -0.5,
+  },
 
-    statLabel: {
-      marginTop: 5,
-      color:
-        COLORS.textSecondary,
-    },
+  statLabel: {
+    marginTop: 5,
+    fontSize: 10,
+    fontWeight: "700",
+    color: "#64748B",
+    textTransform: "uppercase",
+    letterSpacing: 0.4,
+  },
 
-    pageContent: {
-      padding:
-        SPACING.md,
-      paddingBottom: 60,
-    },
+  /* ---------- PAGE ---------- */
+  pageContent: {
+    padding: 20,
+    paddingBottom: 60,
+  },
 
-    formCard: {
-      borderRadius:
-        RADIUS.lg,
-      backgroundColor:
-        COLORS.surface,
-      padding:
-        SPACING.md,
-      ...SHADOW.card,
-    },
+  /* ---------- COMPOSE CARD ---------- */
+  formCard: {
+    borderRadius: 20,
+    backgroundColor: "#FFFFFF",
+    padding: 20,
+    borderWidth: 1,
+    borderColor: "#E1E8F0",
+    shadowColor: "#0F172A",
+    shadowOpacity: 0.06,
+    shadowRadius: 16,
+    shadowOffset: { width: 0, height: 6 },
+    elevation: 2,
+  },
 
-    sectionHeader: {
-      flexDirection:
-        "row",
-      alignItems:
-        "center",
-      gap:
-        SPACING.sm,
-      marginBottom:
-        SPACING.md,
-    },
+  sectionHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    marginBottom: 16,
+    paddingBottom: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: "#E8EDF3",
+  },
 
-    sectionIcon: {
-      width: 46,
-      height: 46,
-      borderRadius: 23,
-      alignItems:
-        "center",
-      justifyContent:
-        "center",
-      backgroundColor:
-        COLORS.primarySoft,
-    },
+  sectionIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: 15,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#FFF7DF",
+    borderWidth: 1,
+    borderColor: "#F4D98B",
+  },
 
-    sectionHeaderText: {
-      flex: 1,
-    },
+  sectionHeaderText: {
+    flex: 1,
+  },
 
-    sectionTitle: {
-      fontWeight:
-        "900",
-      color:
-        COLORS.textPrimary,
-      fontSize:
-        FONT.size.md,
-    },
+  sectionTitle: {
+    fontWeight: "900",
+    color: "#0F172A",
+    fontSize: 16,
+  },
 
-    sectionSubtitle: {
-      marginTop: 4,
-      color:
-        COLORS.textSecondary,
-    },
+  sectionSubtitle: {
+    marginTop: 4,
+    fontSize: 11,
+    lineHeight: 16,
+    color: "#64748B",
+  },
 
-    fieldLabel: {
-      marginTop:
-        SPACING.md,
-      marginBottom: 7,
-      fontWeight:
-        "900",
-      color:
-        COLORS.textPrimary,
-    },
+  /* ---------- FORM ---------- */
+  fieldLabel: {
+    marginTop: 16,
+    marginBottom: 8,
+    fontSize: 12,
+    fontWeight: "800",
+    color: "#334155",
+  },
 
-    channelRow: {
-      flexDirection:
-        "row",
-      flexWrap:
-        "wrap",
-      gap:
-        SPACING.sm,
-    },
+  channelRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
+  },
 
-    channelChip: {
-      minHeight: 42,
-      borderWidth: 1,
-      borderColor:
-        COLORS.border,
-      borderRadius: 22,
-      flexDirection:
-        "row",
-      alignItems:
-        "center",
-      gap: 7,
-      paddingHorizontal:
-        14,
-      backgroundColor:
-        COLORS.surface,
-    },
+  channelChip: {
+    minHeight: 42,
+    borderWidth: 1,
+    borderColor: "#DDE5EF",
+    borderRadius: 11,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 7,
+    paddingHorizontal: 14,
+    backgroundColor: "#F8FAFC",
+  },
 
-    channelChipActive: {
-      borderColor:
-        COLORS.primary,
-      backgroundColor:
-        COLORS.primary,
-    },
+  channelChipActive: {
+    borderColor: "#102A43",
+    backgroundColor: "#102A43",
+    shadowColor: "#102A43",
+    shadowOpacity: 0.12,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 1,
+  },
 
-    channelText: {
-      fontWeight:
-        "800",
-      color:
-        COLORS.textPrimary,
-    },
+  channelText: {
+    fontSize: 11,
+    fontWeight: "800",
+    color: "#475569",
+  },
 
-    channelTextActive: {
-      color:
-        COLORS.textOnPrimary,
-    },
+  channelTextActive: {
+    color: "#FFFFFF",
+  },
 
-    input: {
-      minHeight: 50,
-      borderWidth: 1,
-      borderColor:
-        COLORS.border,
-      borderRadius:
-        RADIUS.md,
-      paddingHorizontal:
-        SPACING.md,
-      backgroundColor:
-        COLORS.background,
-      color:
-        COLORS.textPrimary,
-    },
+  input: {
+    minHeight: 50,
+    borderWidth: 1,
+    borderColor: "#DDE5EF",
+    borderRadius: 13,
+    paddingHorizontal: 15,
+    backgroundColor: "#F8FAFC",
+    color: "#0F172A",
+    fontSize: 13,
+  },
 
-    messageInput: {
-      minHeight: 100,
-      paddingTop:
-        SPACING.md,
-    },
+  messageInput: {
+    minHeight: 110,
+    paddingTop: 14,
+    textAlignVertical: "top",
+  },
 
-    helperText: {
-      marginTop: 8,
-      fontSize: 12,
-      color:
-        COLORS.textMuted,
-    },
+  helperText: {
+    marginTop: 8,
+    fontSize: 10,
+    lineHeight: 15,
+    color: "#94A3B8",
+  },
 
-    sendButton: {
-      marginTop:
-        SPACING.md,
-      minHeight: 52,
-      borderRadius:
-        RADIUS.md,
-      backgroundColor:
-        COLORS.primary,
-      flexDirection:
-        "row",
-      alignItems:
-        "center",
-      justifyContent:
-        "center",
-      gap:
-        SPACING.sm,
-    },
+  /* ---------- SEND ---------- */
+  sendButton: {
+    marginTop: 20,
+    minHeight: 52,
+    borderRadius: 13,
+    backgroundColor: "#102A43",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 9,
+    shadowColor: "#102A43",
+    shadowOpacity: 0.18,
+    shadowRadius: 9,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 3,
+  },
 
-    sendButtonDisabled: {
-      opacity: 0.55,
-    },
+  sendButtonDisabled: {
+    opacity: 0.5,
+  },
 
-    sendButtonText: {
-      color:
-        COLORS.textOnPrimary,
-      fontWeight:
-        "900",
-      fontSize:
-        FONT.size.md,
-    },
+  sendButtonText: {
+    color: "#FFFFFF",
+    fontWeight: "900",
+    fontSize: 14,
+  },
 
-    historyHeader: {
-      marginTop:
-        SPACING.lg,
-      marginBottom:
-        SPACING.sm,
-    },
+  /* ---------- HISTORY HEADER ---------- */
+  historyHeader: {
+    marginTop: 26,
+    marginBottom: 12,
+    paddingHorizontal: 2,
+  },
 
-    historyTitle: {
-      fontWeight:
-        "900",
-      color:
-        COLORS.textPrimary,
-      fontSize:
-        FONT.size.md,
-    },
+  historyTitle: {
+    fontWeight: "900",
+    color: "#0F172A",
+    fontSize: 17,
+    letterSpacing: -0.2,
+  },
 
-    historySubtitle: {
-      marginTop: 4,
-      color:
-        COLORS.textSecondary,
-    },
+  historySubtitle: {
+    marginTop: 4,
+    fontSize: 11,
+    color: "#64748B",
+  },
 
-    historyCard: {
-      marginBottom:
-        SPACING.sm,
-      borderRadius:
-        RADIUS.lg,
-      backgroundColor:
-        COLORS.surface,
-      padding:
-        SPACING.md,
-      ...SHADOW.card,
-    },
+  /* ---------- HISTORY CARD ---------- */
+  historyCard: {
+    marginBottom: 12,
+    borderRadius: 18,
+    backgroundColor: "#FFFFFF",
+    padding: 17,
+    borderWidth: 1,
+    borderColor: "#E1E8F0",
+    shadowColor: "#0F172A",
+    shadowOpacity: 0.05,
+    shadowRadius: 13,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 2,
+  },
 
-    historyTopRow: {
-      flexDirection:
-        "row",
-      alignItems:
-        "center",
-      gap:
-        SPACING.sm,
-    },
+  historyTopRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+  },
 
-    historyIcon: {
-      width: 42,
-      height: 42,
-      borderRadius: 21,
-      alignItems:
-        "center",
-      justifyContent:
-        "center",
-      backgroundColor:
-        COLORS.primarySoft,
-    },
+  historyIcon: {
+    width: 46,
+    height: 46,
+    borderRadius: 14,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#E8F7F3",
+    borderWidth: 1,
+    borderColor: "#CBE9E1",
+  },
 
-    historyContent: {
-      flex: 1,
-    },
+  historyContent: {
+    flex: 1,
+  },
 
-    historyItemTitle: {
-      fontWeight:
-        "900",
-      color:
-        COLORS.textPrimary,
-    },
+  historyItemTitle: {
+    fontSize: 14,
+    fontWeight: "900",
+    color: "#0F172A",
+  },
 
-    historyDate: {
-      marginTop: 4,
-      fontSize: 12,
-      color:
-        COLORS.textSecondary,
-    },
+  historyDate: {
+    marginTop: 4,
+    fontSize: 10,
+    fontWeight: "500",
+    color: "#94A3B8",
+  },
 
-    sentBadge: {
-      minHeight: 26,
-      borderRadius: 13,
-      paddingHorizontal:
-        10,
-      alignItems:
-        "center",
-      justifyContent:
-        "center",
-      backgroundColor:
-        COLORS.primarySoft,
-    },
+  sentBadge: {
+    minHeight: 28,
+    borderRadius: 9,
+    paddingHorizontal: 10,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#E7F8F1",
+    borderWidth: 1,
+    borderColor: "#CDE7E2",
+  },
 
-    sentBadgeText: {
-      color:
-        COLORS.primary,
-      fontWeight:
-        "800",
-      fontSize: 11,
-    },
+  sentBadgeText: {
+    color: "#0F766E",
+    fontWeight: "900",
+    fontSize: 9,
+  },
 
-    historyMessage: {
-      marginTop:
-        SPACING.sm,
-      lineHeight: 20,
-      color:
-        COLORS.textPrimary,
-    },
+  historyMessage: {
+    marginTop: 12,
+    lineHeight: 19,
+    fontSize: 12,
+    color: "#475569",
+    backgroundColor: "#F8FAFC",
+    borderRadius: 11,
+    padding: 12,
+  },
 
-    historyStats: {
-      marginTop:
-        SPACING.sm,
-      flexDirection:
-        "row",
-      flexWrap:
-        "wrap",
-      gap:
-        SPACING.md,
-    },
+  /* ---------- DELIVERY STATS ---------- */
+  historyStats: {
+    marginTop: 12,
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 14,
+    paddingTop: 11,
+    borderTopWidth: 1,
+    borderTopColor: "#EEF2F6",
+  },
 
-    historyStatText: {
-      fontSize: 12,
-      color:
-        COLORS.textSecondary,
-    },
+  historyStatText: {
+    fontSize: 10,
+    fontWeight: "600",
+    color: "#64748B",
+  },
 
-    historyStatSuccess: {
-      fontSize: 12,
-      color:
-        COLORS.primary,
-      fontWeight:
-        "700",
-    },
+  historyStatSuccess: {
+    fontSize: 10,
+    color: "#0F766E",
+    fontWeight: "800",
+  },
 
-    historyStatFailed: {
-      fontSize: 12,
-      color:
-        "#DC2626",
-      fontWeight:
-        "700",
-    },
+  historyStatFailed: {
+    fontSize: 10,
+    color: "#DC2626",
+    fontWeight: "800",
+  },
 
-    emptyHistory: {
-      minHeight: 160,
-      alignItems:
-        "center",
-      justifyContent:
-        "center",
-      padding:
-        SPACING.lg,
-    },
+  /* ---------- EMPTY HISTORY ---------- */
+  emptyHistory: {
+    minHeight: 180,
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 24,
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: "#E2E8F0",
+    backgroundColor: "#FFFFFF",
+  },
 
-    emptyTitle: {
-      marginTop:
-        SPACING.sm,
-      fontWeight:
-        "900",
-      color:
-        COLORS.textPrimary,
-      textAlign:
-        "center",
-    },
+  emptyTitle: {
+    marginTop: 10,
+    fontSize: 14,
+    fontWeight: "900",
+    color: "#0F172A",
+    textAlign: "center",
+  },
 
-    mutedText: {
-      marginTop: 5,
-      color:
-        COLORS.textMuted,
-      textAlign:
-        "center",
-    },
-  });
+  mutedText: {
+    marginTop: 6,
+    fontSize: 11,
+    lineHeight: 17,
+    color: "#94A3B8",
+    textAlign: "center",
+  },
+});
