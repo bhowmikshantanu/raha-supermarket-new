@@ -675,7 +675,7 @@ export default function AdminCategoriesScreen() {
               styles.loadingText
             }
           >
-            Loading categoriesâ€¦
+            Loading categories→  ...
           </Text>
         </View>
       ) : (
@@ -1090,7 +1090,7 @@ function CategoryCard({
             styles.categoryMeta
           }
         >
-          ID: {category.id} Â· Order {category.sortOrder}
+          ID: {category.id} →  · Order {category.sortOrder}
         </Text>
 
         <Text
