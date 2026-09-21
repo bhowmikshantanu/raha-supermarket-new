@@ -312,6 +312,9 @@ export default function ScanProductScreen() {
               onChangeText={setBarcode}
               placeholder="Example: 8901234567890"
               keyboardType="number-pad"
+              autoFocus
+              returnKeyType="search"
+onSubmitEditing={() => void lookupBarcode(barcode)}
               style={styles.input}
             />
             <TouchableOpacity
