@@ -703,7 +703,7 @@ async def lookup_admin_product_barcode(
             detail="Product database returned an invalid response.",
         ) from exc
 
-       item = data.get("product")
+    item = data.get("product")
 
     if not isinstance(item, dict) or not item:
         return {
@@ -2421,7 +2421,7 @@ async def admin_notify_for_new_order(
 
     final_status = "sent"
 
-    if tokens and accepted == 0 and failed > 0:
+    if devices and accepted == 0 and failed > 0:
         final_status = "failed"
 
     try:
@@ -2430,7 +2430,7 @@ async def admin_notify_for_new_order(
                 "status": final_status,
                 "accepted": accepted,
                 "failed": failed,
-                "deviceCount": len(tokens),
+                "deviceCount": len(devices),
                 "completedAt": firestore.SERVER_TIMESTAMP,
             },
             merge=True,
@@ -2444,7 +2444,7 @@ async def admin_notify_for_new_order(
         "New-order admin alert completed "
         "order=%s devices=%s accepted=%s failed=%s",
         order_id,
-        len(tokens),
+        len(devices),
         accepted,
         failed,
     )
@@ -2453,7 +2453,7 @@ async def admin_notify_for_new_order(
         "ok": True,
         "duplicate": False,
         "orderId": order_id,
-        "devices": len(tokens),
+        "devices": len(devices),
         "accepted": accepted,
         "failed": failed,
     }
