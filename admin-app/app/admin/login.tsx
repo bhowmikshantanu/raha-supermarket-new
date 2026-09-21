@@ -344,7 +344,7 @@ export default function AdminLoginScreen() {
             <Button
               label={
                 loading
-                  ? "Verifying Adminâ€¦"
+                  ? "Verifying Admin →  ..."
                   : "Login to Admin Panel"
               }
               onPress={handleLogin}
