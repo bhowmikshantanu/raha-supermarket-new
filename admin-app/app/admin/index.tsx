@@ -388,7 +388,9 @@ export default function AdminDashboard() {
 
             <ScrollView
               style={styles.sideNav}
-              showsVerticalScrollIndicator={false}
+              contentContainerStyle={styles.sideNavContent}
+              showsVerticalScrollIndicator={true}
+              persistentScrollbar={true}
             >
               {NAV_ITEMS.map((item) => {
                 const selected =
@@ -1172,7 +1174,7 @@ function formatOrderDate(
 const styles = StyleSheet.create({
   page: {
     flex: 1,
-    backgroundColor: BG,
+    backgroundColor: "#FFF9EE",
   },
 
   shell: {
@@ -1182,18 +1184,12 @@ const styles = StyleSheet.create({
 
   sidebar: {
     width: 250,
-    backgroundColor: NAVY,
+    backgroundColor: "#063765",
     paddingHorizontal: 14,
     paddingTop: 22,
     overflow: "hidden",
-    position: "relative",
-  },
-
-  sidebarDecor: {
-    ...StyleSheet.absoluteFillObject,
-    justifyContent: "space-around",
-    alignItems: "center",
-    transform: [{ rotate: "-12deg" }],
+    borderRightWidth: 1,
+    borderRightColor: "rgba(243,181,63,0.18)",
   },
 
   brand: {
@@ -1240,12 +1236,11 @@ const styles = StyleSheet.create({
 
   sideNav: {
     flex: 1,
-    marginHorizontal: -4,
-    paddingHorizontal: 4,
+    minHeight: 0,
   },
 
   sideNavContent: {
-    paddingBottom: 18,
+    paddingBottom: 14,
   },
 
   navItem: {
@@ -1274,12 +1269,15 @@ const styles = StyleSheet.create({
   },
 
   sideFooter: {
+    flexShrink: 0,
     paddingHorizontal: 12,
-    paddingTop: 15,
-    paddingBottom: 18,
+    paddingTop: 12,
+    paddingBottom: 14,
     borderTopWidth: 1,
-    borderTopColor:
-      "rgba(255,255,255,0.15)",
+    borderTopColor: "rgba(243,181,63,0.35)",
+    backgroundColor: "rgba(3,37,70,0.72)",
+    borderTopLeftRadius: 16,
+    borderTopRightRadius: 16,
   },
 
   sideQuoteIcon: {
@@ -1319,23 +1317,12 @@ const styles = StyleSheet.create({
 
   main: {
     flex: 1,
-    backgroundColor: "rgba(246,248,252,0.96)",
-  },
-
-  mainDecor: {
-    position: "absolute",
-    top: 70,
-    right: 30,
-    bottom: 20,
-    left: 280,
-    zIndex: 0,
-    justifyContent: "space-around",
-    alignItems: "flex-end",
-    transform: [{ rotate: "-8deg" }],
+    backgroundColor: "#FFF9EE",
   },
 
   mainContent: {
     padding: 26,
+    backgroundColor: "rgba(246,248,252,0.78)",
   },
 
   header: {
