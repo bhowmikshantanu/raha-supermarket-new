@@ -621,7 +621,130 @@ async def require_admin_or_delivery(
         authorization=authorization
     )
     return {**actor, "role": "delivery"}
+# =========================================================
+# ADMIN PRODUCT BARCODE LOOKUP
+# =========================================================
 
+@api_router.get("/admin/products/barcode/{barcode}")
+async def lookup_admin_product_barcode(
+    barcode: str,
+    admin: dict = Depends(require_admin),
+):
+    code = barcode.strip()
+
+    if (
+        not code.isdigit()
+        or len(code) < 6
+        or len(code) > 32
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Enter a valid barcode.",
+        )
+
+    lookup_url = (
+        "https://world.openfoodfacts.org"
+        f"/api/v2/product/{code}.json"
+    )
+
+    try:
+        async with httpx.AsyncClient(
+            timeout=15.0,
+            follow_redirects=True,
+        ) as http_client:
+            response = await http_client.get(
+                lookup_url,
+                headers={
+                    "Accept": "application/json",
+                    "User-Agent": "RahaSupermarket/1.0 barcode-lookup",
+                },
+            )
+
+    except httpx.RequestError as exc:
+        logger.exception(
+            "Barcode provider request failed for %s.",
+            code,
+        )
+
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail="Product database is temporarily unavailable.",
+        ) from exc
+
+    if response.status_code == 404:
+        return {
+            "found": False,
+            "barcode": code,
+        }
+
+    if not response.is_success:
+        logger.warning(
+            "Barcode provider returned status=%s for %s.",
+            response.status_code,
+            code,
+        )
+
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail="Product database lookup failed.",
+        )
+
+    try:
+        data = response.json()
+
+    except Exception as exc:
+        logger.exception(
+            "Barcode provider returned invalid JSON for %s.",
+            code,
+        )
+
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail="Product database returned an invalid response.",
+        ) from exc
+
+    item = data.get("product")
+
+    if (
+        data.get("status") != 1
+        or not isinstance(item, dict)
+    ):
+        return {
+            "found": False,
+            "barcode": code,
+        }
+
+    name = (
+        item.get("product_name_en")
+        or item.get("product_name")
+        or item.get("generic_name_en")
+        or item.get("generic_name")
+        or ""
+    )
+
+    return {
+        "found": True,
+        "barcode": code,
+        "product": {
+            "name": str(name).strip(),
+            "brand": str(
+                item.get("brands") or ""
+            ).strip(),
+            "size": str(
+                item.get("quantity") or ""
+            ).strip(),
+            "image": str(
+                item.get("image_front_url")
+                or item.get("image_url")
+                or ""
+            ).strip(),
+            "description": str(
+                item.get("generic_name_en")
+                or item.get("generic_name")
+                or ""
+            ).strip(),
+        },
+    }
 
 # =========================================================
 # EXPO PUSH HELPERS
