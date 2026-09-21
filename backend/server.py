@@ -703,13 +703,13 @@ async def lookup_admin_product_barcode(
             detail="Product database returned an invalid response.",
         ) from exc
 
-   item = data.get("product")
+       item = data.get("product")
 
-if not isinstance(item, dict) or not item:
-    return {
-        "found": False,
-        "barcode": code,
-    }
+    if not isinstance(item, dict) or not item:
+        return {
+            "found": False,
+            "barcode": code,
+        }
 
     name = (
         item.get("product_name_en")
