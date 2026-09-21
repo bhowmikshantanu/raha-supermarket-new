@@ -360,234 +360,359 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#F4F7FB",
   },
+
+  /* ---------- HEADER ---------- */
   header: {
-    backgroundColor: NAVY,
-    paddingHorizontal: 18,
+    backgroundColor: "#FFFFFF",
+    paddingHorizontal: 20,
     paddingVertical: 16,
     flexDirection: "row",
     alignItems: "center",
+    borderBottomWidth: 1,
+    borderBottomColor: "#E2E8F0",
+    shadowColor: "#0F172A",
+    shadowOpacity: 0.05,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 2,
   },
+
   backButton: {
-    width: 42,
-    height: 42,
-    borderRadius: 12,
-    backgroundColor: "rgba(255,255,255,0.12)",
+    width: 44,
+    height: 44,
+    borderRadius: 14,
+    backgroundColor: "#F1F5F9",
+    borderWidth: 1,
+    borderColor: "#E2E8F0",
     alignItems: "center",
     justifyContent: "center",
     marginRight: 12,
   },
+
   backText: {
-    color: "#FFFFFF",
-    fontSize: 32,
-    lineHeight: 34,
+    color: "#102A43",
+    fontSize: 30,
+    lineHeight: 32,
+    fontWeight: "500",
   },
+
   headerTextWrap: {
     flex: 1,
   },
+
   headerTitle: {
-    color: "#FFFFFF",
+    color: "#0F172A",
     fontSize: 22,
-    fontWeight: "800",
+    fontWeight: "900",
+    letterSpacing: -0.4,
   },
+
   headerSubtitle: {
-    color: "#D8E5F3",
+    color: "#64748B",
     fontSize: 12,
-    marginTop: 2,
+    fontWeight: "500",
+    marginTop: 3,
   },
+
   scroll: {
     flex: 1,
   },
+
   content: {
-    padding: 16,
-    paddingBottom: 40,
+    padding: 20,
+    paddingBottom: 60,
     width: "100%",
-    maxWidth: 900,
+    maxWidth: 940,
     alignSelf: "center",
   },
+
+  /* ---------- INFORMATION HERO ---------- */
   infoCard: {
-    backgroundColor: NAVY,
-    borderRadius: 18,
-    padding: 20,
-    marginBottom: 16,
-  },
-  infoTitle: {
-    color: GOLD,
-    fontSize: 18,
-    fontWeight: "800",
-    marginBottom: 8,
-  },
-  infoText: {
-    color: "#E6EEF7",
-    fontSize: 14,
-    lineHeight: 21,
-  },
-  infoStrong: {
-    color: "#FFFFFF",
-    fontSize: 14,
-    lineHeight: 21,
-    fontWeight: "700",
-    marginTop: 10,
-  },
-  card: {
-    backgroundColor: "#FFFFFF",
-    borderRadius: 18,
-    padding: 18,
+    backgroundColor: "#102A43",
+    borderRadius: 20,
+    padding: 22,
     marginBottom: 16,
     borderWidth: 1,
-    borderColor: "#E6ECF3",
+    borderColor: "#1D4262",
+    shadowColor: "#102A43",
+    shadowOpacity: 0.16,
+    shadowRadius: 16,
+    shadowOffset: { width: 0, height: 6 },
+    elevation: 3,
   },
+
+  infoTitle: {
+    color: "#F4C95D",
+    fontSize: 18,
+    fontWeight: "900",
+    marginBottom: 9,
+    letterSpacing: -0.2,
+  },
+
+  infoText: {
+    color: "#D8E5F3",
+    fontSize: 13,
+    lineHeight: 20,
+  },
+
+  infoStrong: {
+    color: "#FFFFFF",
+    fontSize: 13,
+    lineHeight: 20,
+    fontWeight: "800",
+    marginTop: 12,
+  },
+
+  /* ---------- STANDARD CARD ---------- */
+  card: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 20,
+    padding: 20,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: "#E1E8F0",
+    shadowColor: "#0F172A",
+    shadowOpacity: 0.055,
+    shadowRadius: 15,
+    shadowOffset: { width: 0, height: 5 },
+    elevation: 2,
+  },
+
   sectionHeader: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: 12,
+    marginBottom: 14,
+    paddingBottom: 13,
+    borderBottomWidth: 1,
+    borderBottomColor: "#EEF2F6",
   },
+
   sectionTitle: {
     flex: 1,
-    color: NAVY_DARK,
-    fontSize: 18,
-    fontWeight: "800",
+    color: "#0F172A",
+    fontSize: 17,
+    fontWeight: "900",
     marginBottom: 12,
+    letterSpacing: -0.2,
   },
+
+  /* ---------- ADD RECIPIENT ---------- */
   label: {
     color: "#475569",
-    fontSize: 13,
-    fontWeight: "700",
-    marginBottom: 7,
+    fontSize: 12,
+    fontWeight: "800",
+    marginBottom: 8,
   },
+
   input: {
     backgroundColor: "#F8FAFC",
     borderWidth: 1,
-    borderColor: "#D8E1EB",
-    borderRadius: 12,
-    paddingHorizontal: 14,
-    paddingVertical: 13,
-    color: "#0F172A",
-    fontSize: 16,
-    marginBottom: 12,
-  },
-  primaryButton: {
-    backgroundColor: NAVY,
-    borderRadius: 12,
-    minHeight: 48,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  primaryButtonText: {
-    color: "#FFFFFF",
-    fontSize: 15,
-    fontWeight: "800",
-  },
-  disabledButton: {
-    opacity: 0.55,
-  },
-  countBadge: {
-    minWidth: 30,
-    height: 30,
-    borderRadius: 15,
-    backgroundColor: GOLD,
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: 12,
-  },
-  countText: {
-    color: NAVY_DARK,
-    fontWeight: "900",
-  },
-  loader: {
-    marginVertical: 24,
-  },
-  emptyBox: {
-    paddingVertical: 24,
-    alignItems: "center",
-  },
-  emptyTitle: {
-    color: NAVY_DARK,
-    fontWeight: "800",
-    fontSize: 16,
-  },
-  emptyText: {
-    color: "#64748B",
-    marginTop: 5,
-  },
-  recipientRow: {
-    borderTopWidth: 1,
-    borderTopColor: "#EEF2F7",
+    borderColor: "#DDE5EF",
+    borderRadius: 13,
+    paddingHorizontal: 15,
     paddingVertical: 14,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
+    color: "#0F172A",
+    fontSize: 15,
+    fontWeight: "600",
+    marginBottom: 12,
   },
-  recipientInfo: {
-    flex: 1,
-  },
-  phoneText: {
-    color: NAVY_DARK,
-    fontSize: 16,
-    fontWeight: "800",
-  },
-  deviceText: {
-    color: "#64748B",
-    fontSize: 12,
-    marginTop: 4,
-  },
-  statusBadge: {
-    paddingHorizontal: 9,
-    paddingVertical: 5,
-    borderRadius: 20,
-  },
-  readyBadge: {
-    backgroundColor: "#DCFCE7",
-  },
-  pendingBadge: {
-    backgroundColor: "#FEF3C7",
-  },
-  statusText: {
-    color: NAVY_DARK,
-    fontSize: 11,
-    fontWeight: "800",
-  },
-  removeButton: {
-    paddingHorizontal: 10,
-    paddingVertical: 8,
-  },
-  removeText: {
-    color: "#B91C1C",
-    fontSize: 12,
-    fontWeight: "800",
-  },
-  registerCard: {
-    backgroundColor: NAVY_DARK,
-    borderRadius: 18,
-    padding: 20,
-  },
-  registerTitle: {
-    color: GOLD,
-    fontSize: 20,
-    fontWeight: "900",
-    marginBottom: 8,
-  },
-  registerDescription: {
-    color: "#D8E5F3",
-    fontSize: 14,
-    lineHeight: 21,
-    marginBottom: 15,
-  },
-  goldButton: {
-    backgroundColor: GOLD,
-    borderRadius: 12,
+
+  primaryButton: {
+    backgroundColor: "#102A43",
+    borderRadius: 13,
     minHeight: 50,
     alignItems: "center",
     justifyContent: "center",
+    shadowColor: "#102A43",
+    shadowOpacity: 0.17,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 2,
   },
-  goldButtonText: {
-    color: NAVY_DARK,
-    fontSize: 15,
+
+  primaryButtonText: {
+    color: "#FFFFFF",
+    fontSize: 14,
     fontWeight: "900",
   },
-  securityNote: {
-    color: "#B8C9DC",
+
+  disabledButton: {
+    opacity: 0.5,
+  },
+
+  /* ---------- RECIPIENT COUNT ---------- */
+  countBadge: {
+    minWidth: 32,
+    height: 32,
+    borderRadius: 10,
+    backgroundColor: "#FFF7DF",
+    borderWidth: 1,
+    borderColor: "#F4D98B",
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 12,
+    paddingHorizontal: 8,
+  },
+
+  countText: {
+    color: "#8A6116",
     fontSize: 12,
-    lineHeight: 18,
-    marginTop: 14,
+    fontWeight: "900",
+  },
+
+  loader: {
+    marginVertical: 26,
+  },
+
+  /* ---------- EMPTY ---------- */
+  emptyBox: {
+    paddingVertical: 30,
+    paddingHorizontal: 18,
+    alignItems: "center",
+    borderRadius: 14,
+    backgroundColor: "#F8FAFC",
+    borderWidth: 1,
+    borderColor: "#E8EDF3",
+  },
+
+  emptyTitle: {
+    color: "#0F172A",
+    fontWeight: "900",
+    fontSize: 15,
+  },
+
+  emptyText: {
+    color: "#64748B",
+    fontSize: 11,
+    marginTop: 6,
+    textAlign: "center",
+    lineHeight: 17,
+  },
+
+  /* ---------- RECIPIENT ROW ---------- */
+  recipientRow: {
+    borderTopWidth: 1,
+    borderTopColor: "#EEF2F7",
+    paddingVertical: 15,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 9,
+  },
+
+  recipientInfo: {
+    flex: 1,
+  },
+
+  phoneText: {
+    color: "#0F172A",
+    fontSize: 15,
+    fontWeight: "900",
+    letterSpacing: 0.1,
+  },
+
+  deviceText: {
+    color: "#64748B",
+    fontSize: 11,
+    fontWeight: "500",
+    marginTop: 5,
+  },
+
+  /* ---------- STATUS ---------- */
+  statusBadge: {
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 9,
+    borderWidth: 1,
+  },
+
+  readyBadge: {
+    backgroundColor: "#E7F8F1",
+    borderColor: "#CDE7E2",
+  },
+
+  pendingBadge: {
+    backgroundColor: "#FFF7DF",
+    borderColor: "#F4D98B",
+  },
+
+  statusText: {
+    color: "#334155",
+    fontSize: 9,
+    fontWeight: "900",
+    letterSpacing: 0.2,
+  },
+
+  /* ---------- REMOVE ---------- */
+  removeButton: {
+    paddingHorizontal: 11,
+    paddingVertical: 9,
+    borderRadius: 10,
+    backgroundColor: "#FFF1F2",
+    borderWidth: 1,
+    borderColor: "#FECDD3",
+  },
+
+  removeText: {
+    color: "#BE123C",
+    fontSize: 10,
+    fontWeight: "900",
+  },
+
+  /* ---------- DEVICE REGISTRATION ---------- */
+  registerCard: {
+    backgroundColor: "#0B2239",
+    borderRadius: 20,
+    padding: 22,
+    borderWidth: 1,
+    borderColor: "#183B59",
+    shadowColor: "#0B2239",
+    shadowOpacity: 0.17,
+    shadowRadius: 16,
+    shadowOffset: { width: 0, height: 6 },
+    elevation: 3,
+  },
+
+  registerTitle: {
+    color: "#F4C95D",
+    fontSize: 19,
+    fontWeight: "900",
+    marginBottom: 9,
+    letterSpacing: -0.2,
+  },
+
+  registerDescription: {
+    color: "#D8E5F3",
+    fontSize: 13,
+    lineHeight: 20,
+    marginBottom: 17,
+  },
+
+  goldButton: {
+    backgroundColor: "#D69E2E",
+    borderRadius: 13,
+    minHeight: 52,
+    alignItems: "center",
+    justifyContent: "center",
+    shadowColor: "#D69E2E",
+    shadowOpacity: 0.22,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 2,
+  },
+
+  goldButtonText: {
+    color: "#102A43",
+    fontSize: 14,
+    fontWeight: "900",
+  },
+
+  securityNote: {
+    color: "#AFC2D5",
+    fontSize: 10,
+    lineHeight: 16,
+    marginTop: 15,
+    paddingTop: 13,
+    borderTopWidth: 1,
+    borderTopColor: "rgba(255,255,255,0.10)",
   },
 });
