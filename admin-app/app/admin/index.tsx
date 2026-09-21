@@ -499,11 +499,15 @@ export default function AdminDashboard() {
               </Text>
             </View>
 
-            <View style={styles.adminAvatar}>
+            <TouchableOpacity
+              style={styles.adminAvatar}
+              activeOpacity={0.8}
+              onPress={() => router.push("/admin/account" as never)}
+            >
               <Text style={styles.adminAvatarText}>
-                A
+                {(adminUser.displayName || adminUser.email || "A").charAt(0).toUpperCase()}
               </Text>
-            </View>
+            </TouchableOpacity>
 
             {!desktop ? (
               <TouchableOpacity
