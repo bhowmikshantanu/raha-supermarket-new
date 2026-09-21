@@ -644,7 +644,7 @@ async def lookup_admin_product_barcode(
 
     lookup_url = (
         "https://world.openfoodfacts.org"
-        f"/api/v2/product/{code}.json"
+        f"/api/v3/product/{code}?product_type=all&cc=in&lc=en"
     )
 
     try:
@@ -703,16 +703,13 @@ async def lookup_admin_product_barcode(
             detail="Product database returned an invalid response.",
         ) from exc
 
-    item = data.get("product")
+   item = data.get("product")
 
-    if (
-        data.get("status") != 1
-        or not isinstance(item, dict)
-    ):
-        return {
-            "found": False,
-            "barcode": code,
-        }
+if not isinstance(item, dict) or not item:
+    return {
+        "found": False,
+        "barcode": code,
+    }
 
     name = (
         item.get("product_name_en")
