@@ -176,11 +176,11 @@ export default function AdminOrdersScreen() {
   useEffect(() => {
     if (!authReady) return;
 
-    // Rider directory â€” used to enrich orders with vehicle numbers.
+    // Rider directory →  - used to enrich orders with vehicle numbers.
     const unsubscribe = subscribeToDeliveryBoys(
       (items) => setRiders(items),
       () => {
-        /* non-fatal â€” vehicle info simply stays hidden */
+        /* non-fatal →  - vehicle info simply stays hidden */
       },
     );
     return unsubscribe;
@@ -295,7 +295,7 @@ export default function AdminOrdersScreen() {
         minute: "2-digit",
       });
     } catch {
-      return "â€”";
+      return "→  -";
     }
   };
 
@@ -304,7 +304,7 @@ export default function AdminOrdersScreen() {
       <SafeAreaView style={styles.container}>
         <View style={styles.loadingWrap}>
           <ActivityIndicator size="large" color={COLORS.primary} />
-          <Text style={styles.loadingTitle}>Loading live ordersâ€¦</Text>
+          <Text style={styles.loadingTitle}>Loading live orders →  ...</Text>
           <Text style={styles.loadingText}>
             Connecting to Firestore order stream.
           </Text>
@@ -399,7 +399,7 @@ export default function AdminOrdersScreen() {
               <TextInput
                 value={search}
                 onChangeText={setSearch}
-                placeholder="Search order, customer, mobileâ€¦"
+                placeholder="Search order, customer, mobile →  ..."
                 placeholderTextColor={COLORS.textMuted}
                 style={styles.searchInput}
               />
@@ -601,7 +601,7 @@ export default function AdminOrdersScreen() {
                       {item.status === "delivered"
                         ? `Delivered by ${item.deliveryBoyName}`
                         : item.status === "out-for-delivery"
-                          ? `Out for delivery Â· ${item.deliveryBoyName}`
+                          ? `Out for delivery →  · ${item.deliveryBoyName}`
                           : `Assigned to ${item.deliveryBoyName}`}
                     </Text>
                   </View>
@@ -662,7 +662,7 @@ export default function AdminOrdersScreen() {
                       >
                         <View style={styles.itemQuantity}>
                           <Text style={styles.itemQuantityText}>
-                            {product.quantity}Ã—
+                            {product.quantity}→  ×
                           </Text>
                         </View>
 
