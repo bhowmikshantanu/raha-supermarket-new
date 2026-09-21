@@ -324,7 +324,22 @@ export default function AdminProductsScreen() {
             />
             <Text style={styles.bulkButtonText}>Bulk Import</Text>
           </TouchableOpacity>
-
+<TouchableOpacity
+  activeOpacity={0.85}
+  style={styles.scanButton}
+  onPress={() => router.push("/admin/products/scan" as never)}
+  accessibilityRole="button"
+  accessibilityLabel="Scan product barcode"
+>
+  <Ionicons
+    name="barcode-outline"
+    size={20}
+    color="#FFFFFF"
+  />
+  <Text style={styles.scanButtonText}>
+    Scan Barcode
+  </Text>
+</TouchableOpacity>
           <TouchableOpacity
             activeOpacity={0.85}
             style={styles.addButton}
@@ -817,6 +832,26 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: 9,
   },
+  scanButton: {
+  minHeight: 44,
+  borderRadius: 13,
+  paddingHorizontal: 16,
+  flexDirection: "row",
+  alignItems: "center",
+  justifyContent: "center",
+  gap: 7,
+  backgroundColor: "#0F766E",
+  shadowColor: "#0F766E",
+  shadowOpacity: 0.15,
+  shadowRadius: 8,
+  shadowOffset: { width: 0, height: 3 },
+  elevation: 2,
+},
+scanButtonText: {
+  color: "#FFFFFF",
+  fontWeight: "800",
+  fontSize: 12,
+},
   bulkButton: {
     minHeight: 44,
     borderRadius: 13,
