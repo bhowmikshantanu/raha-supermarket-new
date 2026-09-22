@@ -1,5 +1,14 @@
 import { Ionicons } from "@expo/vector-icons";
-import { collection, doc, getDocs, query, serverTimestamp, setDoc, where } from "firebase/firestore";
+import {
+  collection,
+  doc,
+  getDocs,
+  query,
+  serverTimestamp,
+  setDoc,
+  updateDoc,
+  where,
+} from "firebase/firestore";
 import { useRouter } from "expo-router";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
@@ -46,7 +55,10 @@ export default function ScanProductScreen() {
   const [mrp, setMrp] = useState("");
   const [price, setPrice] = useState("");
   const [stock, setStock] = useState("");
-
+  const [existingProducts, setExistingProducts] = useState<any[]>([]);
+  const [showLinkProducts, setShowLinkProducts] = useState(false);
+  const [productSearch, setProductSearch] = useState("");
+  const [linkingProductId, setLinkingProductId] = useState<string | null>(null);
   useEffect(() => {
     const unsubscribe = subscribeToFirebaseCategories(setCategories, (error) => {
       console.error(error);
@@ -57,7 +69,28 @@ export default function ScanProductScreen() {
       stopCamera();
     };
   }, [showToast]);
+  useEffect(() => {
+    const loadExistingProducts = async () => {
+      try {
+        const snapshot = await getDocs(collection(db, "products"));
 
+        const items = snapshot.docs.map((productDoc) => ({
+          id: productDoc.id,
+          ...productDoc.data(),
+        }));
+
+        items.sort((a: any, b: any) =>
+          String(a.name || "").localeCompare(String(b.name || ""))
+        );
+
+        setExistingProducts(items);
+      } catch (error) {
+        console.error("Existing products load failed:", error);
+      }
+    };
+
+    void loadExistingProducts();
+  }, []);
   const activeCategories = useMemo(
     () => categories.filter((item) => item.active),
     [categories],
@@ -163,7 +196,46 @@ setProduct({
       setLookingUp(false);
     }
   };
+  const linkBarcodeToExistingProduct = async (productId: string) => {
+    const code = barcode.trim();
 
+    if (!code) {
+      showToast("Scan or enter a barcode first.", "error");
+      return;
+    }
+
+    const user = auth.currentUser;
+
+    if (!user) {
+      router.replace("/admin/login");
+      return;
+    }
+
+    setLinkingProductId(productId);
+
+    try {
+      await updateDoc(doc(db, "products", productId), {
+        barcode: code,
+        updatedAt: serverTimestamp(),
+        updatedBy: user.uid,
+      });
+
+      showToast("Barcode linked to existing product successfully.", "success");
+
+      setShowLinkProducts(false);
+      setProductSearch("");
+
+      router.replace({
+        pathname: "/admin/products/[id]",
+        params: { id: productId },
+      });
+    } catch (error) {
+      console.error("Barcode linking failed:", error);
+      showToast("Unable to link barcode to this product.", "error");
+    } finally {
+      setLinkingProductId(null);
+    }
+  };
   const startCamera = async () => {
     if (Platform.OS !== "web") {
       showToast("Camera scanner will be added to the next Android build.", "error");
@@ -347,6 +419,59 @@ onSubmitEditing={() => void lookupBarcode(barcode)}
         {product ? (
           <>
             <View style={styles.card}>
+              <View style={styles.linkHeader}>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.sectionTitle}>Already in Raha?</Text>
+                  <Text style={styles.linkHint}>
+                    Link this barcode to an existing product instead of creating a duplicate.
+                  </Text>
+                </View>
+                <View style={styles.linkIcon}>
+                  <Ionicons name="link-outline" size={22} color="#0F766E" />
+                </View>
+              </View>
+
+              <TouchableOpacity style={styles.linkProductButton} onPress={() => setShowLinkProducts((current) => !current)}>
+                <Ionicons name="search-outline" size={19} color="#FFFFFF" />
+                <Text style={styles.linkProductButtonText}>
+                  {showLinkProducts ? "Hide Existing Products" : "Link to Existing Product"}
+                </Text>
+              </TouchableOpacity>
+
+              {showLinkProducts ? (
+                <View style={styles.linkPanel}>
+                  <TextInput value={productSearch} onChangeText={setProductSearch} placeholder="Search product by name, brand or size..." placeholderTextColor="#94A3B8" style={styles.input} />
+                  <ScrollView style={styles.productList} nestedScrollEnabled keyboardShouldPersistTaps="handled">
+                    {existingProducts
+                      .filter((item) => {
+                        const search = productSearch.trim().toLowerCase();
+                        if (!search) return true;
+                        return String(item.name || "").toLowerCase().includes(search) || String(item.brand || "").toLowerCase().includes(search) || String(item.size || "").toLowerCase().includes(search);
+                      })
+                      .slice(0, 30)
+                      .map((item) => (
+                        <TouchableOpacity key={item.id} activeOpacity={0.8} disabled={linkingProductId !== null} style={styles.existingProductRow} onPress={() => void linkBarcodeToExistingProduct(item.id)}>
+                          {item.image ? (
+                            <Image source={{ uri: String(item.image) }} style={styles.existingProductImage} resizeMode="contain" />
+                          ) : (
+                            <View style={styles.existingProductPlaceholder}>
+                              <Ionicons name="cube-outline" size={22} color="#64748B" />
+                            </View>
+                          )}
+                          <View style={{ flex: 1 }}>
+                            <Text style={styles.existingProductName} numberOfLines={1}>{item.name || "Unnamed Product"}</Text>
+                            <Text style={styles.existingProductMeta} numberOfLines={1}>{[item.brand, item.size].filter(Boolean).join(" • ") || "Existing Raha product"}</Text>
+                          </View>
+                          {linkingProductId === item.id ? <Text style={styles.linkingText}>Linking...</Text> : <Ionicons name="chevron-forward" size={20} color="#94A3B8" />}
+                        </TouchableOpacity>
+                      ))}
+                    {existingProducts.length === 0 ? <Text style={styles.emptyProductsText}>No existing products found.</Text> : null}
+                  </ScrollView>
+                </View>
+              ) : null}
+            </View>
+
+            <View style={styles.card}>
               <Text style={styles.sectionTitle}>Product Details</Text>
               {product.image ? (
                 <Image source={{ uri: product.image }} style={styles.image} resizeMode="contain" />
@@ -471,4 +596,18 @@ const styles = StyleSheet.create({
     justifyContent: "center", gap: 8, backgroundColor: "#102A43",
   },
   saveText: { color: "#FFFFFF", fontWeight: "900" },
+  linkHeader: { flexDirection: "row", alignItems: "center", gap: 12 },
+  linkHint: { marginTop: 4, fontSize: 12, lineHeight: 18, color: "#64748B" },
+  linkIcon: { width: 44, height: 44, borderRadius: 14, alignItems: "center", justifyContent: "center", backgroundColor: "#E7F8F1" },
+  linkProductButton: { minHeight: 48, borderRadius: 13, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, backgroundColor: "#0F766E" },
+  linkProductButtonText: { color: "#FFFFFF", fontWeight: "900" },
+  linkPanel: { gap: 10 },
+  productList: { maxHeight: 330, borderWidth: 1, borderColor: "#E2E8F0", borderRadius: 14, backgroundColor: "#FFFFFF" },
+  existingProductRow: { minHeight: 70, paddingHorizontal: 12, paddingVertical: 10, flexDirection: "row", alignItems: "center", gap: 11, borderBottomWidth: 1, borderBottomColor: "#F1F5F9" },
+  existingProductImage: { width: 48, height: 48, borderRadius: 10, backgroundColor: "#F8FAFC" },
+  existingProductPlaceholder: { width: 48, height: 48, borderRadius: 10, alignItems: "center", justifyContent: "center", backgroundColor: "#F1F5F9" },
+  existingProductName: { fontSize: 13, fontWeight: "900", color: "#0F172A" },
+  existingProductMeta: { marginTop: 4, fontSize: 11, color: "#64748B" },
+  linkingText: { fontSize: 11, fontWeight: "800", color: "#0F766E" },
+  emptyProductsText: { padding: 20, textAlign: "center", fontSize: 12, color: "#64748B" },
 });
