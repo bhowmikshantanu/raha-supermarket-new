@@ -96,6 +96,22 @@ export default function ScanProductScreen() {
     [categories],
   );
 
+  const filteredExistingProducts = useMemo(() => {
+    const search = productSearch.trim().toLowerCase();
+
+    return existingProducts
+      .filter((item) => {
+        if (!search) return true;
+
+        return (
+          String(item.name || "").toLowerCase().includes(search) ||
+          String(item.brand || "").toLowerCase().includes(search) ||
+          String(item.size || "").toLowerCase().includes(search)
+        );
+      })
+      .slice(0, 30);
+  }, [existingProducts, productSearch]);
+
   const stopCamera = () => {
     streamRef.current?.getTracks().forEach((track) => track.stop());
     streamRef.current = null;
@@ -132,30 +148,30 @@ export default function ScanProductScreen() {
 
       const user = auth.currentUser;
 
-if (!user) {
-  router.replace("/admin/login");
-  return;
-}
+      if (!user) {
+        router.replace("/admin/login");
+        return;
+      }
 
-const idToken = await user.getIdToken(true);
+      const idToken = await user.getIdToken(true);
 
-const backendUrl = (
-  process.env.EXPO_PUBLIC_BACKEND_URL || ""
-).replace(/\/+$/, "");
+      const backendUrl = (
+        process.env.EXPO_PUBLIC_BACKEND_URL || ""
+      ).replace(/\/+$/, "");
 
-if (!backendUrl) {
-  throw new Error("BACKEND_URL_NOT_CONFIGURED");
-}
+      if (!backendUrl) {
+        throw new Error("BACKEND_URL_NOT_CONFIGURED");
+      }
 
-const response = await fetch(
-  `${backendUrl}/api/admin/products/barcode/${encodeURIComponent(code)}`,
-  {
-    headers: {
-      Accept: "application/json",
-      Authorization: `Bearer ${idToken}`,
-    },
-  },
-);
+      const response = await fetch(
+        `${backendUrl}/api/admin/products/barcode/${encodeURIComponent(code)}`,
+        {
+          headers: {
+            Accept: "application/json",
+            Authorization: `Bearer ${idToken}`,
+          },
+        },
+      );
 
       if (!response.ok) {
         throw new Error("LOOKUP_FAILED");
@@ -178,14 +194,14 @@ const response = await fetch(
 
       const item = data.product;
 
-setProduct({
-  barcode: code,
-  name: String(item.name || "").trim(),
-  brand: String(item.brand || "").trim(),
-  size: String(item.size || "").trim(),
-  image: String(item.image || "").trim(),
-  description: String(item.description || "").trim(),
-});
+      setProduct({
+        barcode: code,
+        name: String(item.name || "").trim(),
+        brand: String(item.brand || "").trim(),
+        size: String(item.size || "").trim(),
+        image: String(item.image || "").trim(),
+        description: String(item.description || "").trim(),
+      });
 
       stopCamera();
       showToast("Product details found. Verify price and stock.", "success");
@@ -403,7 +419,7 @@ setProduct({
               keyboardType="number-pad"
               autoFocus
               returnKeyType="search"
-onSubmitEditing={() => void lookupBarcode(barcode)}
+              onSubmitEditing={() => void lookupBarcode(barcode)}
               style={styles.input}
             />
             <TouchableOpacity
@@ -431,7 +447,10 @@ onSubmitEditing={() => void lookupBarcode(barcode)}
                 </View>
               </View>
 
-              <TouchableOpacity style={styles.linkProductButton} onPress={() => setShowLinkProducts((current) => !current)}>
+              <TouchableOpacity
+                style={styles.linkProductButton}
+                onPress={() => setShowLinkProducts((current) => !current)}
+              >
                 <Ionicons name="search-outline" size={19} color="#FFFFFF" />
                 <Text style={styles.linkProductButtonText}>
                   {showLinkProducts ? "Hide Existing Products" : "Link to Existing Product"}
@@ -440,33 +459,72 @@ onSubmitEditing={() => void lookupBarcode(barcode)}
 
               {showLinkProducts ? (
                 <View style={styles.linkPanel}>
-                  <TextInput value={productSearch} onChangeText={setProductSearch} placeholder="Search product by name, brand or size..." placeholderTextColor="#94A3B8" style={styles.input} />
-                  <ScrollView style={styles.productList} nestedScrollEnabled keyboardShouldPersistTaps="handled">
-                    {existingProducts
-                      .filter((item) => {
-                        const search = productSearch.trim().toLowerCase();
-                        if (!search) return true;
-                        return String(item.name || "").toLowerCase().includes(search) || String(item.brand || "").toLowerCase().includes(search) || String(item.size || "").toLowerCase().includes(search);
-                      })
-                      .slice(0, 30)
-                      .map((item) => (
-                        <TouchableOpacity key={item.id} activeOpacity={0.8} disabled={linkingProductId !== null} style={styles.existingProductRow} onPress={() => void linkBarcodeToExistingProduct(item.id)}>
+                  <TextInput
+                    value={productSearch}
+                    onChangeText={setProductSearch}
+                    placeholder="Search product by name, brand or size..."
+                    placeholderTextColor="#94A3B8"
+                    style={styles.input}
+                  />
+
+                  <View style={styles.productList}>
+                    {filteredExistingProducts.length > 0 ? (
+                      filteredExistingProducts.map((item) => (
+                        <View key={item.id} style={styles.existingProductRow}>
                           {item.image ? (
-                            <Image source={{ uri: String(item.image) }} style={styles.existingProductImage} resizeMode="contain" />
+                            <Image
+                              source={{ uri: String(item.image) }}
+                              style={styles.existingProductImage}
+                              resizeMode="contain"
+                            />
                           ) : (
                             <View style={styles.existingProductPlaceholder}>
                               <Ionicons name="cube-outline" size={22} color="#64748B" />
                             </View>
                           )}
-                          <View style={{ flex: 1 }}>
-                            <Text style={styles.existingProductName} numberOfLines={1}>{item.name || "Unnamed Product"}</Text>
-                            <Text style={styles.existingProductMeta} numberOfLines={1}>{[item.brand, item.size].filter(Boolean).join(" • ") || "Existing Raha product"}</Text>
+
+                          <View style={styles.existingProductInfo}>
+                            <Text style={styles.existingProductName} numberOfLines={1}>
+                              {item.name || "Unnamed Product"}
+                            </Text>
+                            <Text style={styles.existingProductMeta} numberOfLines={1}>
+                              {[item.brand, item.size].filter(Boolean).join(" • ") ||
+                                "Existing Raha product"}
+                            </Text>
+                            {item.barcode ? (
+                              <Text style={styles.existingBarcode} numberOfLines={1}>
+                                Barcode: {String(item.barcode)}
+                              </Text>
+                            ) : null}
                           </View>
-                          {linkingProductId === item.id ? <Text style={styles.linkingText}>Linking...</Text> : <Ionicons name="chevron-forward" size={20} color="#94A3B8" />}
-                        </TouchableOpacity>
-                      ))}
-                    {existingProducts.length === 0 ? <Text style={styles.emptyProductsText}>No existing products found.</Text> : null}
-                  </ScrollView>
+
+                          <TouchableOpacity
+                            activeOpacity={0.85}
+                            disabled={linkingProductId !== null}
+                            style={[
+                              styles.linkNowButton,
+                              linkingProductId !== null && styles.linkNowButtonDisabled,
+                            ]}
+                            onPress={() => void linkBarcodeToExistingProduct(item.id)}
+                          >
+                            <Ionicons name="link-outline" size={16} color="#FFFFFF" />
+                            <Text style={styles.linkNowButtonText}>
+                              {linkingProductId === item.id ? "Linking..." : "Link Barcode"}
+                            </Text>
+                          </TouchableOpacity>
+                        </View>
+                      ))
+                    ) : (
+                      <View style={styles.emptyProductsBox}>
+                        <Ionicons name="search-outline" size={24} color="#94A3B8" />
+                        <Text style={styles.emptyProductsText}>
+                          {productSearch.trim()
+                            ? `No existing product matches "${productSearch.trim()}".`
+                            : "No existing products found."}
+                        </Text>
+                      </View>
+                    )}
+                  </View>
                 </View>
               ) : null}
             </View>
@@ -596,18 +654,120 @@ const styles = StyleSheet.create({
     justifyContent: "center", gap: 8, backgroundColor: "#102A43",
   },
   saveText: { color: "#FFFFFF", fontWeight: "900" },
-  linkHeader: { flexDirection: "row", alignItems: "center", gap: 12 },
-  linkHint: { marginTop: 4, fontSize: 12, lineHeight: 18, color: "#64748B" },
-  linkIcon: { width: 44, height: 44, borderRadius: 14, alignItems: "center", justifyContent: "center", backgroundColor: "#E7F8F1" },
-  linkProductButton: { minHeight: 48, borderRadius: 13, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, backgroundColor: "#0F766E" },
-  linkProductButtonText: { color: "#FFFFFF", fontWeight: "900" },
-  linkPanel: { gap: 10 },
-  productList: { maxHeight: 330, borderWidth: 1, borderColor: "#E2E8F0", borderRadius: 14, backgroundColor: "#FFFFFF" },
-  existingProductRow: { minHeight: 70, paddingHorizontal: 12, paddingVertical: 10, flexDirection: "row", alignItems: "center", gap: 11, borderBottomWidth: 1, borderBottomColor: "#F1F5F9" },
-  existingProductImage: { width: 48, height: 48, borderRadius: 10, backgroundColor: "#F8FAFC" },
-  existingProductPlaceholder: { width: 48, height: 48, borderRadius: 10, alignItems: "center", justifyContent: "center", backgroundColor: "#F1F5F9" },
-  existingProductName: { fontSize: 13, fontWeight: "900", color: "#0F172A" },
-  existingProductMeta: { marginTop: 4, fontSize: 11, color: "#64748B" },
-  linkingText: { fontSize: 11, fontWeight: "800", color: "#0F766E" },
-  emptyProductsText: { padding: 20, textAlign: "center", fontSize: 12, color: "#64748B" },
+
+  linkHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+  },
+  linkHint: {
+    marginTop: 4,
+    fontSize: 12,
+    lineHeight: 18,
+    color: "#64748B",
+  },
+  linkIcon: {
+    width: 44,
+    height: 44,
+    borderRadius: 14,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#E7F8F1",
+  },
+  linkProductButton: {
+    minHeight: 48,
+    borderRadius: 13,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    backgroundColor: "#0F766E",
+  },
+  linkProductButtonText: {
+    color: "#FFFFFF",
+    fontWeight: "900",
+  },
+  linkPanel: {
+    gap: 10,
+  },
+  productList: {
+    width: "100%",
+    borderWidth: 1,
+    borderColor: "#E2E8F0",
+    borderRadius: 14,
+    overflow: "hidden",
+    backgroundColor: "#FFFFFF",
+  },
+  existingProductRow: {
+    minHeight: 78,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 11,
+    borderBottomWidth: 1,
+    borderBottomColor: "#F1F5F9",
+  },
+  existingProductImage: {
+    width: 52,
+    height: 52,
+    borderRadius: 10,
+    backgroundColor: "#F8FAFC",
+  },
+  existingProductPlaceholder: {
+    width: 52,
+    height: 52,
+    borderRadius: 10,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#F1F5F9",
+  },
+  existingProductInfo: {
+    flex: 1,
+    minWidth: 0,
+  },
+  existingProductName: {
+    fontSize: 13,
+    fontWeight: "900",
+    color: "#0F172A",
+  },
+  existingProductMeta: {
+    marginTop: 4,
+    fontSize: 11,
+    color: "#64748B",
+  },
+  existingBarcode: {
+    marginTop: 3,
+    fontSize: 10,
+    color: "#94A3B8",
+  },
+  linkNowButton: {
+    minHeight: 38,
+    paddingHorizontal: 12,
+    borderRadius: 10,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 6,
+    backgroundColor: "#0F766E",
+  },
+  linkNowButtonDisabled: {
+    opacity: 0.55,
+  },
+  linkNowButtonText: {
+    fontSize: 11,
+    fontWeight: "900",
+    color: "#FFFFFF",
+  },
+  emptyProductsBox: {
+    padding: 22,
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 7,
+  },
+  emptyProductsText: {
+    textAlign: "center",
+    fontSize: 12,
+    color: "#64748B",
+  },
 });
