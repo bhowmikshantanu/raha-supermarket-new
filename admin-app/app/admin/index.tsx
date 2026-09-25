@@ -83,6 +83,11 @@ const NAV_ITEMS: NavItem[] = [
     route: "/admin/coupons",
   },
   {
+    label: "Home Offers",
+    icon: "images-outline",
+    route: "/admin/offers",
+  },
+  {
     label: "Notifications",
     icon: "notifications-outline",
     route: "/admin/notifications",
