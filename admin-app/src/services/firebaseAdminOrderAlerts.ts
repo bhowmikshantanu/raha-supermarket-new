@@ -106,12 +106,20 @@ export async function registerThisDeviceForOrderAlerts(
     );
   }
 
-  const expoPushToken =
-    await getOrCreateExpoPushToken();
+  let expoPushToken: string | null = null;
+
+  try {
+    expoPushToken = await getOrCreateExpoPushToken();
+  } catch (error: any) {
+    throw new Error(
+      error?.message ||
+        "Could not create a notification token on this phone.",
+    );
+  }
 
   if (!expoPushToken) {
     throw new Error(
-      "Notification permission/token is unavailable on this phone.",
+      "Notification permission/token is unavailable. Enable notifications for Raha Supermarket in Android Settings, then try again.",
     );
   }
 
