@@ -82,25 +82,53 @@ export default function AdminOrderAlertsScreen() {
     }
   };
 
+  const performRemoveRecipient = async (
+    recipient: OrderAlertRecipient,
+  ) => {
+    try {
+      await removeOrderAlertRecipient(recipient.id);
+      await loadRecipients();
+
+      if (Platform.OS === "web") {
+        window.alert(`${recipient.phone} was removed from order alerts.`);
+      }
+    } catch (error: any) {
+      const message = error?.message || "Please try again.";
+
+      if (Platform.OS === "web") {
+        window.alert(`Could not remove number: ${message}`);
+      } else {
+        Alert.alert("Could not remove number", message);
+      }
+    }
+  };
+
   const removeRecipient = (recipient: OrderAlertRecipient) => {
+    const message =
+      `${recipient.phone} will stop receiving new-order alerts.`;
+
+    if (Platform.OS === "web") {
+      const confirmed = window.confirm(
+        `Remove order alerts?\n\n${message}`,
+      );
+
+      if (confirmed) {
+        void performRemoveRecipient(recipient);
+      }
+
+      return;
+    }
+
     Alert.alert(
       "Remove order alerts?",
-      `${recipient.phone} will stop receiving new-order alerts.`,
+      message,
       [
         { text: "Cancel", style: "cancel" },
         {
           text: "Remove",
           style: "destructive",
-          onPress: async () => {
-            try {
-              await removeOrderAlertRecipient(recipient.id);
-              await loadRecipients();
-            } catch (error: any) {
-              Alert.alert(
-                "Could not remove number",
-                error?.message || "Please try again.",
-              );
-            }
+          onPress: () => {
+            void performRemoveRecipient(recipient);
           },
         },
       ],
