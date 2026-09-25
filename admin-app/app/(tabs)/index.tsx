@@ -504,9 +504,9 @@ export default function HomeScreen() {
           )}
         />
 
-        {BANNERS.length > 1 ? (
+        {liveBanners.length > 1 ? (
           <View style={styles.bannerDots}>
-            {BANNERS.map((banner, index) => (
+            {liveBanners.map((banner, index) => (
               <View
                 key={String(banner.id)}
                 style={[
