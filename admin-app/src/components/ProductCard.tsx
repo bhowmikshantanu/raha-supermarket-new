@@ -366,18 +366,18 @@ QtyStepper.displayName = "QtyStepper";
 
 const styles = StyleSheet.create({
   gridCard: {
-    backgroundColor: COLORS.background,
-    borderRadius: RADIUS.lg,
+    backgroundColor: "#FFFFFF",
+    borderRadius: RADIUS.xl,
     padding: SPACING.sm,
     borderWidth: 1,
-    borderColor: COLORS.borderLight,
+    borderColor: "#F0E3DB",
     ...SHADOW.card,
   },
 
   gridImageWrap: {
     aspectRatio: 1,
-    backgroundColor: COLORS.surface,
-    borderRadius: RADIUS.md,
+    backgroundColor: "#FFF7EF",
+    borderRadius: RADIUS.lg,
     justifyContent: "center",
     alignItems: "center",
     marginBottom: SPACING.sm,
@@ -451,14 +451,14 @@ const styles = StyleSheet.create({
     top: 7,
     left: 7,
     zIndex: 3,
-    backgroundColor: COLORS.primary,
-    paddingHorizontal: 7,
-    paddingVertical: 3,
-    borderRadius: RADIUS.sm,
+    backgroundColor: "#D94732",
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: RADIUS.pill,
   },
 
   discountText: {
-    color: COLORS.textOnPrimary,
+    color: "#FFFFFF",
     fontSize: 10,
     fontWeight: FONT.weight.bold,
     letterSpacing: 0.2,
@@ -529,7 +529,7 @@ const styles = StyleSheet.create({
   price: {
     fontSize: FONT.size.lg,
     fontWeight: FONT.weight.bold,
-    color: COLORS.textPrimary,
+    color: COLORS.maroon,
   },
 
   mrp: {
@@ -544,12 +544,11 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     gap: 5,
-    borderWidth: 1.5,
-    borderColor: COLORS.primary,
+    borderWidth: 0,
     borderRadius: RADIUS.md,
-    paddingVertical: 8,
+    paddingVertical: 9,
     paddingHorizontal: 10,
-    backgroundColor: COLORS.primaryLight,
+    backgroundColor: "#FFD44A",
   },
 
   addBtnList: {
@@ -568,8 +567,8 @@ const styles = StyleSheet.create({
   },
 
   addBtnText: {
-    color: COLORS.primary,
-    fontWeight: FONT.weight.bold,
+    color: COLORS.maroonDark,
+    fontWeight: FONT.weight.heavy,
     fontSize: FONT.size.sm,
     letterSpacing: 0.5,
   },
