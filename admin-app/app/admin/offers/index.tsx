@@ -1,4 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
+import * as ImagePicker from "expo-image-picker";
+import { Image } from "expo-image";
 import { useRouter } from "expo-router";
 import React, { useEffect, useMemo, useState } from "react";
 import {
@@ -16,6 +18,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { COLORS, FONT, RADIUS, SHADOW, SPACING } from "@/src/config/theme";
+import { uploadOfferBannerImage } from "@/src/services/firebaseOfferImages";
 import {
   createOfferBanner,
   deleteOfferBanner,
@@ -82,6 +85,7 @@ export default function AdminOffersScreen() {
   const [editing, setEditing] = useState<OfferBanner | null>(null);
   const [form, setForm] = useState<FormState>(EMPTY);
   const [saving, setSaving] = useState(false);
+  const [uploadingImage, setUploadingImage] = useState(false);
   const [busy, setBusy] = useState<string | null>(null);
 
   useEffect(() => subscribeToOfferBanners(
@@ -111,6 +115,40 @@ export default function AdminOffersScreen() {
       active: offer.active,
     });
     setModal(true);
+  };
+
+  const chooseBannerImage = async () => {
+    try {
+      setUploadingImage(true);
+
+      const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (!permission.granted) {
+        message("Please allow photo access to choose an offer banner.");
+        return;
+      }
+
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ["images"],
+        allowsEditing: true,
+        aspect: [16, 7],
+        quality: 0.88,
+      });
+
+      if (result.canceled || !result.assets[0]) return;
+
+      const asset = result.assets[0];
+      const url = await uploadOfferBannerImage(
+        asset.uri,
+        asset.fileName ?? "offer-banner.jpg",
+        asset.mimeType ?? "image/jpeg",
+      );
+
+      setForm((current) => ({ ...current, image: url }));
+    } catch (error) {
+      message(error instanceof Error ? error.message : "Unable to upload banner image.");
+    } finally {
+      setUploadingImage(false);
+    }
   };
 
   const save = async () => {
@@ -235,7 +273,30 @@ export default function AdminOffersScreen() {
                   <Field label="Offer title" value={form.title} onChangeText={(v) => setForm((x) => ({ ...x, title: v }))} placeholder="Weekend Grocery Sale" />
                   <Field label="Offer text" value={form.subtitle} onChangeText={(v) => setForm((x) => ({ ...x, subtitle: v }))} placeholder="Save more on selected essentials" multiline />
                   <Field label="Button text" value={form.cta} onChangeText={(v) => setForm((x) => ({ ...x, cta: v }))} placeholder="Shop Now" />
-                  <Field label="Banner image URL" value={form.image} onChangeText={(v) => setForm((x) => ({ ...x, image: v }))} placeholder="https://..." />
+                  <View style={styles.field}>
+                    <Text style={styles.label}>Banner image</Text>
+                    <TouchableOpacity
+                      style={styles.imagePicker}
+                      disabled={uploadingImage}
+                      onPress={() => void chooseBannerImage()}
+                    >
+                      {form.image ? (
+                        <Image source={{ uri: form.image }} style={styles.imagePreview} contentFit="cover" />
+                      ) : (
+                        <View style={styles.imagePlaceholder}>
+                          <Ionicons name="image-outline" size={30} color={COLORS.primary} />
+                          <Text style={styles.imagePickerTitle}>{uploadingImage ? "Uploading..." : "Choose image"}</Text>
+                          <Text style={styles.imagePickerText}>Select from computer or phone gallery</Text>
+                        </View>
+                      )}
+                    </TouchableOpacity>
+                    {form.image ? (
+                      <TouchableOpacity disabled={uploadingImage} style={styles.changeImageButton} onPress={() => void chooseBannerImage()}>
+                        <Ionicons name="cloud-upload-outline" size={17} color={COLORS.primary} />
+                        <Text style={styles.changeImageText}>{uploadingImage ? "Uploading..." : "Change image"}</Text>
+                      </TouchableOpacity>
+                    ) : null}
+                  </View>
                   <Field label="Open route" value={form.route} onChangeText={(v) => setForm((x) => ({ ...x, route: v }))} placeholder="/products?filter=offers" />
                   <View style={styles.dateRow}>
                     <View style={styles.dateField}><Field label="Start date" value={form.startDate} onChangeText={(v) => setForm((x) => ({ ...x, startDate: v }))} placeholder="YYYY-MM-DD" /></View>
@@ -243,8 +304,8 @@ export default function AdminOffersScreen() {
                   </View>
                   <Field label="Display order" value={form.sortOrder} onChangeText={(v) => setForm((x) => ({ ...x, sortOrder: v }))} placeholder="1" />
                   <View style={styles.activeRow}><Text style={styles.label}>Active</Text><Switch value={form.active} onValueChange={(v) => setForm((x) => ({ ...x, active: v }))} trackColor={{ true: COLORS.primary }} /></View>
-                  <TouchableOpacity style={styles.saveButton} disabled={saving} onPress={() => void save()}>
-                    <Text style={styles.saveText}>{saving ? "Saving..." : editing ? "Save Changes" : "Publish Offer"}</Text>
+                  <TouchableOpacity style={styles.saveButton} disabled={saving || uploadingImage} onPress={() => void save()}>
+                    <Text style={styles.saveText}>{uploadingImage ? "Uploading image..." : saving ? "Saving..." : editing ? "Save Changes" : "Publish Offer"}</Text>
                   </TouchableOpacity>
                 </View>
               )}
@@ -292,6 +353,13 @@ const styles = StyleSheet.create({
   label: { fontSize: FONT.size.sm, fontWeight: FONT.weight.semibold, color: COLORS.textPrimary, marginBottom: 6 },
   input: { minHeight: 46, borderWidth: 1, borderColor: COLORS.border, borderRadius: RADIUS.md, paddingHorizontal: 12, color: COLORS.textPrimary, backgroundColor: COLORS.background },
   multiline: { minHeight: 78, paddingTop: 12, textAlignVertical: "top" },
+  imagePicker: { height: 190, borderWidth: 1.5, borderStyle: "dashed", borderColor: COLORS.primary, borderRadius: RADIUS.lg, overflow: "hidden", backgroundColor: COLORS.primaryLight },
+  imagePreview: { width: "100%", height: "100%" },
+  imagePlaceholder: { flex: 1, alignItems: "center", justifyContent: "center", padding: SPACING.md },
+  imagePickerTitle: { marginTop: 8, color: COLORS.primary, fontSize: FONT.size.md, fontWeight: FONT.weight.bold },
+  imagePickerText: { marginTop: 3, color: COLORS.textSecondary, fontSize: FONT.size.xs },
+  changeImageButton: { marginTop: 8, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6, paddingVertical: 9, borderRadius: RADIUS.md, backgroundColor: COLORS.primaryLight },
+  changeImageText: { color: COLORS.primary, fontWeight: FONT.weight.semibold },
   dateRow: { flexDirection: "row", gap: SPACING.sm },
   dateField: { flex: 1 },
   activeRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: SPACING.lg },
