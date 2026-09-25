@@ -237,7 +237,7 @@ export const ProductCard: React.FC<Props> = React.memo(
             <Ionicons
               name="add-circle-outline"
               size={17}
-              color={COLORS.primary}
+              color={COLORS.maroonDark}
             />
             <Text style={styles.addBtnText}>
               ADD
