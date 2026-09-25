@@ -204,12 +204,12 @@ jobs:
 
           echo "Production signing certificate verified successfully."
 
-          cp "$APK" Raha-Supermarket-v1.0.11-production.apk
+          cp "$APK" Raha-Supermarket-v1.0.12-production.apk
 
       - name: Upload production APK
         uses: actions/upload-artifact@v4
         with:
-          name: Raha-Supermarket-v1.0.11-production
-          path: admin-app/Raha-Supermarket-v1.0.11-production.apk
+          name: Raha-Supermarket-v1.0.12-production
+          path: admin-app/Raha-Supermarket-v1.0.12-production.apk
           if-no-files-found: error
           retention-days: 7
