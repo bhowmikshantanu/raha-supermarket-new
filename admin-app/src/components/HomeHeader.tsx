@@ -1,4 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
 import React from "react";
 import {
   StyleSheet,
@@ -35,7 +36,7 @@ export const HomeHeader: React.FC<Props> = ({
   const { unreadNotificationCount } = useApp();
 
   return (
-    <View style={styles.container}>
+    <LinearGradient colors={[COLORS.maroonDark, COLORS.maroon, "#9B2450"]} style={styles.container}>
       <View style={styles.topRow}>
         <View style={styles.locWrap}>
           <View style={styles.locIcon}>
@@ -82,7 +83,7 @@ export const HomeHeader: React.FC<Props> = ({
               <Ionicons
                 name="location"
                 size={12}
-                color={COLORS.textSecondary}
+                color="rgba(255,255,255,0.78)"
               />
 
               <Text
@@ -116,8 +117,8 @@ export const HomeHeader: React.FC<Props> = ({
               size={22}
               color={
                 unreadNotificationCount > 0
-                  ? COLORS.primary
-                  : COLORS.textPrimary
+                  ? "#FFD44A"
+                  : "#FFFFFF"
               }
             />
 
@@ -145,7 +146,7 @@ export const HomeHeader: React.FC<Props> = ({
             <Ionicons
               name="person-circle-outline"
               size={32}
-              color={COLORS.textPrimary}
+              color="#FFFFFF"
             />
           </TouchableOpacity>
         </View>
@@ -187,19 +188,19 @@ export const HomeHeader: React.FC<Props> = ({
           />
         </TouchableOpacity>
       </View>
-    </View>
+    </LinearGradient>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: COLORS.background,
+    backgroundColor: COLORS.maroon,
     paddingHorizontal: SPACING.md,
     paddingTop: SPACING.md,
     paddingBottom: SPACING.md,
     gap: SPACING.sm,
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.borderLight,
+    borderBottomColor: "rgba(255,255,255,0.12)",
   },
 
   topRow: {
@@ -219,7 +220,9 @@ const styles = StyleSheet.create({
     width: 38,
     height: 38,
     borderRadius: 14,
-    backgroundColor: COLORS.maroon,
+    backgroundColor: "rgba(255,255,255,0.16)",
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.25)",
     justifyContent: "center",
     alignItems: "center",
   },
@@ -243,7 +246,7 @@ const styles = StyleSheet.create({
   brandName: {
     fontSize: FONT.size.xl,
     fontWeight: FONT.weight.heavy,
-    color: COLORS.maroon,
+    color: "#FFFFFF",
     flexShrink: 1,
   },
 
@@ -267,7 +270,7 @@ const styles = StyleSheet.create({
 
   address: {
     fontSize: FONT.size.xs,
-    color: COLORS.textSecondary,
+    color: "rgba(255,255,255,0.82)",
     flexShrink: 1,
   },
 
@@ -281,11 +284,11 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: RADIUS.md,
-    backgroundColor: COLORS.surface,
+    backgroundColor: "rgba(255,255,255,0.14)",
     justifyContent: "center",
     alignItems: "center",
     borderWidth: 1,
-    borderColor: COLORS.borderLight,
+    borderColor: "rgba(255,255,255,0.22)",
     position: "relative",
   },
 
@@ -301,7 +304,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     borderWidth: 2,
-    borderColor: COLORS.background,
+    borderColor: COLORS.maroon,
   },
 
   notificationBadgeText: {
@@ -330,12 +333,12 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: SPACING.sm,
-    backgroundColor: COLORS.surface,
+    backgroundColor: "#FFFFFF",
     borderRadius: RADIUS.xl,
     paddingVertical: 9,
     paddingHorizontal: SPACING.md,
     borderWidth: 1,
-    borderColor: COLORS.borderLight,
+    borderColor: "rgba(255,255,255,0.35)",
   },
 
   searchPlaceholder: {
@@ -348,9 +351,9 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: RADIUS.lg,
-    backgroundColor: COLORS.saffronLight,
+    backgroundColor: "#FFD44A",
     borderWidth: 1,
-    borderColor: COLORS.saffron,
+    borderColor: "#FFE57C",
     justifyContent: "center",
     alignItems: "center",
   },
