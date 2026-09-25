@@ -1,4 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
+import { Image } from "expo-image";
+import { LinearGradient } from "expo-linear-gradient";
 import {
   useFocusEffect,
   useRouter,
@@ -422,6 +424,34 @@ export default function HomeScreen() {
         </View>
       ) : null}
 
+      <View style={styles.categoryShowcase}>
+        <View style={styles.categoryShowcaseHeader}>
+          <Text style={styles.categoryShowcaseTitle}>Shop by Category</Text>
+          <TouchableOpacity onPress={() => router.push("/(tabs)/categories")} activeOpacity={0.75}>
+            <Text style={styles.categoryShowcaseAll}>View all</Text>
+          </TouchableOpacity>
+        </View>
+        <FlatList
+          data={CATEGORIES}
+          keyExtractor={(item) => item.id}
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.categoryStrip}
+          renderItem={({ item }) => (
+            <TouchableOpacity
+              activeOpacity={0.82}
+              style={styles.categoryTile}
+              onPress={() => router.push({ pathname: "/products", params: { category: item.id } })}
+            >
+              <View style={[styles.categoryImageWrap, { backgroundColor: item.color }]}>
+                <Image source={{ uri: item.image }} style={styles.categoryImage} contentFit="cover" />
+              </View>
+              <Text style={styles.categoryName} numberOfLines={2}>{item.name}</Text>
+            </TouchableOpacity>
+          )}
+        />
+      </View>
+
       <View style={styles.heroSection}>
         <FlatList
           ref={bannerListRef}
@@ -466,6 +496,58 @@ export default function HomeScreen() {
             ))}
           </View>
         ) : null}
+      </View>
+
+      <View style={styles.serviceHighlights}>
+        <View style={[styles.serviceCard, styles.serviceCardPink]}>
+          <Ionicons name="gift-outline" size={21} color={COLORS.maroon} />
+          <View style={styles.serviceTextWrap}>
+            <Text style={styles.serviceTitle}>₹500+ Free Delivery</Text>
+            <Text style={styles.serviceText}>Save on delivery</Text>
+          </View>
+        </View>
+        <View style={[styles.serviceCard, styles.serviceCardBlue]}>
+          <Ionicons name="time-outline" size={21} color={COLORS.indigo} />
+          <View style={styles.serviceTextWrap}>
+            <Text style={styles.serviceTitle}>10 AM – 8 PM</Text>
+            <Text style={styles.serviceText}>Daily delivery</Text>
+          </View>
+        </View>
+      </View>
+
+      <View style={styles.promoGrid}>
+        <TouchableOpacity style={styles.promoCard} activeOpacity={0.88} onPress={() => router.push({ pathname: "/products", params: { category: "dairy" } })}>
+          <LinearGradient colors={["#0757A6", "#1597E5"]} style={styles.promoGradient}>
+            <Ionicons name="water-outline" size={27} color="#FFFFFF" />
+            <Text style={styles.promoEyebrow}>FRESH EVERY DAY</Text>
+            <Text style={styles.promoTitle}>Milk & Dairy{"\n"}Essentials</Text>
+            <Text style={styles.promoCta}>SHOP NOW  ›</Text>
+          </LinearGradient>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.promoCard} activeOpacity={0.88} onPress={() => router.push({ pathname: "/products", params: { category: "snacks-biscuits" } })}>
+          <LinearGradient colors={["#F28C28", "#D94D14"]} style={styles.promoGradient}>
+            <Ionicons name="fast-food-outline" size={27} color="#FFFFFF" />
+            <Text style={styles.promoEyebrow}>TASTY SAVINGS</Text>
+            <Text style={styles.promoTitle}>Snacks &{"\n"}Biscuits</Text>
+            <Text style={styles.promoCta}>EXPLORE  ›</Text>
+          </LinearGradient>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.promoCard} activeOpacity={0.88} onPress={() => router.push({ pathname: "/products", params: { category: "grocery-staples" } })}>
+          <LinearGradient colors={["#6B2817", "#B34A19"]} style={styles.promoGradient}>
+            <Ionicons name="basket-outline" size={27} color="#FFFFFF" />
+            <Text style={styles.promoEyebrow}>VALUE PACKS</Text>
+            <Text style={styles.promoTitle}>Rice, Atta &{"\n"}Staples</Text>
+            <Text style={styles.promoCta}>SHOP NOW  ›</Text>
+          </LinearGradient>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.promoCard} activeOpacity={0.88} onPress={() => router.push({ pathname: "/products", params: { category: "household" } })}>
+          <LinearGradient colors={["#5B248A", "#B43CC1"]} style={styles.promoGradient}>
+            <Ionicons name="sparkles-outline" size={27} color="#FFFFFF" />
+            <Text style={styles.promoEyebrow}>CLEAN & SHINE</Text>
+            <Text style={styles.promoTitle}>Home Care{"\n"}Essentials</Text>
+            <Text style={styles.promoCta}>EXPLORE  ›</Text>
+          </LinearGradient>
+        </TouchableOpacity>
       </View>
 
       <View style={styles.quickActionsSection}>
@@ -985,5 +1067,133 @@ const styles = StyleSheet.create({
 
   heroSection: {
     marginTop: SPACING.md,
+  },
+
+  categoryShowcase: {
+    marginTop: SPACING.md,
+  },
+  categoryShowcaseHeader: {
+    paddingHorizontal: SPACING.md,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: SPACING.sm,
+  },
+  categoryShowcaseTitle: {
+    fontSize: FONT.size.lg,
+    fontWeight: FONT.weight.bold,
+    color: COLORS.maroon,
+  },
+  categoryShowcaseAll: {
+    fontSize: FONT.size.sm,
+    fontWeight: FONT.weight.semibold,
+    color: COLORS.saffronDark,
+  },
+  categoryStrip: {
+    paddingHorizontal: SPACING.md,
+    gap: SPACING.sm,
+  },
+  categoryTile: {
+    width: 82,
+    alignItems: "center",
+  },
+  categoryImageWrap: {
+    width: 68,
+    height: 68,
+    borderRadius: 20,
+    padding: 4,
+    overflow: "hidden",
+    borderWidth: 1,
+    borderColor: "rgba(122,31,61,0.08)",
+    ...SHADOW.card,
+  },
+  categoryImage: {
+    width: "100%",
+    height: "100%",
+    borderRadius: 16,
+  },
+  categoryName: {
+    marginTop: 6,
+    minHeight: 30,
+    textAlign: "center",
+    fontSize: 10.5,
+    lineHeight: 14,
+    fontWeight: FONT.weight.semibold,
+    color: COLORS.textPrimary,
+  },
+  serviceHighlights: {
+    flexDirection: "row",
+    paddingHorizontal: SPACING.md,
+    gap: SPACING.sm,
+    marginTop: SPACING.md,
+  },
+  serviceCard: {
+    flex: 1,
+    minHeight: 64,
+    borderRadius: RADIUS.lg,
+    padding: SPACING.sm,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 7,
+    borderWidth: 1,
+    borderColor: COLORS.borderLight,
+  },
+  serviceCardPink: {
+    backgroundColor: "#FFF0F3",
+  },
+  serviceCardBlue: {
+    backgroundColor: "#EDF8FF",
+  },
+  serviceTextWrap: {
+    flex: 1,
+  },
+  serviceTitle: {
+    fontSize: FONT.size.xs,
+    fontWeight: FONT.weight.bold,
+    color: COLORS.textPrimary,
+  },
+  serviceText: {
+    marginTop: 2,
+    fontSize: 9.5,
+    color: COLORS.textSecondary,
+  },
+  promoGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    paddingHorizontal: SPACING.md,
+    gap: SPACING.sm,
+    marginTop: SPACING.md,
+  },
+  promoCard: {
+    width: "48.5%",
+    minHeight: 132,
+    borderRadius: RADIUS.lg,
+    overflow: "hidden",
+    ...SHADOW.card,
+  },
+  promoGradient: {
+    flex: 1,
+    padding: SPACING.md,
+    justifyContent: "flex-end",
+  },
+  promoEyebrow: {
+    color: "rgba(255,255,255,0.82)",
+    fontSize: 9,
+    fontWeight: FONT.weight.bold,
+    marginTop: 7,
+    letterSpacing: 0.5,
+  },
+  promoTitle: {
+    color: "#FFFFFF",
+    fontSize: FONT.size.lg,
+    lineHeight: 19,
+    fontWeight: FONT.weight.heavy,
+    marginTop: 2,
+  },
+  promoCta: {
+    color: "#FFE58A",
+    fontSize: 10,
+    fontWeight: FONT.weight.heavy,
+    marginTop: 7,
   },
 });
