@@ -166,7 +166,17 @@ export default function HomeScreen() {
 
   const liveBanners = useMemo(() => {
     const dynamic = offerBanners.filter(isOfferLive);
-    return dynamic.length > 0 ? dynamic : BANNERS;
+    if (dynamic.length === 0) return BANNERS;
+
+    const combined: any[] = [];
+    const maxLength = Math.max(BANNERS.length, dynamic.length);
+
+    for (let index = 0; index < maxLength; index += 1) {
+      if (BANNERS[index]) combined.push(BANNERS[index]);
+      if (dynamic[index]) combined.push(dynamic[index]);
+    }
+
+    return combined;
   }, [offerBanners]);
 
   const bannerWidth = Math.max(
