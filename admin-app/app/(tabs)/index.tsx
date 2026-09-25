@@ -34,6 +34,11 @@ import { useApp } from "@/src/context/AppContext";
 import { useProducts } from "@/src/context/ProductContext";
 import { CATEGORIES } from "@/src/data/categories";
 import { BANNERS } from "@/src/data/products";
+import {
+  isOfferLive,
+  subscribeToOfferBanners,
+  type OfferBanner,
+} from "@/src/services/firebaseOfferBanners";
 import { getRecommendedProducts } from "@/src/data/recommendations";
 import { getRecentlyViewedProductIds } from "@/src/data/recentlyViewed";
 import type { Product } from "@/src/types";
@@ -153,10 +158,16 @@ export default function HomeScreen() {
   const { showToast } = useToast();
 
   const [bannerIndex, setBannerIndex] = useState(0);
+  const [offerBanners, setOfferBanners] = useState<OfferBanner[]>([]);
   const [recentlyViewedIds, setRecentlyViewedIds] =
     useState<string[]>([]);
 
-  const bannerListRef = useRef<FlatList<typeof BANNERS[number]> | null>(null);
+  const bannerListRef = useRef<FlatList<any> | null>(null);
+
+  const liveBanners = useMemo(() => {
+    const dynamic = offerBanners.filter(isOfferLive);
+    return dynamic.length > 0 ? dynamic : BANNERS;
+  }, [offerBanners]);
 
   const bannerWidth = Math.max(
     280,
@@ -226,6 +237,14 @@ export default function HomeScreen() {
     [],
   );
 
+  useEffect(() => {
+    const unsubscribe = subscribeToOfferBanners(
+      (items) => setOfferBanners(items),
+      (error) => console.warn("Unable to load live offer banners:", error),
+    );
+    return unsubscribe;
+  }, []);
+
   useFocusEffect(
     useCallback(() => {
       let active = true;
@@ -248,10 +267,10 @@ export default function HomeScreen() {
   );
 
   useEffect(() => {
-    if (BANNERS.length <= 1) return undefined;
+    if (liveBanners.length <= 1) return undefined;
     const interval = setInterval(() => {
       setBannerIndex((current) => {
-        const next = (current + 1) % BANNERS.length;
+        const next = (current + 1) % liveBanners.length;
         bannerListRef.current?.scrollToOffset({
           offset: next * (bannerWidth + SPACING.sm),
           animated: true,
@@ -261,7 +280,7 @@ export default function HomeScreen() {
     }, 4500);
 
     return () => clearInterval(interval);
-  }, [bannerWidth]);
+  }, [bannerWidth, liveBanners.length]);
 
   const handleProductPress = useCallback(
     (product: Product) => {
@@ -455,7 +474,7 @@ export default function HomeScreen() {
       <View style={styles.heroSection}>
         <FlatList
           ref={bannerListRef}
-          data={BANNERS}
+          data={liveBanners}
           keyExtractor={(banner) => String(banner.id)}
           horizontal
           decelerationRate="fast"
@@ -476,7 +495,10 @@ export default function HomeScreen() {
                 title={item.title}
                 subtitle={item.subtitle}
                 cta={item.cta}
-                onPress={() => router.push("/products")}
+                onPress={() => {
+                  const route = "route" in item && item.route ? item.route : "/products";
+                  router.push(route as any);
+                }}
               />
             </View>
           )}
