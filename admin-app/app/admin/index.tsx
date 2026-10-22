@@ -98,6 +98,11 @@ const NAV_ITEMS: NavItem[] = [
     route: "/admin/order-alerts",
   },
   {
+    label: "Marketing CRM",
+    icon: "chatbubbles-outline",
+    route: "/admin/marketing",
+  },
+  {
     label: "Reports",
     icon: "bar-chart-outline",
     route: "/admin/reports",
